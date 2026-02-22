@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a1628">
+<title>MARINHA</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--gr:#27ae60;--r:#e74c3c}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:#1a2332;min-height:100vh}
+
+/* ===== ECRÃ REGISTO ===== */
+#eRegisto{
+  position:fixed;inset:0;z-index:200;
+  background:linear-gradient(160deg,var(--n),var(--s));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:32px;
+}
+.rLogo{font-family:'Playfair Display',serif;font-size:44px;color:#f5f0e8;letter-spacing:7px}
+.rSub{color:var(--g);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px}
+.rCampo{
+  width:100%;max-width:340px;padding:15px;
+  background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);
+  border-radius:13px;font-size:16px;color:#fff;outline:none;
+  font-family:'DM Sans',sans-serif;
+}
+.rCampo::placeholder{color:rgba(255,255,255,.4)}
+.rBtn{
+  width:100%;max-width:340px;padding:17px;margin-top:4px;
+  background:linear-gradient(135deg,var(--g),var(--gl));
+  color:var(--n);border:none;border-radius:13px;
+  font-family:'DM Sans',sans-serif;font-weight:800;font-size:16px;cursor:pointer;
+}
+.rNota{color:rgba(255,255,255,.28);font-size:11px;text-align:center;max-width:280px;line-height:1.7}
+
+/* ===== APP ===== */
+#eApp{display:none;flex-direction:column;min-height:100vh}
+.cab{position:fixed;top:0;left:0;right:0;z-index:100;height:58px;
+  background:linear-gradient(135deg,var(--n),var(--s));
+  display:flex;align-items:center;padding:0 16px;
+  box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.cabT{color:#fff;font-size:17px;font-weight:700;font-family:'Playfair Display',serif;letter-spacing:2px}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:100;height:68px;background:#fff;
+  border-top:1px solid rgba(0,0,0,.08);display:flex;box-shadow:0 -2px 14px rgba(0,0,0,.06)}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;border:none;background:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:.5px;text-transform:uppercase;color:var(--mu)}
+.nb svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8}
+.nb.on{color:var(--n)}.nb.on svg{stroke:var(--g)}
+.pg{display:none;padding:70px 0 80px;min-height:100vh}
+.pg.on{display:block}
+.s{padding:0 16px}
+.card{background:#fff;border-radius:15px;padding:16px;box-shadow:0 2px 10px rgba(10,22,40,.06);margin-bottom:12px}
+.ct{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+.btnP{width:100%;padding:14px;background:linear-gradient(135deg,var(--g),var(--gl));
+  color:var(--n);border:none;border-radius:13px;font-weight:800;font-size:15px;
+  cursor:pointer;font-family:'DM Sans',sans-serif}
+.btnR{width:100%;padding:13px;background:rgba(231,76,60,.07);color:var(--r);
+  border:1.5px solid rgba(231,76,60,.2);border-radius:13px;font-weight:700;
+  font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--n),var(--s));padding:26px 18px 44px;position:relative;overflow:hidden}
+.hero:after{content:'';position:absolute;bottom:-18px;left:0;right:0;height:38px;background:var(--bg);border-radius:50% 50% 0 0/100% 100% 0 0}
+.miniG{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:14px}
+.mini{background:#fff;border-radius:13px;padding:13px 6px;text-align:center;box-shadow:0 2px 7px rgba(0,0,0,.05)}
+
+/* QR */
+.qrBox{background:var(--n);margin:14px;border-radius:18px;padding:22px;text-align:center}
+.qrWrap{background:#fff;border-radius:14px;padding:14px;display:inline-block;margin-bottom:14px}
+
+/* PROMOS */
+.promoG{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.pc{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(10,22,40,.06)}
+.pi{width:100%;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:26px;position:relative}
+.pi img{width:100%;height:auto;display:block}
+.bdg{position:absolute;top:4px;left:4px;background:var(--r);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:5px}
+.pb{padding:7px}
+.pn{font-size:11px;font-weight:700;margin-bottom:2px}
+.pv{font-size:13px;font-weight:800;color:var(--r)}
+.po{font-size:10px;color:var(--mu);text-decoration:line-through;margin-right:3px}
+
+/* FOLHETO */
+.fStrip{display:flex;gap:10px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}
+.fStrip::-webkit-scrollbar{display:none}
+.fTh{flex-shrink:0;width:82px;height:110px;border-radius:10px;overflow:hidden;cursor:pointer;background:#eef2f7;display:flex;align-items:center;justify-content:center}
+.fTh img{width:100%;height:100%;object-fit:cover}
+
+/* VIEWER - zoom com dedos via overflow scroll */
+#viewer{position:fixed;inset:0;z-index:900;background:#000;display:none}
+#viewer.on{display:block;overflow:auto;-webkit-overflow-scrolling:touch}
+#viewerImg{width:100%;display:block;touch-action:pan-x pan-y pinch-zoom}
+#viewerTopo{position:fixed;top:0;left:0;right:0;z-index:910;padding:12px 14px;
+  background:linear-gradient(rgba(0,0,0,.7),transparent);
+  display:flex;align-items:center;gap:10px}
+.vBtn{padding:8px 14px;background:rgba(255,255,255,.15);border:none;color:#fff;
+  border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px}
+
+/* PERFIL */
+.pH{background:linear-gradient(135deg,var(--n),var(--s));padding:38px 18px 48px;text-align:center;position:relative}
+.pH:after{content:'';position:absolute;bottom:-18px;left:0;right:0;height:38px;background:var(--bg);border-radius:50% 50% 0 0/100% 100% 0 0}
+.pAv{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);font-size:30px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.rG{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rI{background:#fff;border-radius:13px;padding:13px;text-align:center;box-shadow:0 2px 7px rgba(0,0,0,.05)}
+.hR{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.05)}
+
+/* TOAST */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--n);color:#fff;padding:10px 20px;border-radius:26px;font-size:14px;
+  font-weight:600;z-index:999;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="eRegisto">
+  <div class="rLogo">&#9875; MARINHA</div>
+  <div class="rSub">Cartao de fidelizacao</div>
+  <input id="rNome"  class="rCampo" type="text"  placeholder="O seu nome completo">
+  <input id="rTel"   class="rCampo" type="tel"   placeholder="Telemovel">
+  <input id="rEmail" class="rCampo" type="email" placeholder="Email (opcional)">
+  <button class="rBtn" onclick="entrar()">Criar o meu cartao &#127754;</button>
+  <p class="rNota">Os seus dados ficam guardados neste dispositivo.</p>
+</div>
+
+<div id="eApp">
+  <div class="cab"><span class="cabT">MARINHA</span></div>
+
+  <div class="pg on" id="pgInicio">
+    <div class="hero">
+      <div style="color:rgba(255,255,255,.45);font-size:13px">Ola,</div>
+      <div style="color:#fff;font-size:22px;font-weight:700;margin-bottom:16px" id="hNome">-</div>
+      <div style="background:rgba(255,255,255,.09);border-radius:16px;padding:16px;cursor:pointer" onclick="ir('qr')">
+        <div style="color:rgba(255,255,255,.4);font-size:11px;margin-bottom:3px">Pontos acumulados</div>
+        <div style="color:var(--g);font-size:36px;font-weight:900;line-height:1" id="hPts">0 pts</div>
+        <div style="background:rgba(255,255,255,.15);border-radius:8px;height:5px;margin:10px 0 5px">
+          <div id="hBarra" style="background:var(--g);border-radius:8px;height:5px;width:0%;transition:width .6s"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.38)">
+          <span>Proximo: <strong id="hProx">500 pts</strong></span>
+          <span id="hNivel">Bronze</span>
+        </div>
+      </div>
+    </div>
+    <div class="miniG">
+      <div class="mini"><div style="font-size:18px">&#128176;</div><div style="font-size:18px;font-weight:800" id="hPou">0</div><div style="font-size:10px;color:var(--mu)">Poupado</div></div>
+      <div class="mini"><div style="font-size:18px">&#128717;</div><div style="font-size:18px;font-weight:800" id="hVis">0</div><div style="font-size:10px;color:var(--mu)">Visitas</div></div>
+      <div class="mini"><div style="font-size:18px">&#11088;</div><div style="font-size:18px;font-weight:800" id="hCar">0</div><div style="font-size:10px;color:var(--mu)">Carimbos</div></div>
+    </div>
+    <div class="s">
+      <div class="card"><div class="ct">Desconto disponivel</div><div id="hDesc"></div></div>
+      <div class="card"><div class="ct">Promocoes ativas</div><div id="hPromos"></div></div>
+    </div>
+  </div>
+
+  <div class="pg" id="pgQr" style="background:var(--n)">
+    <div class="qrBox">
+      <div style="color:rgba(255,255,255,.4);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">O meu cartao</div>
+      <div style="color:#fff;font-size:17px;font-weight:700;margin-bottom:16px" id="qNome">-</div>
+      <div class="qrWrap"><svg id="qSvg" width="160" height="160" viewBox="0 0 160 160"></svg></div>
+      <div style="color:var(--g);font-size:28px;font-weight:900;letter-spacing:6px;font-family:monospace" id="qId">-</div>
+      <div style="color:rgba(255,255,255,.3);font-size:11px;margin-top:4px">Mostre ao lojista</div>
+    </div>
+    <div style="padding:0 14px 14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="background:rgba(255,255,255,.07);border-radius:12px;padding:13px;text-align:center">
+          <div style="color:var(--g);font-size:24px;font-weight:800" id="qPts">0</div>
+          <div style="color:rgba(255,255,255,.35);font-size:11px;margin-top:2px">Pontos</div>
+        </div>
+        <div style="background:rgba(255,255,255,.07);border-radius:12px;padding:13px;text-align:center">
+          <div style="color:var(--gr);font-size:24px;font-weight:800" id="qDesc">0EUR</div>
+          <div style="color:rgba(255,255,255,.35);font-size:11px;margin-top:2px">Desconto</div>
+        </div>
+      </div>
+      <div style="color:rgba(255,255,255,.3);font-size:12px;text-align:center;margin-bottom:8px">Tem um QR de recibo da loja?</div>
+      <button onclick="document.getElementById('inpRec').click()" style="width:100%;padding:14px;background:rgba(201,168,76,.15);color:var(--g);border:1.5px solid rgba(201,168,76,.3);border-radius:12px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Ler recibo</button>
+      <input type="file" id="inpRec" accept="image/*" style="display:none" onchange="lerRecibo(event)">
+    </div>
+  </div>
+
+  <div class="pg" id="pgFolheto">
+    <div class="hero">
+      <div style="display:inline-block;background:rgba(201,168,76,.2);color:var(--g);padding:3px 11px;border-radius:18px;font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:7px" id="fBadge">Promocoes</div>
+      <h2 style="color:#fff;font-family:'Playfair Display',serif;font-size:24px">Ofertas Especiais</h2>
+      <p style="color:rgba(255,255,255,.45);font-size:13px;margin-top:3px" id="fVal">-</p>
+    </div>
+    <div class="s" style="padding-top:26px">
+      <div id="fPromos"></div>
+      <div id="fImgs"></div>
+    </div>
+  </div>
+
+  <div class="pg" id="pgPerfil">
+    <div class="pH">
+      <div class="pAv" id="pAv">M</div>
+      <div style="color:#fff;font-size:21px;font-weight:700" id="pNome">-</div>
+      <div style="color:var(--g);font-size:13px;margin-top:3px" id="pNiv">Bronze</div>
+    </div>
+    <div class="s" style="padding-top:26px">
+      <div class="card"><div class="ct">Resumo</div>
+        <div class="rG">
+          <div class="rI"><div style="font-size:20px;font-weight:800" id="prPts">0</div><div style="font-size:11px;color:var(--mu)">Pontos</div></div>
+          <div class="rI"><div style="font-size:20px;font-weight:800" id="prPou">0</div><div style="font-size:11px;color:var(--mu)">Poupado</div></div>
+          <div class="rI"><div style="font-size:20px;font-weight:800" id="prVis">0</div><div style="font-size:11px;color:var(--mu)">Visitas</div></div>
+          <div class="rI"><div style="font-size:20px;font-weight:800" id="prCar">0/10</div><div style="font-size:11px;color:var(--mu)">Carimbos</div></div>
+        </div>
+      </div>
+      <div class="card"><div class="ct">Historico</div><div id="prHist"></div></div>
+      <button class="btnR" onclick="sair()">Terminar sessao</button>
+      <div style="height:16px"></div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="nb on" id="nbInicio" onclick="ir('Inicio')">
+      <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio
+    </button>
+    <button class="nb" id="nbQr" onclick="ir('Qr')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7"/></svg>QR
+    </button>
+    <button class="nb" id="nbFolheto" onclick="ir('Folheto')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Folheto
+    </button>
+    <button class="nb" id="nbPerfil" onclick="ir('Perfil')">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Perfil
+    </button>
+  </nav>
+</div>
+
+<!-- VIEWER: imagem única com scroll/zoom nativo -->
+<div id="viewer">
+  <div id="viewerTopo">
+    <button class="vBtn" onclick="fecharV()">&#8592; Fechar</button>
+    <span style="color:rgba(255,255,255,.6);font-size:13px" id="vCont">1/1</span>
+    <div style="flex:1"></div>
+    <button class="vBtn" onclick="vNav(-1)">&#8249;</button>
+    <button class="vBtn" onclick="vNav(1)">&#8250;</button>
+  </div>
+  <img id="viewerImg" src="" alt="">
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── DADOS ──────────────────────────────────────────────────
+var D = { clientes:[], promos:[], folhetos:[], visitas:[], logado:null, cfg:{ptsEuro:10,ptsDesc:100} };
+
+function carregar() {
+  // Dados do admin (promos, folhetos, config)
+  try {
+    var s = localStorage.getItem('MARINHA_V2');
+    if (s) {
+      var d = JSON.parse(s);
+      if (d.promos)   D.promos   = d.promos   || [];
+      if (d.folhetos) D.folhetos = d.folhetos  || [];
+      if (d.config)   D.cfg      = Object.assign({}, D.cfg, d.config);
+      // fallback clientes do admin
+      if (d.clientes) D.clientes = d.clientes;
+      if (d.visitas)  D.visitas  = d.visitas   || [];
+      if (d.clienteLogado) D.logado = d.clienteLogado;
+    }
+  } catch(e) {}
+  // Dados do cliente (chave separada, sem imagens — sobrepoe)
+  try {
+    var sc = localStorage.getItem('MARINHA_CLI');
+    if (sc) {
+      var dc = JSON.parse(sc);
+      if (dc.clientes) D.clientes = dc.clientes;
+      if (dc.visitas)  D.visitas  = dc.visitas;
+      if (dc.logado !== undefined) D.logado = dc.logado;
+    }
+  } catch(e) {}
+}
+
+function guardar() {
+  // Chave pequena SEM imagens — nunca falha por quota
+  try {
+    localStorage.setItem('MARINHA_CLI', JSON.stringify({
+      logado:   D.logado,
+      clientes: D.clientes,
+      visitas:  D.visitas
+    }));
+  } catch(e) {}
+  // Tenta sincronizar com o admin (pode falhar se muito cheio)
+  try {
+    var s = localStorage.getItem('MARINHA_V2');
+    var d = s ? JSON.parse(s) : {};
+    d.clienteLogado = D.logado;
+    d.clientes = D.clientes;
+    d.visitas  = D.visitas;
+    localStorage.setItem('MARINHA_V2', JSON.stringify(d));
+  } catch(e) {}
+}
+
+// Imagens do folheto via IndexedDB
+var _idb = null;
+function abrirIDB() {
+  return new Promise(function(ok,no) {
+    if (_idb) return ok(_idb);
+    var r = indexedDB.open('MARINHA_V2',1);
+    r.onupgradeneeded = function(e){ e.target.result.createObjectStore('imgs'); };
+    r.onsuccess = function(e){ _idb=e.target.result; ok(_idb); };
+    r.onerror   = function(){ no(); };
+  });
+}
+function idbGet(k) {
+  return abrirIDB().then(function(db){
+    return new Promise(function(ok,no){
+      var tx=db.transaction('imgs','readonly');
+      var r=tx.objectStore('imgs').get(k);
+      r.onsuccess=function(){ ok(r.result); };
+      r.onerror=function(){ no(); };
+    });
+  });
+}
+function carregarImgs() {
+  D.folhetos.forEach(function(f,i){
+    if (!f.data) {
+      idbGet('F_'+f.id).then(function(data){
+        if (data) D.folhetos[i] = Object.assign({},f,{data:data});
+      }).catch(function(){});
+    }
+  });
+}
+
+// Sincronizar ao voltar ao foco
+document.addEventListener('visibilitychange', function(){
+  if (document.visibilityState==='visible') { carregar(); carregarImgs(); renderAtivo(); }
+});
+
+// ── UTILS ──────────────────────────────────────────────────
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function hoje(){ return new Date().toISOString().slice(0,10); }
+function fd(d) { return d ? new Date(d).toLocaleDateString('pt-PT',{day:'2-digit',month:'short'}) : '-'; }
+function toast(m,ms){
+  var t=document.getElementById('toast');
+  t.textContent=m; t.classList.add('on');
+  clearTimeout(t._x); t._x=setTimeout(function(){t.classList.remove('on');},ms||2500);
+}
+function nivel(p){ return p>=2000?'Diamante':p>=1000?'Ouro':p>=500?'Prata':'Bronze'; }
+function proxNivel(p){ return p>=2000?{v:2000,l:'Max!'}:p>=1000?{v:2000,l:'Diamante'}:p>=500?{v:1000,l:'Ouro'}:{v:500,l:'Prata'}; }
+function descEur(p){ return Math.floor(p/(D.cfg.ptsDesc||100)); }
+function ativas(){
+  var h=hoje();
+  return D.promos.filter(function(p){ return (!p.dataIni||p.dataIni<=h)&&(!p.dataFim||p.dataFim>=h); });
+}
+function eu(){ return D.clientes.find(function(c){ return c.id===D.logado; }); }
+
+// ── ENTRAR / SAIR ──────────────────────────────────────────
+function entrar() {
+  var nome  = document.getElementById('rNome').value.trim();
+  var tel   = document.getElementById('rTel').value.trim();
+  var email = document.getElementById('rEmail').value.trim();
+  if (!nome) { toast('Insira o seu nome'); return; }
+  if (!tel)  { toast('Insira o seu telemovel'); return; }
+
+  var c = D.clientes.find(function(x){ return x.tel===tel; });
+  if (!c) {
+    c = {id:uid(),nome:nome,tel:tel,email:email,pts:0,visitas:0,carimbos:0,poupado:0,desde:hoje(),historico:[]};
+    D.clientes.push(c);
+  }
+  D.logado = c.id;
+  guardar();
+
+  document.getElementById('eRegisto').style.display = 'none';
+  var app = document.getElementById('eApp');
+  app.style.display       = 'flex';
+  app.style.flexDirection = 'column';
+  ir('Inicio');
+  setTimeout(function(){ toast('Bem-vindo(a), '+c.nome+'!'); }, 300);
+}
+
+function sair() {
+  if (!confirm('Terminar sessao?\nOs pontos ficam guardados.')) return;
+  D.logado = null;
+  guardar();
+  document.getElementById('eApp').style.display    = 'none';
+  document.getElementById('eRegisto').style.display = 'flex';
+}
+
+// ── NAV ────────────────────────────────────────────────────
+var _tab = 'Inicio';
+function ir(tab) {
+  _tab = tab;
+  document.querySelectorAll('.pg').forEach(function(e){ e.classList.remove('on'); });
+  document.querySelectorAll('.nb').forEach(function(e){ e.classList.remove('on'); });
+  document.getElementById('pg'+tab).classList.add('on');
+  var nb = document.getElementById('nb'+tab);
+  if (nb) nb.classList.add('on');
+  renderAtivo();
+  window.scrollTo(0,0);
+}
+function renderAtivo(){
+  if (_tab==='Inicio')  rInicio();
+  if (_tab==='Qr')      rQr();
+  if (_tab==='Folheto') rFolheto();
+  if (_tab==='Perfil')  rPerfil();
+}
+
+// ── RENDER INÍCIO ──────────────────────────────────────────
+function rInicio() {
+  var c=eu(); if(!c) return;
+  document.getElementById('hNome').textContent  = c.nome+'!';
+  document.getElementById('hPts').textContent   = (c.pts||0)+' pts';
+  document.getElementById('hPou').textContent   = (c.poupado||0).toFixed(2)+'E';
+  document.getElementById('hVis').textContent   = c.visitas||0;
+  document.getElementById('hCar').textContent   = c.carimbos||0;
+  var n=nivel(c.pts||0), p=proxNivel(c.pts||0);
+  var pct=Math.min(100,((c.pts||0)/p.v)*100);
+  document.getElementById('hBarra').style.width = pct+'%';
+  document.getElementById('hNivel').textContent = n;
+  document.getElementById('hProx').textContent  = p.l;
+  var d=descEur(c.pts||0);
+  document.getElementById('hDesc').innerHTML = d>0
+    ? '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:28px">&#128176;</span><div><div style="font-size:16px;font-weight:800;color:var(--gr)">'+d.toFixed(2)+'EUR de desconto</div><div style="font-size:12px;color:var(--mu);margin-top:2px">Mostre o QR na loja</div></div></div>'
+    : '<div style="font-size:13px;color:var(--mu)">Faltam <strong>'+((D.cfg.ptsDesc||100)-((c.pts||0)%(D.cfg.ptsDesc||100)))+'</strong> pts para 1EUR de desconto</div>';
+  var av=ativas().slice(0,4);
+  document.getElementById('hPromos').innerHTML = av.length
+    ? av.map(function(p){
+        var img=p.foto?'<img src="'+p.foto+'" style="width:42px;height:42px;border-radius:8px;object-fit:cover;flex-shrink:0">'
+          :'<div style="width:42px;height:42px;border-radius:8px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+(p.emoji||'&#128722;')+'</div>';
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05)">'+img+
+          '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.nome+'</div>'+
+          '<div style="font-size:11px;color:var(--mu)">ate '+fd(p.dataFim)+'</div></div>'+
+          (p.precoNovo?'<div style="font-size:14px;font-weight:800;color:var(--r);white-space:nowrap">'+parseFloat(p.precoNovo).toFixed(2)+'E</div>':'')+
+          '</div>';
+      }).join('')
+    : '<div style="font-size:13px;color:var(--mu)">Sem promocoes ativas</div>';
+}
+
+// ── RENDER QR ──────────────────────────────────────────────
+function rQr() {
+  var c=eu(); if(!c) return;
+  document.getElementById('qNome').textContent = c.nome;
+  document.getElementById('qId').textContent   = (c.id||'').slice(-6).toUpperCase();
+  document.getElementById('qPts').textContent  = c.pts||0;
+  document.getElementById('qDesc').textContent = descEur(c.pts||0).toFixed(2)+'EUR';
+  qrDraw('MARINHA:ID:'+c.id, document.getElementById('qSvg'));
+}
+
+// ── RENDER FOLHETO ─────────────────────────────────────────
+function rFolheto() {
+  var av=ativas();
+  var vm=av.reduce(function(a,p){ return p.dataFim>a?p.dataFim:a; },'');
+  document.getElementById('fVal').textContent   = vm?'Valido ate '+fd(vm):'Consulte as promocoes';
+  document.getElementById('fBadge').textContent = new Date().toLocaleDateString('pt-PT',{month:'long',year:'numeric'});
+  document.getElementById('fPromos').innerHTML = av.length
+    ? '<div class="promoG">'+av.map(function(p){
+        var pct=p.precoOrig>0?Math.round((1-p.precoNovo/p.precoOrig)*100):0;
+        return '<div class="pc"><div class="pi">'+(p.foto?'<img src="'+p.foto+'">':(p.emoji||'&#128722;'))+(pct>0?'<div class="bdg">-'+pct+'%</div>':'')+'</div>'+
+          '<div class="pb"><div class="pn">'+p.nome+'</div>'+
+          '<div style="display:flex;align-items:center;gap:4px">'+(p.precoOrig?'<span class="po">'+parseFloat(p.precoOrig).toFixed(2)+'E</span>':'')+(p.precoNovo?'<span class="pv">'+parseFloat(p.precoNovo).toFixed(2)+'E</span>':'')+'</div></div></div>';
+      }).join('')+'</div>'
+    : '<div style="text-align:center;padding:28px;color:var(--mu)">Sem promocoes ativas</div>';
+  var imgs=D.folhetos.filter(function(f){ return f.data; });
+  document.getElementById('fImgs').innerHTML = imgs.length
+    ? '<div class="card" style="margin-top:12px"><div class="ct">Folheto</div><div class="fStrip">'+
+        imgs.map(function(f,i){ return '<div class="fTh" onclick="abrirV('+i+')"><img src="'+f.data+'"></div>'; }).join('')+
+      '</div></div>'
+    : '';
+}
+
+// ── RENDER PERFIL ──────────────────────────────────────────
+function rPerfil() {
+  var c=eu(); if(!c) return;
+  document.getElementById('pAv').textContent   = c.nome.charAt(0).toUpperCase();
+  document.getElementById('pNome').textContent = c.nome;
+  document.getElementById('pNiv').textContent  = nivel(c.pts||0);
+  document.getElementById('prPts').textContent = c.pts||0;
+  document.getElementById('prPou').textContent = (c.poupado||0).toFixed(2)+'E';
+  document.getElementById('prVis').textContent = c.visitas||0;
+  document.getElementById('prCar').textContent = ((c.carimbos||0)%10)+'/10';
+  var h=(c.historico||[]).slice(0,12);
+  document.getElementById('prHist').innerHTML = h.length
+    ? h.map(function(x){ return '<div class="hR"><span style="font-size:18px">'+(x.desconto>0?'&#128176;':'&#11088;')+'</span>'+
+        '<div style="flex:1"><div style="font-size:13px;font-weight:600">'+x.desc+'</div>'+
+        '<div style="font-size:11px;color:var(--mu)">'+fd(x.data)+'</div></div>'+
+        '<div style="font-size:13px;font-weight:700;color:var(--gr)">+'+x.pts+' pts</div></div>'; }).join('')
+    : '<div style="color:var(--mu);font-size:13px;padding:8px 0">Sem movimentos</div>';
+}
+
+// ── LER RECIBO ─────────────────────────────────────────────
+function lerRecibo(e) {
+  var f=e.target.files[0]; if(!f) return;
+  toast('A ler recibo...');
+  var img=new Image(), url=URL.createObjectURL(f);
+  img.onload=function(){
+    var cv=document.createElement('canvas');
+    cv.width=img.width; cv.height=img.height;
+    cv.getContext('2d').drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    try{e.target.value='';}catch(x){}
+    if (!window.BarcodeDetector){ toast('Browser sem suporte a QR',3500); return; }
+    new BarcodeDetector({formats:['qr_code']}).detect(cv).then(function(cs){
+      if (cs.length) procRecibo(cs[0].rawValue);
+      else toast('Nao foi possivel ler o QR',3500);
+    }).catch(function(){ toast('Erro ao ler QR',3500); });
+  };
+  img.src=url;
+}
+function procRecibo(txt) {
+  var m=txt.match(/MARINHA:UPDATE:([^:]+):(\d+):(\d+):([\d.]+)/);
+  if (!m){ toast('QR invalido'); return; }
+  var c=eu(); if(!c) return;
+  if (c.id!==m[1]){ toast('Recibo de outro cliente'); return; }
+  var ganhos=Math.max(0,parseInt(m[2])-(c.pts||0));
+  c.pts=parseInt(m[2]); c.visitas=parseInt(m[3]); c.poupado=parseFloat(m[4]);
+  if (!c.historico) c.historico=[];
+  c.historico.unshift({desc:'Compra registada',pts:ganhos,desconto:0,data:new Date().toISOString()});
+  guardar(); rQr(); rInicio();
+  toast('+'+ganhos+' pontos adicionados!',3000);
+}
+
+// ── VIEWER ─────────────────────────────────────────────────
+// Usa scroll nativo do browser = zoom com 2 dedos funciona automaticamente
+var _vi=0, _vl=[];
+function abrirV(i) {
+  _vl=D.folhetos.filter(function(f){ return f.data; });
+  if (!_vl.length) return;
+  _vi=Math.max(0,Math.min(i,_vl.length-1));
+  mostrarV();
+  var v=document.getElementById('viewer');
+  v.style.display='block';
+  v.style.overflow='auto';
+  v.style.webkitOverflowScrolling='touch';
+}
+function mostrarV() {
+  document.getElementById('viewerImg').src = _vl[_vi].data;
+  document.getElementById('vCont').textContent = (_vi+1)+' / '+_vl.length;
+  document.getElementById('viewer').scrollTop=0;
+}
+function vNav(d) { _vi=Math.max(0,Math.min(_vl.length-1,_vi+d)); mostrarV(); }
+function fecharV() { document.getElementById('viewer').style.display='none'; }
+
+// ── QR GENERATOR ───────────────────────────────────────────
+function qrDraw(txt,el){
+  if(!el)return;
+  var sz=parseInt(el.getAttribute('width'))||160;
+  var mat=qrMat(txt),n=mat.length,cell=sz/n;
+  var h='<rect width="'+sz+'" height="'+sz+'" fill="#fff"/>';
+  for(var r=0;r<n;r++)for(var cc=0;cc<n;cc++){
+    if(mat[r][cc])h+='<rect x="'+(cc*cell).toFixed(1)+'" y="'+(r*cell).toFixed(1)+'" width="'+(cell+.3).toFixed(1)+'" height="'+(cell+.3).toFixed(1)+'" fill="#0a1628"/>';
+  }
+  el.innerHTML=h;
+}
+function qrMat(t){
+  var b=[],i,cd;
+  for(i=0;i<t.length;i++){cd=t.charCodeAt(i);if(cd<128)b.push(cd);else if(cd<2048){b.push(0xC0|(cd>>6));b.push(0x80|(cd&63));}else{b.push(0xE0|(cd>>12));b.push(0x80|((cd>>6)&63));b.push(0x80|(cd&63));}}
+  var v=2;if(b.length>14)v=3;if(b.length>26)v=4;if(b.length>42)v=5;if(b.length>60)v=6;if(b.length>84)v=7;if(b.length>110)v=9;
+  return qrB(b,v);
+}
+function qrB(d,v){
+  var n=17+v*4,m=[],f=[];
+  for(var i=0;i<n;i++){m[i]=[];f[i]=[];for(var j=0;j<n;j++){m[i][j]=false;f[i][j]=false;}}
+  function sf(r,c,val){if(r>=0&&r<n&&c>=0&&c<n){m[r][c]=val;f[r][c]=true;}}
+  function fp(tr,tc){for(var r=-1;r<=7;r++)for(var c=-1;c<=7;c++)sf(tr+r,tc+c,(r>=0&&r<7&&c>=0&&c<7)&&(r===0||r===6||c===0||c===6||(r>=2&&r<=4&&c>=2&&c<=4)));}
+  fp(0,0);fp(0,n-7);fp(n-7,0);
+  for(var i=8;i<n-8;i++){sf(6,i,i%2===0);sf(i,6,i%2===0);}
+  sf(4*v+9,8,true);
+  var ap={2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],7:[6,22,38],9:[6,26,46]}[v]||[];
+  for(var ai=0;ai<ap.length;ai++)for(var aj=0;aj<ap.length;aj++){var ar=ap[ai],ac=ap[aj];if(!f[ar][ac]){for(var dr=-2;dr<=2;dr++)for(var dc=-2;dc<=2;dc++)sf(ar+dr,ac+dc,dr===0&&dc===0||Math.abs(dr)===2||Math.abs(dc)===2);}}
+  var cap={2:28,3:44,4:64,5:86,6:108,7:124,9:154}[v]||44;
+  var s=[0x04,d.length];for(var i=0;i<d.length;i++)s.push(d[i]);
+  var pad=[0xEC,0x11];while(s.length<cap)s.push(pad[(s.length-2-d.length)%2]);
+  var bits=[];for(var i=0;i<s.length;i++)for(var b=7;b>=0;b--)bits.push((s[i]>>b)&1);
+  var bi=0,up=true;
+  for(var col=n-1;col>=1;col-=2){if(col<=6)col--;for(var row=up?n-1:0;up?row>=0:row<n;row+=up?-1:1){for(var dc2=0;dc2<2;dc2++){var c2=col-dc2;if(!f[row][c2])m[row][c2]=bi<bits.length?bits[bi++]===1:false;}}up=!up;}
+  for(var r=0;r<n;r++)for(var c=0;c<n;c++){if(!f[r][c]&&(r+c)%2===0)m[r][c]=!m[r][c];}
+  return m;
+}
+
+// ── ARRANQUE ───────────────────────────────────────────────
+carregar();
+carregarImgs();
+if (D.logado && eu()) {
+  document.getElementById('eRegisto').style.display = 'none';
+  var _a=document.getElementById('eApp');
+  _a.style.display='flex';
+  _a.style.flexDirection='column';
+  ir('Inicio');
+}
+</script>
+</body>
+</html>
