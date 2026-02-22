@@ -847,7 +847,7 @@ function carregarConfig(){
   document.getElementById('cfg-pts-euro').value=cfg.ptsEuro||10;
   document.getElementById('cfg-pts-desc').value=cfg.ptsDesc||100;
   var linkEl=document.getElementById('link-cliente');
-  var url=window.location.origin+'/';
+  var url=window.location.origin+window.location.pathname.replace(/admin\.html$/,'').replace(/\/$/,'')+'/index.html';
   if(linkEl){linkEl.textContent=url;desenharQR(url,document.getElementById('qr-partilha-svg'));}
 }
 function guardarConfig(){
@@ -861,11 +861,11 @@ function guardarConfig(){
   document.getElementById('dash-nome').textContent=DB.config.nomeLoja||'A minha loja';
 }
 function copiarLink(){
-  var url=window.location.origin+'/';
+  var url=window.location.origin+window.location.pathname.replace(/admin\.html$/,'').replace(/\/$/,'')+'/index.html';
   navigator.clipboard.writeText(url).then(function(){toast('✅ Link copiado!');}).catch(function(){toast('Link: '+url,4000);});
 }
 function imprimirQR(){
-  var url=window.location.origin+'/';
+  var url=window.location.origin+window.location.pathname.replace(/admin\.html$/,'').replace(/\/$/,'')+'/index.html';
   var svg=document.getElementById('qr-partilha-svg');
   var nome=DB.config.nomeLoja||'MARINHA';
   var w=window.open('','_blank');
