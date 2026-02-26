@@ -714,23 +714,10 @@ async function guardarPromo(){
   if(!nome){toast('⚠️ Nome obrigatório');return;}
   toast('⏳ A guardar...');
   var pid=id||uid();
-  var fotoUrl='';
-  // Se tem foto nova (base64), fazer upload para Storage
-  if(_fotoPromo && _fotoPromo.startsWith('data:')){
-    toast('⏳ A enviar foto...');
-    fotoUrl=await sbImgUp('marinha','promos/'+pid+'.jpg',_fotoPromo);
-    if(!fotoUrl){
-      // Fallback: guardar base64 directamente (se for pequena)
-      fotoUrl=_fotoPromo.length<500000?_fotoPromo:'';
-    }
-  } else if(_fotoPromo && _fotoPromo.startsWith('http')){
-    // Já é URL do Storage, manter
-    fotoUrl=_fotoPromo;
-  }
   var d={
     id:pid,nome:nome,
     emoji:document.getElementById('mPromoEmoji').value,
-    foto:fotoUrl,
+    foto:_fotoPromo||'',
     preco_orig:document.getElementById('mPromoOrig').value,
     preco_novo:document.getElementById('mPromoNovo').value,
     data_ini:document.getElementById('mPromoIni').value,
@@ -755,22 +742,19 @@ async function apagarPromo(){
 // ══════════════════════════════════════════
 function addFolheto(e){
   var files=Array.prototype.slice.call(e.target.files);if(!files.length)return;
-  toast('⏳ A carregar e comprimir...');
+  toast('⏳ A carregar...');
   var n=0,total=files.length;
   files.forEach(function(f){
     var r=new FileReader();
     r.onload=async function(ev){
-      // Comprimir folheto para max 800px, qualidade 75%
-      comprimirImg(ev.target.result, 700, 0.65, async function(compressed){
+      comprimirImg(ev.target.result, 800, 0.75, async function(compressed){
         var id=uid();
         var obj={id:id,nome:f.name,data:compressed,adicionado:hoje()};
         DB.folhetos.push(obj);
-        // Guardar imagem no IDB local
-        await idbSet('F_'+id, compressed);
-        // Guardar imagem também no Supabase (comprimida cabe)
+        await idbSet('F_'+id,compressed);
         await sbUp('folhetos',{id:id,nome:f.name,data:compressed,adicionado:hoje()});
         n++;
-        if(n===total){renderFolheto();toast('✅ '+n+' págs - '+Math.round(compressed.length/1024)+'KB');}
+        if(n===total){renderFolheto();toast('✅ '+n+' página(s) adicionada(s)');}
       });
     };
     r.readAsDataURL(f);

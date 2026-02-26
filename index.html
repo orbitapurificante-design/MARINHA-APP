@@ -212,6 +212,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:#1a2332;min-hei
 // ═══════════════════════════════════════════
 var SB='https://opzmuzogxfzeqwjxmfvc.supabase.co', SK='sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
 function hd(){return {'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json'};}
+
+// IDB para cache de imagens
+var _idb=null;
+function idb(){return new Promise(function(res,rej){if(_idb)return res(_idb);var r=indexedDB.open('MARINHA',1);r.onupgradeneeded=function(e){e.target.result.createObjectStore('imgs');};r.onsuccess=function(e){_idb=e.target.result;res(_idb);};r.onerror=rej;});}
+function idbGet(k){return idb().then(function(db){return new Promise(function(res,rej){var tx=db.transaction('imgs','readonly');var r=tx.objectStore('imgs').get(k);r.onsuccess=function(){res(r.result);};r.onerror=rej;});});}
+
 async function sbGet(t,q){
   try{
     var r=await fetch(SB+'/rest/v1/'+t+'?select=*'+(q?'&'+q:''),{headers:hd()});
@@ -219,6 +225,12 @@ async function sbGet(t,q){
   }catch(e){return[];}
 }
 // Função especial para tabelas com campos grandes (fotos base64)
+async 
+// IDB para cache de imagens
+var _idb=null;
+function idb(){return new Promise(function(res,rej){if(_idb)return res(_idb);var r=indexedDB.open('MARINHA',1);r.onupgradeneeded=function(e){e.target.result.createObjectStore('imgs');};r.onsuccess=function(e){_idb=e.target.result;res(_idb);};r.onerror=rej;});}
+function idbGet(k){return idb().then(function(db){return new Promise(function(res,rej){var tx=db.transaction('imgs','readonly');var r=tx.objectStore('imgs').get(k);r.onsuccess=function(){res(r.result);};r.onerror=rej;});});}
+
 async function sbGetGrande(t){
   try{
     var hdrs=Object.assign({},hd(),{
@@ -271,8 +283,22 @@ async function sincronizar(){
     sbGetGrande('folhetos'),
     sbGet('config','id=eq.1')
   ]);
-  if(Array.isArray(prs)) D.promos=prs;
-  if(Array.isArray(fols)) D.folhetos=fols;
+  if(Array.isArray(prs)){
+    D.promos=prs;
+    console.log('Promos:',prs.length, prs.map(function(p){return p.nome+' foto:'+(p.foto?p.foto.slice(0,40):'SEM');}));
+  }
+  if(Array.isArray(fols)){
+    D.folhetos=fols;
+    // Se folheto não tem data (URL vazia), tentar IDB
+    fols.forEach(function(f,i){
+      if(!f.data){
+        idbGet('F_'+f.id).then(function(d){
+          if(d){D.folhetos[i].data=d;}
+        }).catch(function(){});
+      }
+    });
+    console.log('Folhetos:',fols.length);
+  }
   if(cfgs&&cfgs[0]){D.cfg.ptsEuro=cfgs[0].pts_euro||10;D.cfg.ptsDesc=cfgs[0].pts_desc||100;}
 }
 async function carregarCliente(tel){
