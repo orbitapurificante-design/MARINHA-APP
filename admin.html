@@ -415,8 +415,13 @@ async function sincronizar(){
   if(Array.isArray(r[1]))DB.promos=r[1];
   if(Array.isArray(r[2])){
     DB.folhetos=r[2];
+    // Se não tem data no Supabase, tentar IDB local
     DB.folhetos.forEach(function(f,i){
-      if(!f.data)idbGet('F_'+f.id).then(function(d){if(d)DB.folhetos[i].data=d;}).catch(function(){});
+      if(!f.data){
+        idbGet('F_'+f.id).then(function(d){
+          if(d)DB.folhetos[i].data=d;
+        }).catch(function(){});
+      }
     });
   }
   if(r[3]&&r[3][0]){var c=r[3][0];DB.cfg.nomeLoja=c.nome_loja||'';DB.cfg.ptsEuro=c.pts_euro||10;DB.cfg.ptsDesc=c.pts_desc||100;}
@@ -642,12 +647,16 @@ function editarPromo(id){
 }
 function prevFoto(e){
   var f=e.target.files[0];if(!f)return;
-  new FileReader().onload=function(ev){
-    var p=document.getElementById('mPromoFotoPrev');
-    p.innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';
-    p.dataset.foto=ev.target.result;
-  };(new FileReader()).addEventListener?null:(new FileReader()).onload=null;
-  var r=new FileReader();r.onload=function(ev){var p=document.getElementById('mPromoFotoPrev');p.innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover">';p.dataset.foto=ev.target.result;};r.readAsDataURL(f);
+  var r=new FileReader();
+  r.onload=function(ev){
+    // Comprimir para max 400px, qualidade 70%
+    comprimirImg(ev.target.result, 400, 0.7, function(compressed){
+      var p=document.getElementById('mPromoFotoPrev');
+      p.innerHTML='<img src="'+compressed+'" style="width:100%;height:100%;object-fit:cover">';
+      p.dataset.foto=compressed;
+    });
+  };
+  r.readAsDataURL(f);
   try{e.target.value='';}catch(x){}
 }
 async function guardarPromo(){
@@ -683,18 +692,25 @@ async function apagarPromo(){
 // ══════════════════════════════════════════
 function addFolheto(e){
   var files=Array.prototype.slice.call(e.target.files);if(!files.length)return;
-  toast('⏳ A carregar...');
-  var n=0;
+  toast('⏳ A carregar e comprimir...');
+  var n=0,total=files.length;
   files.forEach(function(f){
     var r=new FileReader();
     r.onload=async function(ev){
-      var id=uid();
-      var obj={id:id,nome:f.name,data:ev.target.result,adicionado:hoje()};
-      DB.folhetos.push(obj);
-      await idbSet('F_'+id,ev.target.result);
-      await sbUp('folhetos',{id:id,nome:f.name,adicionado:hoje()});
-      n++;if(n===files.length){renderFolheto();toast('✅ '+n+' página(s) adicionada(s)');}
-    };r.readAsDataURL(f);
+      // Comprimir folheto para max 800px, qualidade 75%
+      comprimirImg(ev.target.result, 800, 0.75, async function(compressed){
+        var id=uid();
+        var obj={id:id,nome:f.name,data:compressed,adicionado:hoje()};
+        DB.folhetos.push(obj);
+        // Guardar imagem no IDB local
+        await idbSet('F_'+id, compressed);
+        // Guardar imagem também no Supabase (comprimida cabe)
+        await sbUp('folhetos',{id:id,nome:f.name,data:compressed,adicionado:hoje()});
+        n++;
+        if(n===total){renderFolheto();toast('✅ '+n+' página(s) adicionada(s)');}
+      });
+    };
+    r.readAsDataURL(f);
   });
   try{e.target.value='';}catch(x){}
 }
@@ -851,6 +867,22 @@ function copiarLink(){var url=window.location.origin+window.location.pathname.re
 function imprimirQR(){var url=window.location.origin+window.location.pathname.replace(/admin\.html$/,'')+'index.html';var w=window.open('','_blank');w.document.write('<html><body style="text-align:center;padding:40px;font-family:sans-serif"><h1>⚓ '+(DB.cfg.nomeLoja||'MARINHA')+'</h1><p>Programa de fidelização</p>'+document.getElementById('qrCfg').outerHTML+'<p>'+url+'</p><script>window.onload=function(){window.print()}<\/script></body></html>');w.document.close();}
 function exportar(){var b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='marinha_backup.json';a.click();}
 
+
+// ══════════════════════════════════════════
+//  COMPRIMIR IMAGEM
+// ══════════════════════════════════════════
+function comprimirImg(base64, maxW, qualidade, cb){
+  var img=new Image();
+  img.onload=function(){
+    var w=img.width,h=img.height;
+    if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+    var cv=document.createElement('canvas');
+    cv.width=w;cv.height=h;
+    cv.getContext('2d').drawImage(img,0,0,w,h);
+    cb(cv.toDataURL('image/jpeg',qualidade));
+  };
+  img.src=base64;
+}
 // ══════════════════════════════════════════
 //  QR DRAW
 // ══════════════════════════════════════════
