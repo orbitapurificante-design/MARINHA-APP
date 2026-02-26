@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0a1628">
 <title>MARINHA – Painel</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -37,7 +37,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 .s{padding:0 16px}
 .card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(10,22,40,.06);margin-bottom:14px}
 .ct{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
-.inp{width:100%;padding:12px 14px;background:#eef2f7;border:1.5px solid rgba(26,74,138,.14);border-radius:12px;font-size:15px;color:var(--n);outline:none;margin-bottom:10px;font-family:'DM Sans',sans-serif}
+.inp{width:100%;padding:12px 14px;background:#eef2f7;border:1.5px solid rgba(26,74,138,.14);border-radius:12px;font-size:15px;color:var(--n);outline:none;margin-bottom:10px;font-family:'DM Sans',sans-serif;-webkit-appearance:none;-webkit-tap-highlight-color:transparent}
 .inp:focus{border-color:var(--s)}
 .lbl{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:block}
 .bP{width:100%;padding:15px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;font-family:'DM Sans',sans-serif}
@@ -64,9 +64,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 .precos{display:flex;align-items:center;gap:6px}
 .pOrig{font-size:11px;color:var(--mu);text-decoration:line-through}
 .pNovo{font-size:15px;font-weight:800;color:var(--r)}
-.modal{display:none;position:fixed;inset:0;z-index:500;align-items:flex-end;background:rgba(0,0,0,.45)}
+.modal{display:none;position:fixed;inset:0;z-index:500;align-items:flex-end;background:rgba(0,0,0,.45);touch-action:auto}
 .modal.a{display:flex}
-.mBox{background:#fff;border-radius:20px 20px 0 0;width:100%;padding:20px;max-height:90vh;overflow-y:auto}
+.mBox{background:#fff;border-radius:20px 20px 0 0;width:100%;padding:20px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
 .mTit{font-size:18px;font-weight:800;margin-bottom:16px}
 .viewer{display:none;position:fixed;inset:0;z-index:800;background:#000;flex-direction:column}
 .viewer.a{display:flex}
