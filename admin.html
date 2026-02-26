@@ -292,7 +292,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     <label class="lbl">Emoji (opcional)</label>
     <input class="inp" id="mPromoEmoji" type="text" placeholder="🦞">
     <label class="lbl">Foto (opcional)</label>
-    <div id="mPromoFotoPrev" style="width:80px;height:80px;border-radius:12px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:8px;overflow:hidden" data-foto="">🛒</div>
+    <div id="mPromoFotoPrev" style="width:80px;height:80px;border-radius:12px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:8px;overflow:hidden;position:relative">
+      <span id="mPromoFotoEmoji">🛒</span>
+      <img id="mPromoFotoImg" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
+    </div>
     <label class="bS" style="text-align:center;cursor:pointer;display:block;margin-bottom:10px">
       📷 Escolher foto
       <input type="file" accept="image/*" onchange="prevFoto(this)" style="display:none">
@@ -384,14 +387,23 @@ async function sbGet(t,q){
 }
 async function sbUp(t,d){
   try{
+    var body=JSON.stringify(Array.isArray(d)?d:[d]);
     var r=await fetch(SB+'/rest/v1/'+t,{
       method:'POST',
       headers:Object.assign({},hd(),{'Prefer':'resolution=merge-duplicates'}),
-      body:JSON.stringify(Array.isArray(d)?d:[d])
+      body:body
     });
-    if(!r.ok)toast('⚠️ Erro servidor: '+r.status);
+    if(!r.ok){
+      var txt=await r.text();
+      console.error('sbUp erro',t,r.status,txt);
+      toast('⚠️ Erro '+r.status+': '+txt.slice(0,80),4000);
+    }
     return r.ok;
-  }catch(e){toast('⚠️ Sem ligação');return false;}
+  }catch(e){
+    console.error('sbUp exc',e);
+    toast('⚠️ Sem ligação: '+e.message,4000);
+    return false;
+  }
 }
 async function sbDel(t,id){
   try{var r=await fetch(SB+'/rest/v1/'+t+'?id=eq.'+id,{method:'DELETE',headers:hd()});return r.ok;}
@@ -402,6 +414,7 @@ async function sbDel(t,id){
 //  DADOS
 // ══════════════════════════════════════════
 var DB={clientes:[],promos:[],folhetos:[],cfg:{nomeLoja:'',ptsEuro:10,ptsDesc:100}};
+var _fotoPromo = ''; // foto actual no modal promo
 
 // IDB imagens
 var _idb=null;
@@ -622,10 +635,12 @@ function renderPromos(){
   }).join('')+'</div>';
 }
 function abrirNovaPromo(){
+  _fotoPromo='';
   document.getElementById('mPromoId').value='';
   document.getElementById('mPromoTit').textContent='Nova Promoção';
   ['mPromoNome','mPromoEmoji','mPromoOrig','mPromoNovo','mPromoIni','mPromoFim'].forEach(function(i){document.getElementById(i).value='';});
-  var p=document.getElementById('mPromoFotoPrev');p.innerHTML='🛒';p.dataset.foto='';
+  var img=document.getElementById('mPromoFotoImg'); if(img){img.src='';img.style.display='none';}
+  var em=document.getElementById('mPromoFotoEmoji'); if(em)em.style.display='';
   document.getElementById('wApagarPromo').style.display='none';
   document.getElementById('mPromo').classList.add('a');
 }
@@ -639,9 +654,11 @@ function editarPromo(id){
   document.getElementById('mPromoNovo').value=p.preco_novo||'';
   document.getElementById('mPromoIni').value=p.data_ini||'';
   document.getElementById('mPromoFim').value=p.data_fim||'';
-  var prev=document.getElementById('mPromoFotoPrev');
-  prev.innerHTML=p.foto?'<img src="'+p.foto+'" style="width:100%;height:100%;object-fit:cover">':'🛒';
-  prev.dataset.foto=p.foto||'';
+  _fotoPromo = p.foto||'';
+  var img=document.getElementById('mPromoFotoImg');
+  var em=document.getElementById('mPromoFotoEmoji');
+  if(p.foto){ if(img){img.src=p.foto;img.style.display='block';} if(em)em.style.display='none'; }
+  else { if(img){img.src='';img.style.display='none';} if(em)em.style.display=''; }
   document.getElementById('wApagarPromo').style.display='block';
   document.getElementById('mPromo').classList.add('a');
 }
@@ -649,11 +666,14 @@ function prevFoto(e){
   var f=e.target.files[0];if(!f)return;
   var r=new FileReader();
   r.onload=function(ev){
-    // Comprimir para max 400px, qualidade 70%
     comprimirImg(ev.target.result, 400, 0.7, function(compressed){
-      var p=document.getElementById('mPromoFotoPrev');
-      p.innerHTML='<img src="'+compressed+'" style="width:100%;height:100%;object-fit:cover">';
-      p.dataset.foto=compressed;
+      _fotoPromo = compressed;
+      // Mostrar preview
+      var img = document.getElementById('mPromoFotoImg');
+      var emoji = document.getElementById('mPromoFotoEmoji');
+      if(img){ img.src=compressed; img.style.display='block'; }
+      if(emoji){ emoji.style.display='none'; }
+      toast('✅ Foto carregada ('+Math.round(compressed.length/1024)+'KB)');
     });
   };
   r.readAsDataURL(f);
@@ -667,7 +687,7 @@ async function guardarPromo(){
   var d={
     id:id||uid(),nome:nome,
     emoji:document.getElementById('mPromoEmoji').value,
-    foto:document.getElementById('mPromoFotoPrev').dataset.foto||'',
+    foto:_fotoPromo||'',
     preco_orig:document.getElementById('mPromoOrig').value,
     preco_novo:document.getElementById('mPromoNovo').value,
     data_ini:document.getElementById('mPromoIni').value,
@@ -698,7 +718,7 @@ function addFolheto(e){
     var r=new FileReader();
     r.onload=async function(ev){
       // Comprimir folheto para max 800px, qualidade 75%
-      comprimirImg(ev.target.result, 800, 0.75, async function(compressed){
+      comprimirImg(ev.target.result, 600, 0.6, async function(compressed){
         var id=uid();
         var obj={id:id,nome:f.name,data:compressed,adicionado:hoje()};
         DB.folhetos.push(obj);
@@ -707,7 +727,7 @@ function addFolheto(e){
         // Guardar imagem também no Supabase (comprimida cabe)
         await sbUp('folhetos',{id:id,nome:f.name,data:compressed,adicionado:hoje()});
         n++;
-        if(n===total){renderFolheto();toast('✅ '+n+' página(s) adicionada(s)');}
+        if(n===total){renderFolheto();toast('✅ '+n+' págs - '+Math.round(compressed.length/1024)+'KB');}
       });
     };
     r.readAsDataURL(f);
