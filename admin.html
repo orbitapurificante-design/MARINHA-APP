@@ -385,7 +385,7 @@ async function sbGet(t,q){
   try{var r=await fetch(SB+'/rest/v1/'+t+'?select=*'+(q?'&'+q:''),{headers:hd()});return r.ok?r.json():[];}
   catch(e){return[];}
 }
-async function sbUp(t,d){
+async async function sbUp(t,d){
   try{
     var body=JSON.stringify(Array.isArray(d)?d:[d]);
     console.log('sbUp',t,'tamanho:',Math.round(body.length/1024)+'KB');
@@ -711,7 +711,7 @@ function prevFoto(e){
   r.readAsDataURL(f);
   try{e.target.value='';}catch(x){}
 }
-async function guardarPromo(){
+async async function guardarPromo(){
   var id=document.getElementById('mPromoId').value;
   var nome=document.getElementById('mPromoNome').value.trim();
   if(!nome){toast('⚠️ Nome obrigatório');return;}
