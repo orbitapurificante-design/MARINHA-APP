@@ -1189,17 +1189,21 @@ document.addEventListener('click',function(e){if(e.target.classList.contains('mo
 // ═══════════════════════════════════════════════
 //  ARRANQUE
 // ═══════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', async function(){
-  await sincronizar();
+document.addEventListener('DOMContentLoaded', function(){
+  // PIN funciona imediatamente - sincronizar em background
+  sincronizar().then(function(){
+    console.log('Dados carregados');
+  }).catch(function(){});
   // Auto-refresh a cada 20s
-  setInterval(async function(){
-    await sincronizar();
-    var ativo=document.querySelector('#app-loja .ecra.ativo');
-    if(!ativo) return;
-    var tab=ativo.id.replace('ecra-','');
-    if(tab==='clientes') renderClientes(document.getElementById('input-pesquisa').value||'');
-    if(tab==='dash')     renderDash();
-    if(tab==='folheto')  { renderPromos(); renderFolheto(); }
+  setInterval(function(){
+    sincronizar().then(function(){
+      var ativo=document.querySelector('#app-loja .ecra.ativo');
+      if(!ativo) return;
+      var tab=ativo.id.replace('ecra-','');
+      if(tab==='clientes') renderClientes(document.getElementById('input-pesquisa').value||'');
+      if(tab==='dash')     renderDash();
+      if(tab==='folheto')  { renderPromos(); renderFolheto(); }
+    });
   }, 20000);
 });
 
