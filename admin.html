@@ -405,6 +405,34 @@ async function sbUp(t,d){
     return false;
   }
 }
+
+// Upload de imagem para Supabase Storage
+async function sbImgUp(bucket, path, base64){
+  if(!base64||!base64.startsWith('data:')) return '';
+  try{
+    var parts=base64.split(',');
+    var mime=parts[0].match(/:(.*?);/)[1];
+    var bin=atob(parts[1]);
+    var arr=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+    var blob=new Blob([arr],{type:mime});
+    var url=SB+'/storage/v1/object/'+bucket+'/'+path;
+    var r=await fetch(url,{
+      method:'POST',
+      headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':mime,'x-upsert':'true'},
+      body:blob
+    });
+    if(!r.ok){
+      var txt=await r.text();
+      console.error('sbImgUp erro',r.status,txt);
+      return '';
+    }
+    return SB+'/storage/v1/object/public/'+bucket+'/'+path;
+  }catch(e){
+    console.error('sbImgUp exc',e);
+    return '';
+  }
+}
 async function sbDel(t,id){
   try{var r=await fetch(SB+'/rest/v1/'+t+'?id=eq.'+id,{method:'DELETE',headers:hd()});return r.ok;}
   catch(e){return false;}
@@ -428,11 +456,12 @@ async function sincronizar(){
   if(Array.isArray(r[1]))DB.promos=r[1];
   if(Array.isArray(r[2])){
     DB.folhetos=r[2];
-    // Se não tem data no Supabase, tentar IDB local
+    // Se não tem URL do Storage, tentar IDB local como cache
     DB.folhetos.forEach(function(f,i){
-      if(!f.data){
+      if(!f.data || f.data===''){ 
         idbGet('F_'+f.id).then(function(d){
           if(d)DB.folhetos[i].data=d;
+          renderFolheto();
         }).catch(function(){});
       }
     });
@@ -666,7 +695,7 @@ function prevFoto(e){
   var f=e.target.files[0];if(!f)return;
   var r=new FileReader();
   r.onload=function(ev){
-    comprimirImg(ev.target.result, 400, 0.7, function(compressed){
+    comprimirImg(ev.target.result, 300, 0.65, function(compressed){
       _fotoPromo = compressed;
       // Mostrar preview
       var img = document.getElementById('mPromoFotoImg');
@@ -684,10 +713,24 @@ async function guardarPromo(){
   var nome=document.getElementById('mPromoNome').value.trim();
   if(!nome){toast('⚠️ Nome obrigatório');return;}
   toast('⏳ A guardar...');
+  var pid=id||uid();
+  var fotoUrl='';
+  // Se tem foto nova (base64), fazer upload para Storage
+  if(_fotoPromo && _fotoPromo.startsWith('data:')){
+    toast('⏳ A enviar foto...');
+    fotoUrl=await sbImgUp('marinha','promos/'+pid+'.jpg',_fotoPromo);
+    if(!fotoUrl){
+      // Fallback: guardar base64 directamente (se for pequena)
+      fotoUrl=_fotoPromo.length<500000?_fotoPromo:'';
+    }
+  } else if(_fotoPromo && _fotoPromo.startsWith('http')){
+    // Já é URL do Storage, manter
+    fotoUrl=_fotoPromo;
+  }
   var d={
-    id:id||uid(),nome:nome,
+    id:pid,nome:nome,
     emoji:document.getElementById('mPromoEmoji').value,
-    foto:_fotoPromo||'',
+    foto:fotoUrl,
     preco_orig:document.getElementById('mPromoOrig').value,
     preco_novo:document.getElementById('mPromoNovo').value,
     data_ini:document.getElementById('mPromoIni').value,
@@ -718,7 +761,7 @@ function addFolheto(e){
     var r=new FileReader();
     r.onload=async function(ev){
       // Comprimir folheto para max 800px, qualidade 75%
-      comprimirImg(ev.target.result, 600, 0.6, async function(compressed){
+      comprimirImg(ev.target.result, 700, 0.65, async function(compressed){
         var id=uid();
         var obj={id:id,nome:f.name,data:compressed,adicionado:hoje()};
         DB.folhetos.push(obj);
@@ -895,11 +938,20 @@ function comprimirImg(base64, maxW, qualidade, cb){
   var img=new Image();
   img.onload=function(){
     var w=img.width,h=img.height;
-    if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+    // Manter aspect ratio mas limitar ao máximo
+    if(w>h){ if(w>maxW){h=Math.round(h*maxW/w);w=maxW;} }
+    else    { if(h>maxW){w=Math.round(w*maxW/h);h=maxW;} }
     var cv=document.createElement('canvas');
     cv.width=w;cv.height=h;
     cv.getContext('2d').drawImage(img,0,0,w,h);
-    cb(cv.toDataURL('image/jpeg',qualidade));
+    var result=cv.toDataURL('image/jpeg',qualidade);
+    // Se ainda > 50KB, comprimir mais
+    if(result.length > 70000){
+      cv.width=Math.round(w*0.6);cv.height=Math.round(h*0.6);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      result=cv.toDataURL('image/jpeg',0.5);
+    }
+    cb(result);
   };
   img.src=base64;
 }

@@ -218,6 +218,20 @@ async function sbGet(t,q){
     return r.ok?await r.json():[];
   }catch(e){return[];}
 }
+// Função especial para tabelas com campos grandes (fotos base64)
+async function sbGetGrande(t){
+  try{
+    var hdrs=Object.assign({},hd(),{
+      'Range':'0-999',
+      'Range-Unit':'items',
+      'Prefer':'count=none'
+    });
+    var r=await fetch(SB+'/rest/v1/'+t+'?select=*',{headers:hdrs});
+    if(!r.ok) return [];
+    var dados=await r.json();
+    return Array.isArray(dados)?dados:[];
+  }catch(e){return[];}
+}
 async function sbUpsert(t,d){
   try{
     var r=await fetch(SB+'/rest/v1/'+t,{
@@ -253,11 +267,11 @@ function ativas(){
 // ═══════════════════════════════════════════
 async function sincronizar(){
   var [prs,fols,cfgs]=await Promise.all([
-    sbGet('promos'),
-    sbGet('folhetos'),
+    sbGetGrande('promos'),
+    sbGetGrande('folhetos'),
     sbGet('config','id=eq.1')
   ]);
-  if(Array.isArray(prs))  D.promos=prs;
+  if(Array.isArray(prs)) D.promos=prs;
   if(Array.isArray(fols)) D.folhetos=fols;
   if(cfgs&&cfgs[0]){D.cfg.ptsEuro=cfgs[0].pts_euro||10;D.cfg.ptsDesc=cfgs[0].pts_desc||100;}
 }
