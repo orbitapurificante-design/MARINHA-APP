@@ -388,6 +388,7 @@ async function sbGet(t,q){
 async function sbUp(t,d){
   try{
     var body=JSON.stringify(Array.isArray(d)?d:[d]);
+    console.log('sbUp',t,'tamanho:',Math.round(body.length/1024)+'KB');
     var r=await fetch(SB+'/rest/v1/'+t,{
       method:'POST',
       headers:Object.assign({},hd(),{'Prefer':'resolution=merge-duplicates'}),
@@ -395,13 +396,15 @@ async function sbUp(t,d){
     });
     if(!r.ok){
       var txt=await r.text();
-      console.error('sbUp erro',t,r.status,txt);
-      toast('⚠️ Erro '+r.status+': '+txt.slice(0,80),4000);
+      console.error('sbUp ERRO',t,r.status,txt);
+      toast('⚠️ Supabase rejeitou ('+r.status+'): '+txt.slice(0,100),5000);
+    } else {
+      console.log('sbUp OK',t);
     }
     return r.ok;
   }catch(e){
     console.error('sbUp exc',e);
-    toast('⚠️ Sem ligação: '+e.message,4000);
+    toast('⚠️ Sem ligação',3000);
     return false;
   }
 }
@@ -695,14 +698,14 @@ function prevFoto(e){
   var f=e.target.files[0];if(!f)return;
   var r=new FileReader();
   r.onload=function(ev){
-    comprimirImg(ev.target.result, 300, 0.65, function(compressed){
+    comprimirImg(ev.target.result, 300, 0.6, function(compressed){
       _fotoPromo = compressed;
-      // Mostrar preview
       var img = document.getElementById('mPromoFotoImg');
       var emoji = document.getElementById('mPromoFotoEmoji');
       if(img){ img.src=compressed; img.style.display='block'; }
       if(emoji){ emoji.style.display='none'; }
-      toast('✅ Foto carregada ('+Math.round(compressed.length/1024)+'KB)');
+      var kb=Math.round(compressed.length/1024);
+      toast('✅ Foto pronta: '+kb+'KB'+(kb>20?' ⚠️ grande':''));
     });
   };
   r.readAsDataURL(f);
@@ -742,19 +745,46 @@ async function apagarPromo(){
 // ══════════════════════════════════════════
 function addFolheto(e){
   var files=Array.prototype.slice.call(e.target.files);if(!files.length)return;
-  toast('⏳ A carregar...');
+  toast('⏳ A comprimir...');
   var n=0,total=files.length;
   files.forEach(function(f){
     var r=new FileReader();
     r.onload=async function(ev){
-      comprimirImg(ev.target.result, 800, 0.75, async function(compressed){
+      // Comprimir em 2 passos até ficar abaixo de 100KB
+      function comprimir(src, w, q, cb){
+        var img=new Image();
+        img.onload=function(){
+          var iw=img.width,ih=img.height;
+          if(iw>ih){if(iw>w){ih=Math.round(ih*w/iw);iw=w;}}
+          else{if(ih>w){iw=Math.round(iw*w/ih);ih=w;}}
+          var cv=document.createElement('canvas');
+          cv.width=iw;cv.height=ih;
+          cv.getContext('2d').drawImage(img,0,0,iw,ih);
+          var out=cv.toDataURL('image/jpeg',q);
+          // Se ainda > 130KB, reduzir mais
+          if(out.length>175000){
+            cv.width=Math.round(iw*0.6);cv.height=Math.round(ih*0.6);
+            cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+            out=cv.toDataURL('image/jpeg',0.45);
+          }
+          cb(out);
+        };
+        img.src=src;
+      }
+      comprimir(ev.target.result, 600, 0.65, async function(compressed){
+        var kb=Math.round(compressed.length/1024);
         var id=uid();
         var obj={id:id,nome:f.name,data:compressed,adicionado:hoje()};
         DB.folhetos.push(obj);
+        // Guardar no IDB local sempre
         await idbSet('F_'+id,compressed);
-        await sbUp('folhetos',{id:id,nome:f.name,data:compressed,adicionado:hoje()});
+        // Tentar guardar no Supabase
+        var ok=await sbUp('folhetos',{id:id,nome:f.name,data:compressed,adicionado:hoje()});
         n++;
-        if(n===total){renderFolheto();toast('✅ '+n+' página(s) adicionada(s)');}
+        if(n===total){
+          renderFolheto();
+          toast(ok?'✅ '+n+' página(s) adicionada(s) ('+kb+'KB)':'⚠️ Guardado localmente (Supabase rejeitou '+kb+'KB)');
+        }
       });
     };
     r.readAsDataURL(f);
