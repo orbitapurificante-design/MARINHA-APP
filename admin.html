@@ -660,7 +660,7 @@ function renderPromos(){
     var po=parseFloat(p.preco_orig)||0,pn=parseFloat(p.preco_novo)||0;
     var pct=(po>0&&pn>0)?Math.round((1-pn/po)*100):0;
     return '<div class="pCard" onclick="editarPromo(\''+p.id+'\')">'+
-      '<div class="pImg">'+(p.foto?'<img src="'+p.foto+'">':(p.emoji||'🛒'))+(pct>0?'<div class="pBdg">-'+pct+'%</div>':'')+'</div>'+
+      '<div class="pImg">'+(p.foto?'<img src="'+p.foto+'" onerror="this.style.display=\'none\'">':(p.emoji||'🛒'))+(pct>0?'<div class="pBdg">-'+pct+'%</div>':'')+'</div>'+
       '<div class="pBody"><div class="pNome">'+p.nome+'</div>'+
       '<div class="precos">'+(po>0?'<span class="pOrig">'+po.toFixed(2)+'€</span>':'')+(pn>0?'<span class="pNovo">'+pn.toFixed(2)+'€</span>':'')+'</div>'+
       '</div></div>';
@@ -719,8 +719,10 @@ async function guardarPromo(){
   var fotoUrl='';
   if(_fotoPromo&&_fotoPromo.startsWith('data:')){
     toast('⏳ A enviar foto...');
-    fotoUrl=await sbImgUp('marinha','promos/'+pid+'.jpg',_fotoPromo);
-    if(!fotoUrl)toast('⚠️ Foto não enviada (bucket não existe?)',3000);
+    // Usar timestamp no path para evitar cache do browser
+    var fPath='promos/'+pid+'_'+Date.now()+'.jpg';
+    fotoUrl=await sbImgUp('marinha',fPath,_fotoPromo);
+    if(!fotoUrl)toast('⚠️ Foto não enviada',3000);
   } else if(id){
     var ep=DB.promos.find(function(x){return x.id===id;});
     fotoUrl=ep?ep.foto||'':'';
@@ -738,10 +740,11 @@ async function guardarPromo(){
   if(id){var p=DB.promos.find(function(x){return x.id===id;});if(p)Object.assign(p,d);}
   else DB.promos.push(d);
   var ok=await sbUp('promos',d);
-  // Actualizar DB local com a URL correcta
+  // Garantir que DB local tem URL nova
   var pLocal=DB.promos.find(function(x){return x.id===pid;});
   if(pLocal)pLocal.foto=fotoUrl;
-  fecharModal('mPromo');renderPromos();
+  fecharModal('mPromo');
+  renderPromos();
   toast(ok?'✅ Guardado':'⚠️ Erro');
 }
 async function apagarPromo(){

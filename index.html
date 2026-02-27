@@ -349,7 +349,7 @@ function renderFolheto(){
       var po=parseFloat(p.preco_orig)||0,pn=parseFloat(p.preco_novo)||0;
       var pct=(po>0&&pn>0)?Math.round((1-pn/po)*100):0;
       return '<div class="pc">'+
-        '<div class="pi">'+(p.foto?'<img src="'+p.foto+'">':(p.emoji||'🛒'))+(pct>0?'<div class="bdg">-'+pct+'%</div>':'')+
+        '<div class="pi">'+(p.foto?'<img src="'+p.foto+(p.foto.includes('supabase')?'?v='+Date.now():'')+'">':(p.emoji||'🛒'))+(pct>0?'<div class="bdg">-'+pct+'%</div>':'')+
         '</div><div class="pb"><div class="pn">'+p.nome+'</div><div style="display:flex;align-items:center;gap:4px">'+
         (po>0?'<span class="po">'+po.toFixed(2)+'€</span>':'')+
         (pn>0?'<span class="pv">'+pn.toFixed(2)+'€</span>':'')+
