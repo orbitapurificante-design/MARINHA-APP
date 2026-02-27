@@ -292,9 +292,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     <label class="lbl">Emoji (opcional)</label>
     <input class="inp" id="mPromoEmoji" type="text" placeholder="🦞">
     <label class="lbl">Foto (opcional)</label>
-    <div id="mPromoFotoPrev" style="width:80px;height:80px;border-radius:12px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:8px;overflow:hidden;position:relative">
+    <div id="mPromoFotoPrev" style="width:80px;height:80px;border-radius:12px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:8px;overflow:hidden;position:relative;flex-shrink:0">
       <span id="mPromoFotoEmoji">🛒</span>
-      <img id="mPromoFotoImg" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
+      <img id="mPromoFotoImg" style="display:none;width:80px;height:80px;object-fit:cover;border-radius:12px">
     </div>
     <label class="bS" style="text-align:center;cursor:pointer;display:block;margin-bottom:10px">
       📷 Escolher foto
@@ -686,10 +686,10 @@ function editarPromo(id){
   document.getElementById('mPromoNovo').value=p.preco_novo||'';
   document.getElementById('mPromoIni').value=p.data_ini||'';
   document.getElementById('mPromoFim').value=p.data_fim||'';
-  _fotoPromo = p.foto||'';
+  _fotoPromo = ''; // reset - só muda se escolher nova foto
   var img=document.getElementById('mPromoFotoImg');
   var em=document.getElementById('mPromoFotoEmoji');
-  if(p.foto){ if(img){img.src=p.foto;img.style.display='block';} if(em)em.style.display='none'; }
+  if(p.foto){ if(img){img.src=p.foto+'?t='+Date.now();img.style.display='block';} if(em)em.style.display='none'; }
   else { if(img){img.src='';img.style.display='none';} if(em)em.style.display=''; }
   document.getElementById('wApagarPromo').style.display='block';
   document.getElementById('mPromo').classList.add('a');
@@ -738,6 +738,9 @@ async function guardarPromo(){
   if(id){var p=DB.promos.find(function(x){return x.id===id;});if(p)Object.assign(p,d);}
   else DB.promos.push(d);
   var ok=await sbUp('promos',d);
+  // Actualizar DB local com a URL correcta
+  var pLocal=DB.promos.find(function(x){return x.id===pid;});
+  if(pLocal)pLocal.foto=fotoUrl;
   fecharModal('mPromo');renderPromos();
   toast(ok?'✅ Guardado':'⚠️ Erro');
 }
