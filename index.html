@@ -2,8 +2,12 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0a1628">
+<!-- BUILD: 20260227_2120 -->
 <title>MARINHA – Fidelização</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -84,6 +88,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 </head>
 <script>
   if ('serviceWorker' in navigator) {
+    // Limpar todos os caches antigos
+    caches.keys().then(function(names){
+      names.forEach(function(n){ caches.delete(n); });
+    });
     navigator.serviceWorker.register('./sw.js');
   }
 </script>
