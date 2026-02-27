@@ -385,7 +385,7 @@ async function sbGet(t,q){
   try{var r=await fetch(SB+'/rest/v1/'+t+'?select=*'+(q?'&'+q:''),{headers:hd()});return r.ok?r.json():[];}
   catch(e){return[];}
 }
-async async function sbUp(t,d){
+async function sbUp(t,d){
   try{
     var body=JSON.stringify(Array.isArray(d)?d:[d]);
     console.log('sbUp',t,'tamanho:',Math.round(body.length/1024)+'KB');
@@ -711,16 +711,25 @@ function prevFoto(e){
   r.readAsDataURL(f);
   try{e.target.value='';}catch(x){}
 }
-async async function guardarPromo(){
+async function guardarPromo(){
   var id=document.getElementById('mPromoId').value;
   var nome=document.getElementById('mPromoNome').value.trim();
   if(!nome){toast('⚠️ Nome obrigatório');return;}
-  toast('⏳ A guardar...');
   var pid=id||uid();
+  var fotoUrl='';
+  if(_fotoPromo&&_fotoPromo.startsWith('data:')){
+    toast('⏳ A enviar foto...');
+    fotoUrl=await sbImgUp('marinha','promos/'+pid+'.jpg',_fotoPromo);
+    if(!fotoUrl)toast('⚠️ Foto não enviada (bucket não existe?)',3000);
+  } else if(id){
+    var ep=DB.promos.find(function(x){return x.id===id;});
+    fotoUrl=ep?ep.foto||'':'';
+  }
+  toast('⏳ A guardar...');
   var d={
     id:pid,nome:nome,
     emoji:document.getElementById('mPromoEmoji').value,
-    foto:_fotoPromo||'',
+    foto:fotoUrl,
     preco_orig:document.getElementById('mPromoOrig').value,
     preco_novo:document.getElementById('mPromoNovo').value,
     data_ini:document.getElementById('mPromoIni').value,
@@ -779,11 +788,15 @@ function addFolheto(e){
         // Guardar no IDB local sempre
         await idbSet('F_'+id,compressed);
         // Tentar guardar no Supabase
-        var ok=await sbUp('folhetos',{id:id,nome:f.name,data:compressed,adicionado:hoje()});
+        var url=await sbImgUp('marinha','folhetos/'+id+'.jpg',compressed);
+        var dataGuardar=url||'';
+        await sbUp('folhetos',{id:id,nome:f.name,data:dataGuardar,adicionado:hoje()});
+        // cache local
+        if(!url) DB.folhetos[DB.folhetos.length-1].data=compressed;
         n++;
         if(n===total){
           renderFolheto();
-          toast(ok?'✅ '+n+' página(s) adicionada(s) ('+kb+'KB)':'⚠️ Guardado localmente (Supabase rejeitou '+kb+'KB)');
+          toast(url?'✅ '+n+' página(s) adicionada(s)':'⚠️ '+n+' pág. guardada(s) só localmente (criar bucket "marinha" no Supabase)');
         }
       });
     };
