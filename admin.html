@@ -209,6 +209,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     <div class="s">
       <div style="height:10px"></div>
       <div class="card">
+        <div class="ct">Manutenção</div>
+        <button class="bP" style="margin-bottom:8px" onclick="corrigirFotos()">🔧 Corrigir fotos das promoções</button>
+        <div id="corrigirLog" style="font-size:12px;color:var(--mu)"></div>
+      </div>
+      <div class="card">
         <div class="ct">Configuração</div>
         <label class="lbl">Nome da loja</label>
         <input class="inp" id="cfgNome" type="text" placeholder="Nome da loja">
@@ -982,6 +987,52 @@ function comprimirImg(base64, maxW, qualidade, cb){
   };
   img.src=base64;
 }
+// ══════════════════════════════════════════
+//  CORRIGIR FOTOS
+// ══════════════════════════════════════════
+async function corrigirFotos(){
+  var log=document.getElementById('corrigirLog');
+  var promos=DB.promos.filter(function(p){return p.foto&&p.foto.includes('supabase');});
+  if(!promos.length){toast('Sem fotos para corrigir');return;}
+  log.textContent='A corrigir '+promos.length+' foto(s)...';
+  var done=0;
+  for(var i=0;i<promos.length;i++){
+    var p=promos[i];
+    log.textContent='A processar: '+p.nome+'...';
+    try{
+      // Buscar imagem actual
+      var resp=await fetch(p.foto);
+      var blob=await resp.blob();
+      // Converter para base64
+      var b64=await new Promise(function(res){
+        var r=new FileReader();
+        r.onload=function(e){res(e.target.result);};
+        r.readAsDataURL(blob);
+      });
+      // Cortar em quadrado e redimensionar
+      var quadrado=await new Promise(function(res){
+        comprimirImg(b64,300,0.8,res);
+      });
+      // Upload novo para Storage com novo path
+      var novoPath='promos/'+p.id+'_'+Date.now()+'.jpg';
+      var novaUrl=await sbImgUp('marinha',novoPath,quadrado);
+      if(novaUrl){
+        p.foto=novaUrl;
+        await sbUp('promos',p);
+        done++;
+        log.textContent='✅ '+p.nome+' corrigida';
+      } else {
+        log.textContent='⚠️ '+p.nome+': erro no upload';
+      }
+    }catch(e){
+      log.textContent='⚠️ '+p.nome+': '+e.message;
+    }
+  }
+  renderPromos();
+  toast('✅ '+done+' foto(s) corrigida(s)');
+  log.textContent='Concluído: '+done+' de '+promos.length+' corrigidas';
+}
+
 // ══════════════════════════════════════════
 //  QR DRAW
 // ══════════════════════════════════════════
