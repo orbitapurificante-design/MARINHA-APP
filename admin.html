@@ -165,7 +165,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
         <div class="ct">Folheto (páginas)</div>
         <label class="bS" style="text-align:center;cursor:pointer;display:block">
           📁 Adicionar imagens
-          <input type="file" accept="image/*" multiple onchange="addFolheto(this)" style="display:none">
+          <input type="file" accept="image/*" multiple onchange="addFolheto(event)" style="display:none">
         </label>
         <div class="strip" id="stripFol" style="margin-top:10px"></div>
       </div>
@@ -298,7 +298,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     </div>
     <label class="bS" style="text-align:center;cursor:pointer;display:block;margin-bottom:10px">
       📷 Escolher foto
-      <input type="file" accept="image/*" onchange="prevFoto(this)" style="display:none">
+      <input type="file" accept="image/*" onchange="prevFoto(event)" style="display:none">
     </label>
     <div class="row">
       <div style="flex:1">
