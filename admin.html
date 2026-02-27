@@ -970,20 +970,15 @@ function exportar(){var b=new Blob([JSON.stringify(DB,null,2)],{type:'applicatio
 function comprimirImg(base64, maxW, qualidade, cb){
   var img=new Image();
   img.onload=function(){
-    var w=img.width,h=img.height;
-    // Manter aspect ratio mas limitar ao máximo
-    if(w>h){ if(w>maxW){h=Math.round(h*maxW/w);w=maxW;} }
-    else    { if(h>maxW){w=Math.round(w*maxW/h);h=maxW;} }
+    var w=img.width, h=img.height;
+    // Cortar quadrado central (crop)
+    var size=Math.min(w,h);
+    var sx=Math.floor((w-size)/2);
+    var sy=Math.floor((h-size)/2);
     var cv=document.createElement('canvas');
-    cv.width=w;cv.height=h;
-    cv.getContext('2d').drawImage(img,0,0,w,h);
-    var result=cv.toDataURL('image/jpeg',qualidade);
-    // Se ainda > 50KB, comprimir mais
-    if(result.length > 70000){
-      cv.width=Math.round(w*0.6);cv.height=Math.round(h*0.6);
-      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-      result=cv.toDataURL('image/jpeg',0.5);
-    }
+    cv.width=maxW; cv.height=maxW;
+    cv.getContext('2d').drawImage(img, sx, sy, size, size, 0, 0, maxW, maxW);
+    var result=cv.toDataURL('image/jpeg', qualidade);
     cb(result);
   };
   img.src=base64;
