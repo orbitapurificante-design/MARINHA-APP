@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a1628">
+<title>MARINHA – Painel Administrativo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--gr:#27ae60;--r:#e74c3c;--cr:#f5f0e8}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh}
+
+/* ── PIN ── */
+#ePin{position:fixed;inset:0;z-index:1000;background:linear-gradient(160deg,var(--n),var(--s));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:32px}
+.pT{font-family:'Playfair Display',serif;font-size:36px;color:var(--cr);letter-spacing:6px}
+.pS{color:var(--g);font-size:11px;letter-spacing:3px;text-transform:uppercase}
+.pDots{display:flex;gap:14px;margin:8px 0}
+.pDot{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:transparent;transition:.15s}
+.pDot.on{background:var(--g);border-color:var(--g)}
+.pGrid{display:grid;grid-template-columns:repeat(3,72px);gap:12px}
+.pBtn{height:72px;border:none;border-radius:18px;background:rgba(255,255,255,.1);color:#fff;font-size:24px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:transform .1s,background .1s}
+.pBtn:active{transform:scale(.92);background:rgba(255,255,255,.2)}
+.pErr{color:#ff6b6b;font-size:13px;font-weight:600;min-height:20px;text-align:center}
+
+/* ── APP ── */
+#eApp{display:none;flex-direction:column;min-height:100vh}
+#eApp.v{display:flex}
+.cab{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;background:linear-gradient(135deg,var(--n),var(--s));display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:0 3px 16px rgba(0,0,0,.25)}
+.cabT{color:#fff;font-size:17px;font-weight:700;flex:1}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#fff;border-top:1px solid rgba(0,0,0,.07);display:flex;height:68px}
+.nBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);font-family:'DM Sans',sans-serif}
+.nBtn.a{color:var(--n)}.nBtn.a svg{stroke:var(--g)}
+.nBtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+.ecra{display:none;padding:72px 0 80px;min-height:100vh}.ecra.a{display:block}
+.s{padding:0 16px}
+.card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(10,22,40,.06);margin-bottom:14px}
+.ct{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+
+/* INP / BTN */
+.inp{width:100%;padding:12px 14px;background:#eef2f7;border:1.5px solid rgba(26,74,138,.14);border-radius:12px;font-size:15px;color:var(--n);outline:none;margin-bottom:10px;font-family:'DM Sans',sans-serif}
+.lbl{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:block}
+.bP{width:100%;padding:15px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.bS{width:100%;padding:13px;background:#eef2f7;color:var(--s);border:1.5px solid rgba(26,74,138,.18);border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px}
+
+/* PROMOS GRID FIX */
+.pGrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pCard{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(10,22,40,.07);cursor:pointer}
+.pImg{width:100%;height:150px;background:#eef2f7;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.pImg img{width:100%;height:100%;object-fit:cover;display:block}
+.pBdg{position:absolute;top:6px;left:6px;background:var(--r);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px}
+.pBody{padding:10px}.pNome{font-size:13px;font-weight:700;margin-bottom:3px}
+.pNovo{font-size:15px;font-weight:800;color:var(--r)}
+
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;z-index:500;align-items:flex-end;background:rgba(0,0,0,.45)}
+.modal.a{display:flex}
+.mBox{background:#fff;border-radius:20px 20px 0 0;width:100%;padding:20px;max-height:85vh;overflow-y:auto;width:100%}
+
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--n);color:#fff;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:.2s;pointer-events:none}
+#toast.v{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="ePin">
+  <div class="pT">MARINHA</div>
+  <div class="pS">Acesso Restrito</div>
+  <div class="pDots"><div class="pDot"></div><div class="pDot"></div><div class="pDot"></div><div class="pDot"></div></div>
+  <div class="pErr" id="pErr"></div>
+  <div class="pGrid">
+    <button class="pBtn" onclick="pd('1')">1</button><button class="pBtn" onclick="pd('2')">2</button><button class="pBtn" onclick="pd('3')">3</button>
+    <button class="pBtn" onclick="pd('4')">4</button><button class="pBtn" onclick="pd('5')">5</button><button class="pBtn" onclick="pd('6')">6</button>
+    <button class="pBtn" onclick="pd('7')">7</button><button class="pBtn" onclick="pd('8')">8</button><button class="pBtn" onclick="pd('9')">9</button>
+    <button class="pBtn" style="opacity:.3"></button><button class="pBtn" onclick="pd('0')">0</button><button class="pBtn" onclick="pa()">⌫</button>
+  </div>
+</div>
+
+<div id="eApp">
+  <div class="cab"><div class="cabT">PAINEL MARINHA</div></div>
+
+  <div class="ecra a" id="ecraDash">
+    <div class="s"><div style="height:10px"></div><div class="card"><div class="ct">Painel Principal</div><div id="statusDash">Sincronizando...</div></div></div>
+  </div>
+
+  <div class="ecra" id="ecraPromos">
+    <div class="s">
+      <div style="height:10px"></div>
+      <button class="bP" onclick="abrirNovaPromo()" style="margin-bottom:15px">+ Nova Promoção</button>
+      <div id="listaPromos"></div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="nBtn a" id="nDash" onclick="irTab('Dash')">🏠 Dash</button>
+    <button class="nBtn" id="nPromos" onclick="irTab('Promos')">🏷️ Promos</button>
+  </nav>
+</div>
+
+<div id="mPromo" class="modal">
+  <div class="mBox">
+    <h3 id="mPromoTit">Promoção</h3><br>
+    <input type="hidden" id="mPromoId">
+    <div id="prevBox" style="width:100%;height:150px;background:#f0f0f0;border-radius:12px;margin-bottom:10px;overflow:hidden;display:flex;align-items:center;justify-content:center">
+        <span id="mPromoEmoji">🛒</span>
+        <img id="mPromoImg" style="display:none;width:100%;height:100%;object-fit:cover">
+    </div>
+    <label class="bS" style="text-align:center;cursor:pointer;display:block">📷 Escolher Foto<input type="file" accept="image/*" onchange="prevFoto(event)" style="display:none"></label>
+    <input class="inp" id="mPromoNome" placeholder="Nome do Produto">
+    <input class="inp" id="mPromoNovo" type="number" placeholder="Preço Promo">
+    <button class="bP" onclick="guardarPromo()">✅ Guardar</button>
+    <button class="bS" onclick="fecharModal('mPromo')" style="margin-top:10px">Sair</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var SB='https://opzmuzogxfzeqwjxmfvc.supabase.co';
+var SK='sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
+var DB={promos:[]};
+var _pinCur="", _fotoBase64="";
+
+function pd(n){
+    if(_pinCur.length<4){
+        _pinCur+=n;
+        document.querySelectorAll('.pDot')[_pinCur.length-1].classList.add('on');
+        if(_pinCur.length===4){
+            if(_pinCur==="1234"){ // Altera aqui o teu PIN
+                document.getElementById('ePin').style.display='none';
+                document.getElementById('eApp').classList.add('v');
+                sincronizar();
+            } else {
+                document.getElementById('pErr').textContent="PIN Errado";
+                setTimeout(pa, 500);
+            }
+        }
+    }
+}
+function pa(){ _pinCur=""; document.querySelectorAll('.pDot').forEach(d=>d.classList.remove('on')); document.getElementById('pErr').textContent=""; }
+
+async function sincronizar(){
+    const r = await fetch(SB+'/rest/v1/promos?select=*',{headers:{'apikey':SK,'Authorization':'Bearer '+SK}});
+    DB.promos = await r.json();
+    renderPromos();
+    document.getElementById('statusDash').textContent = DB.promos.length + " promoções ativas.";
+}
+
+function renderPromos(){
+    var el=document.getElementById('listaPromos');
+    el.innerHTML='<div class="pGrid2">'+DB.promos.map(p=>`
+        <div class="pCard" onclick="editarPromo('${p.id}')">
+            <div class="pImg">${p.foto ? `<img src="${p.foto}?cb=${Date.now()}">` : `<span>${p.emoji||'🛒'}</span>`}</div>
+            <div class="pBody">
+                <div class="pNome">${p.nome}</div>
+                <div class="pNovo">${parseFloat(p.preco_novo).toFixed(2)}€</div>
+            </div>
+        </div>
+    `).join('')+'</div>';
+}
+
+function irTab(t){
+    document.querySelectorAll('.ecra').forEach(e=>e.classList.remove('a'));
+    document.querySelectorAll('.nBtn').forEach(b=>b.classList.remove('a'));
+    document.getElementById('ecra'+t).classList.add('a');
+    document.getElementById('n'+t).classList.add('a');
+}
+
+function abrirNovaPromo(){
+    _fotoBase64=""; document.getElementById('mPromoId').value="";
+    document.getElementById('mPromoImg').style.display='none';
+    document.getElementById('mPromoEmoji').style.display='block';
+    document.getElementById('mPromo').classList.add('a');
+}
+
+function prevFoto(e){
+    var f=e.target.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(ev){
+        var img=new Image();
+        img.onload=function(){
+            var cv=document.createElement('canvas');
+            var w=600; var h=Math.round(img.height*w/img.width);
+            cv.width=w; cv.height=h;
+            cv.getContext('2d').drawImage(img,0,0,w,h);
+            _fotoBase64=cv.toDataURL('image/jpeg',0.7);
+            document.getElementById('mPromoImg').src=_fotoBase64;
+            document.getElementById('mPromoImg').style.display='block';
+            document.getElementById('mPromoEmoji').style.display='none';
+        };
+        img.src=ev.target.result;
+    };
+    r.readAsDataURL(f);
+}
+
+async function guardarPromo(){
+    var id=document.getElementById('mPromoId').value || Math.random().toString(36).substr(2,9);
+    var nome=document.getElementById('mPromoNome').value;
+    var preco=document.getElementById('mPromoNovo').value;
+    
+    var fotoUrl = DB.promos.find(x=>x.id===id)?.foto || "";
+    if(_fotoBase64.startsWith('data:')){
+        fotoUrl = await uploadSupabase(id, _fotoBase64);
+    }
+
+    var d={id:id, nome:nome, preco_novo:preco, foto:fotoUrl};
+    await fetch(SB+'/rest/v1/promos',{
+        method:'POST',
+        headers:{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+        body:JSON.stringify(d)
+    });
+    fecharModal('mPromo'); sincronizar();
+}
+
+async function uploadSupabase(id, b64){
+    var blob=await fetch(b64).then(r=>r.blob());
+    var path='promos/'+id+'.jpg';
+    await fetch(SB+'/storage/v1/object/marinha/'+path,{method:'POST',headers:{'apikey':SK,'Authorization':'Bearer '+SK},body:blob});
+    return SB+'/storage/v1/object/public/marinha/'+path;
+}
+
+function fecharModal(id){document.getElementById(id).classList.remove('a');}
+</script>
+</body>
+</html>
