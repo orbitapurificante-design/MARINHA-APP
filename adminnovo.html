@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a1628">
+<title>MARINHA – Painel Administrativo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--gr:#27ae60;--r:#e74c3c;--cr:#f5f0e8}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh}
+
+/* ── PIN ── */
+#ePin{position:fixed;inset:0;z-index:1000;background:linear-gradient(160deg,var(--n),var(--s));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:32px}
+.pT{font-family:'Playfair Display',serif;font-size:36px;color:var(--cr);letter-spacing:6px}
+.pS{color:var(--g);font-size:11px;letter-spacing:3px;text-transform:uppercase}
+.pDots{display:flex;gap:14px;margin:8px 0}
+.pDot{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:transparent;transition:.15s}
+.pDot.on{background:var(--g);border-color:var(--g)}
+.pGrid{display:grid;grid-template-columns:repeat(3,72px);gap:12px}
+.pBtn{height:72px;border:none;border-radius:18px;background:rgba(255,255,255,.1);color:#fff;font-size:24px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:transform .1s,background .1s}
+.pBtn:active{transform:scale(.92);background:rgba(255,255,255,.2)}
+.pErr{color:#ff6b6b;font-size:13px;font-weight:600;min-height:20px;text-align:center}
+
+/* ── APP E NAVEGAÇÃO ── */
+#eApp{display:none;flex-direction:column;min-height:100vh}
+#eApp.v{display:flex}
+.cab{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;background:linear-gradient(135deg,var(--n),var(--s));display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:0 3px 16px rgba(0,0,0,.25)}
+.cabT{color:#fff;font-size:17px;font-weight:700;flex:1}
+.cabS{color:rgba(255,255,255,.45);font-size:10px;letter-spacing:2px;text-transform:uppercase}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#fff;border-top:1px solid rgba(0,0,0,.07);display:flex;height:68px}
+.nBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;font-size:10px;font-weight:700;color:var(--mu);font-family:'DM Sans',sans-serif}
+.nBtn.a{color:var(--n)}.nBtn.a svg{stroke:var(--g)}
+.nBtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+.ecra{display:none;padding:72px 0 80px;min-height:100vh}.ecra.a{display:block}
+.s{padding:0 16px}
+.card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(10,22,40,.06);margin-bottom:14px}
+.ct{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+
+/* ── PROMOÇÕES ── */
+.pGrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pCard{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(10,22,40,.07);cursor:pointer;position:relative}
+.pImg{width:100%;height:150px;background:#eef2f7;position:relative;overflow:hidden}
+.pImg img{width:100%;height:100%;object-fit:cover;display:block}
+.pBdg{position:absolute;top:6px;left:6px;background:var(--r);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px}
+.pBody{padding:10px}.pNome{font-size:13px;font-weight:700;margin-bottom:3px}
+.precos{display:flex;align-items:center;gap:6px}
+.pOrig{font-size:11px;color:var(--mu);text-decoration:line-through}
+.pNovo{font-size:15px;font-weight:800;color:var(--r)}
+
+/* MODAIS */
+.modal{display:none;position:fixed;inset:0;z-index:500;align-items:flex-end;background:rgba(0,0,0,.45)}
+.modal.a{display:flex}
+.mBox{background:#fff;border-radius:20px 20px 0 0;width:100%;padding:20px;max-height:85vh;overflow-y:auto}
+.mTit{font-size:18px;font-weight:800;margin-bottom:16px}
+.inp{width:100%;padding:12px;background:#eef2f7;border:1.5px solid rgba(26,74,138,.14);border-radius:12px;margin-bottom:10px;font-family:inherit;outline:none}
+.bP{width:100%;padding:15px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;cursor:pointer}
+.bS{width:100%;padding:12px;background:none;color:var(--mu);border:none;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div id="ePin">
+    <div class="pT">MARINHA</div>
+    <div class="pS">Painel da Loja</div>
+    <div class="pDots"><div class="pDot" id="d0"></div><div class="pDot" id="d1"></div><div class="pDot" id="d2"></div><div class="pDot" id="d3"></div></div>
+    <div class="pErr" id="pErr"></div>
+    <div class="pGrid">
+        <button class="pBtn" onclick="pd('1')">1</button><button class="pBtn" onclick="pd('2')">2</button><button class="pBtn" onclick="pd('3')">3</button>
+        <button class="pBtn" onclick="pd('4')">4</button><button class="pBtn" onclick="pd('5')">5</button><button class="pBtn" onclick="pd('6')">6</button>
+        <button class="pBtn" onclick="pd('7')">7</button><button class="pBtn" onclick="pd('8')">8</button><button class="pBtn" onclick="pd('9')">9</button>
+        <button class="pBtn" style="opacity:.3"></button><button class="pBtn" onclick="pd('0')">0</button><button class="pBtn" onclick="pa()">⌫</button>
+    </div>
+</div>
+
+<div id="eApp">
+    <div class="cab">
+        <div>
+            <div class="cabT" id="cabNome">MARINHA</div>
+            <div class="cabS">Painel da Loja</div>
+        </div>
+    </div>
+
+    <div class="ecra a" id="ecraDash">
+        <div class="s">
+            <div style="height:10px"></div>
+            <div class="card">
+                <div class="ct">Promoções Ativas</div>
+                <button class="bP" style="margin-bottom:12px" onclick="abrirNovaPromo()">+ Nova Promoção</button>
+                <div id="listaPromos" class="pGrid2"></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="nav">
+        <button class="nBtn a" onclick="irTab('Dash')">
+            <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio
+        </button>
+        <button class="nBtn" onclick="irTab('Config')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config
+        </button>
+    </nav>
+</div>
+
+<div class="modal" id="mPromo">
+    <div class="mBox">
+        <div class="mTit">Configurar Produto</div>
+        <div id="mPromoFotoPrev" style="width:100%;height:180px;border-radius:12px;background:#eef2f7;display:flex;align-items:center;justify-content:center;margin-bottom:12px;overflow:hidden;border:1.5px dashed rgba(26,74,138,.2)" onclick="document.getElementById('mPromoFile').click()">
+            <span style="color:var(--mu);font-size:12px">Tocar para carregar foto</span>
+        </div>
+        <input type="file" id="mPromoFile" accept="image/*" style="display:none" onchange="preverFoto(this)">
+        <input class="inp" id="mPromoNome" type="text" placeholder="Nome do Produto">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <input class="inp" id="mPromoPrecoO" type="number" placeholder="Preço Antigo">
+            <input class="inp" id="mPromoPrecoN" type="number" placeholder="Preço Promo">
+        </div>
+        <button class="bP" onclick="guardarPromo()">Publicar Promoção</button>
+        <button class="bS" onclick="fecharModal('mPromo')">Cancelar</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// CONFIGURAÇÃO SUPABASE (Insira as suas credenciais)
+const SB_URL = 'A_SUA_URL_AQUI';
+const SB_KEY = 'A_SUA_KEY_AQUI';
+const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+
+// LOGICA PIN
+let pin = "";
+function pd(n) {
+    if (pin.length < 4) {
+        pin += n;
+        document.getElementById('d' + (pin.length - 1)).classList.add('on');
+        if (pin.length === 4) {
+            if (pin === "1234") { // PIN padrão
+                document.getElementById('ePin').style.display = 'none';
+                document.getElementById('eApp').classList.add('v');
+            } else {
+                document.getElementById('pErr').innerText = "PIN Incorreto";
+                setTimeout(pa, 500);
+            }
+        }
+    }
+}
+function pa() {
+    pin = "";
+    for (let i = 0; i < 4; i++) document.getElementById('d' + i).classList.remove('on');
+    document.getElementById('pErr').innerText = "";
+}
+
+// NAVEGAÇÃO E MODAIS
+function irTab(t) {
+    document.querySelectorAll('.ecra').forEach(e => e.classList.remove('a'));
+    document.getElementById('ecra' + t).classList.add('a');
+    document.querySelectorAll('.nBtn').forEach(b => b.classList.remove('a'));
+    event.currentTarget.classList.add('a');
+}
+function abrirNovaPromo() { document.getElementById('mPromo').classList.add('a'); }
+function fecharModal(id) { document.getElementById(id).classList.remove('a'); }
+
+function preverFoto(input) {
+    if (input.files && input.files[0]) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            const prev = document.getElementById('mPromoFotoPrev');
+            prev.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// FUNÇÕES DE DADOS (Exemplos simplificados)
+async function guardarPromo() {
+    // Implemente a lógica de upload para o Supabase aqui
+    alert('Promoção guardada com sucesso!');
+    fecharModal('mPromo');
+}
+</script>
+
+</body>
+</html>
