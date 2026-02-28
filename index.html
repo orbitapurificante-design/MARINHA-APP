@@ -57,8 +57,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 /* PROMOS */
 .promoG{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pc{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(10,22,40,.07)}
-.pi{width:100%;aspect-ratio:1;background:#eef2f7;overflow:hidden;display:block}
-.pi img{width:100%;height:100%;object-fit:cover;display:block}
+.pi{width:100%;aspect-ratio:1;background:#eef2f7;overflow:hidden}
+.pi img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block}
 .bdg{position:absolute;top:6px;left:6px;background:var(--r);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px}
 .pb{padding:10px}.pn{font-size:13px;font-weight:700;margin-bottom:4px}
 .po{font-size:11px;color:var(--mu);text-decoration:line-through}
@@ -349,14 +349,34 @@ function renderFolheto(){
     '<div class="promoG">'+av.map(function(p){
       var po=parseFloat(p.preco_orig)||0,pn=parseFloat(p.preco_novo)||0;
       var pct=(po>0&&pn>0)?Math.round((1-pn/po)*100):0;
+      var piStyle='width:100%;height:150px;background:#eef2f7;overflow:hidden;display:block;position:relative';
       return '<div class="pc">'+
-        '<div class="pi">'+(p.foto?'<img src="'+p.foto+'" style="width:100%;height:100%;object-fit:cover;display:block">':(p.emoji||'🛒'))+(pct>0?'<span class="bdg">-'+pct+'%</span>':'')+
+        '<div style="'+piStyle+'">'+(p.foto?'<img id="pi_'+p.id+'" src="" style="width:100%;height:100%;object-fit:cover;display:block">':(p.emoji||'🛒'))+(pct>0?'<span class="bdg">-'+pct+'%</span>':'')+
         '</div><div class="pb"><div class="pn">'+p.nome+'</div><div style="display:flex;align-items:center;gap:4px">'+
         (po>0?'<span class="po">'+po.toFixed(2)+'€</span>':'')+
         (pn>0?'<span class="pv">'+pn.toFixed(2)+'€</span>':'')+
         '</div></div></div>';
     }).join('')+'</div>':
     '<div style="color:var(--mu);font-size:14px;padding:8px 0">Sem promoções activas</div>';
+  // Carregar fotos cortadas em quadrado via canvas
+  av.forEach(function(p){
+    if(!p.foto)return;
+    var el=document.getElementById('pi_'+p.id);
+    if(!el)return;
+    var img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=function(){
+      var size=Math.min(img.width,img.height);
+      var sx=Math.floor((img.width-size)/2);
+      var sy=Math.floor((img.height-size)/2);
+      var cv=document.createElement('canvas');
+      cv.width=300;cv.height=300;
+      cv.getContext('2d').drawImage(img,sx,sy,size,size,0,0,300,300);
+      el.src=cv.toDataURL('image/jpeg',0.8);
+    };
+    img.onerror=function(){el.src=p.foto;};
+    img.src=p.foto;
+  });
   // Folheto
   var imgs=D.folhetos.filter(function(f){return f.data&&f.data.length>10;});
   document.getElementById('fFolheto').innerHTML=imgs.length?
