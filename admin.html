@@ -86,6 +86,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--n);color:#fff;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:.2s;pointer-events:none;white-space:nowrap}
 #toast.v{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 </head>
 <body>
 
@@ -660,16 +661,33 @@ async function apagarCli(){
 function renderPromos(){
   var el=document.getElementById('listaPromos');
   if(!DB.promos.length){el.innerHTML='<div style="color:var(--mu);font-size:14px;padding:8px 0">Sem promoções</div>';return;}
-  var h=hoje();
   el.innerHTML='<div class="pGrid2">'+DB.promos.map(function(p){
     var po=parseFloat(p.preco_orig)||0,pn=parseFloat(p.preco_novo)||0;
     var pct=(po>0&&pn>0)?Math.round((1-pn/po)*100):0;
     return '<div class="pCard" onclick="editarPromo(\''+p.id+'\')">'+
-      '<div class="pImg">'+(p.foto?'<img src="'+p.foto+'?cb='+Date.now()+'" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">':(p.emoji||'🛒'))+(pct>0?'<div class="pBdg">-'+pct+'%</div>':'')+'</div>'+
+      '<div class="pImg">'+(p.foto?'<img id="adm_'+p.id+'" src="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block">':(p.emoji||'🛒'))+(pct>0?'<div class="pBdg">-'+pct+'%</div>':'')+'</div>'+
       '<div class="pBody"><div class="pNome">'+p.nome+'</div>'+
       '<div class="precos">'+(po>0?'<span class="pOrig">'+po.toFixed(2)+'€</span>':'')+(pn>0?'<span class="pNovo">'+pn.toFixed(2)+'€</span>':'')+'</div>'+
       '</div></div>';
   }).join('')+'</div>';
+  DB.promos.forEach(function(p){
+    if(!p.foto)return;
+    var imgEl=document.getElementById('adm_'+p.id);
+    if(!imgEl)return;
+    var tmp=new Image();
+    tmp.crossOrigin='anonymous';
+    tmp.onload=function(){
+      var size=Math.min(tmp.width,tmp.height);
+      var sx=Math.floor((tmp.width-size)/2);
+      var sy=Math.floor((tmp.height-size)/2);
+      var cv=document.createElement('canvas');
+      cv.width=200;cv.height=200;
+      cv.getContext('2d').drawImage(tmp,sx,sy,size,size,0,0,200,200);
+      imgEl.src=cv.toDataURL('image/jpeg',0.8);
+    };
+    tmp.onerror=function(){imgEl.src=p.foto;};
+    tmp.src=p.foto+'?t='+Date.now();
+  });
 }
 function abrirNovaPromo(){
   _fotoPromo='';
@@ -848,20 +866,66 @@ function fecharViewer(){document.getElementById('viewer').classList.remove('a');
 // ══════════════════════════════════════════
 //  SCANNER
 // ══════════════════════════════════════════
-var _stream=null,_face='environment',_si=null,_det=null;
+var _stream=null,_face='environment',_si=null;
 function iniciarCam(){
   if(!navigator.mediaDevices){toast('⚠️ Câmara só em HTTPS');return;}
-  if(window.BarcodeDetector&&!_det)_det=new BarcodeDetector({formats:['qr_code']});
   document.getElementById('sPrincipal').style.display='none';
   document.getElementById('cWrap').classList.add('a');
-  document.getElementById('sCamStatus').textContent='A aceder...';
-  navigator.mediaDevices.getUserMedia({video:{facingMode:_face},audio:false})
-    .then(function(s){_stream=s;var v=document.getElementById('qrVid');v.srcObject=s;v.play();v.onloadedmetadata=function(){document.getElementById('sCamStatus').textContent=_det?'✅ Aponte para o QR':'⚠️ Sem suporte auto';if(_det)iniciarLeitura();};})
-    .catch(function(e){document.getElementById('sCamStatus').textContent='⚠️ '+e.message;});
+  document.getElementById('sCamStatus').textContent='A aceder à câmara...';
+  navigator.mediaDevices.getUserMedia({video:{facingMode:_face,width:{ideal:1280},height:{ideal:720}},audio:false})
+    .then(function(s){
+      _stream=s;
+      var v=document.getElementById('qrVid');
+      v.srcObject=s;v.play();
+      v.onloadedmetadata=function(){
+        document.getElementById('sCamStatus').textContent='✅ Aponte para o QR code';
+        iniciarLeitura();
+      };
+    })
+    .catch(function(e){
+      document.getElementById('sCamStatus').textContent='⚠️ '+e.message;
+      document.getElementById('sPrincipal').style.display='';
+      document.getElementById('cWrap').classList.remove('a');
+    });
 }
-function iniciarLeitura(){var v=document.getElementById('qrVid'),cd=false;_si=setInterval(function(){if(v.readyState<2||!_det)return;_det.detect(v).then(function(cs){if(cs.length&&!cd){cd=true;setTimeout(function(){cd=false;},3000);processarQR(cs[0].rawValue);}}).catch(function(){});},400);}
-function pararCam(){clearInterval(_si);_si=null;if(_stream){_stream.getTracks().forEach(function(t){t.stop();});_stream=null;}var v=document.getElementById('qrVid');if(v)v.srcObject=null;var cw=document.getElementById('cWrap');if(cw)cw.classList.remove('a');var sp=document.getElementById('sPrincipal');if(sp)sp.style.display='';}
-function lerQRFoto(e){var f=e.target.files[0];if(!f)return;toast('⏳ A ler...');var img=new Image(),url=URL.createObjectURL(f);img.onload=function(){var cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;cv.getContext('2d').drawImage(img,0,0);URL.revokeObjectURL(url);if(!_det)_det=new BarcodeDetector({formats:['qr_code']});_det.detect(cv).then(function(cs){if(cs.length)processarQR(cs[0].rawValue);else toast('⚠️ QR não encontrado');}).catch(function(){toast('⚠️ Erro');});};img.src=url;try{e.target.value='';}catch(x){}}
+function iniciarLeitura(){
+  var v=document.getElementById('qrVid');
+  var cv=document.createElement('canvas');
+  var ctx=cv.getContext('2d');
+  _si=setInterval(function(){
+    if(v.readyState<2||!v.videoWidth)return;
+    cv.width=v.videoWidth;cv.height=v.videoHeight;
+    ctx.drawImage(v,0,0,cv.width,cv.height);
+    var img=ctx.getImageData(0,0,cv.width,cv.height);
+    var code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+    if(code){clearInterval(_si);_si=null;processarQR(code.data);}
+  },300);
+}
+function pararCam(){
+  clearInterval(_si);_si=null;
+  if(_stream){_stream.getTracks().forEach(function(t){t.stop();});_stream=null;}
+  var v=document.getElementById('qrVid');if(v)v.srcObject=null;
+  var cw=document.getElementById('cWrap');if(cw)cw.classList.remove('a');
+  var sp=document.getElementById('sPrincipal');if(sp)sp.style.display='';
+}
+function lerQRFoto(e){
+  var f=e.target.files[0];if(!f)return;
+  toast('⏳ A ler...');
+  var img=new Image();
+  var url=URL.createObjectURL(f);
+  img.onload=function(){
+    var cv=document.createElement('canvas');
+    cv.width=img.width;cv.height=img.height;
+    cv.getContext('2d').drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    var imgData=cv.getContext('2d').getImageData(0,0,cv.width,cv.height);
+    var code=jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'attemptBoth'});
+    if(code)processarQR(code.data);
+    else toast('⚠️ QR não encontrado na foto');
+  };
+  img.src=url;
+  try{e.target.value='';}catch(x){}
+}
 function pesqScan(q){
   var el=document.getElementById('resScan');
   if(!q||q.length<2){el.innerHTML='';return;}
