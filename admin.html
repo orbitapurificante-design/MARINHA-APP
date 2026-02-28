@@ -665,7 +665,7 @@ function renderPromos(){
     var po=parseFloat(p.preco_orig)||0,pn=parseFloat(p.preco_novo)||0;
     var pct=(po>0&&pn>0)?Math.round((1-pn/po)*100):0;
     return '<div class="pCard" onclick="editarPromo(\''+p.id+'\')">'+
-      '<div class="pImg">'+(p.foto?'<img src="'+p.foto+'?cb='+Date.now()+'" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">':(p.emoji||'🛒'))+(pct>0?'<div class="pBdg">-'+pct+'%</div>':'')+'</div>'+
+      '<div class="pImg">'+(p.foto?'<img src="'+p.foto+'?cb='+Date.now()+'" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">':(p.emoji||'🛒'))+(pct>0?'<div class="pBdg">-'+pct+'%</div>':'')+'</div>'+
       '<div class="pBody"><div class="pNome">'+p.nome+'</div>'+
       '<div class="precos">'+(po>0?'<span class="pOrig">'+po.toFixed(2)+'€</span>':'')+(pn>0?'<span class="pNovo">'+pn.toFixed(2)+'€</span>':'')+'</div>'+
       '</div></div>';
