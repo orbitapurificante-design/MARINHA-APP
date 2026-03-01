@@ -344,39 +344,18 @@ function renderQR(){
 
 function renderFolheto(){
   var av=ativas();
-  // Promoções
   document.getElementById('fPromos').innerHTML=av.length?
     '<div class="promoG">'+av.map(function(p){
       var po=parseFloat(p.preco_orig)||0,pn=parseFloat(p.preco_novo)||0;
       var pct=(po>0&&pn>0)?Math.round((1-pn/po)*100):0;
       return '<div class="pc">'+
-        '<div class="pi">'+(p.foto?'<img id="pi_'+p.id+'" src="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block">':(p.emoji||'🛒'))+(pct>0?'<span class="bdg">-'+pct+'%</span>':'')+
+        '<div class="pi">'+(p.foto?'<img src="'+p.foto+'" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover">':(p.emoji||'🛒'))+(pct>0?'<span class="bdg">-'+pct+'%</span>':'')+
         '</div><div class="pb"><div class="pn">'+p.nome+'</div><div style="display:flex;align-items:center;gap:4px">'+
         (po>0?'<span class="po">'+po.toFixed(2)+'€</span>':'')+
         (pn>0?'<span class="pv">'+pn.toFixed(2)+'€</span>':'')+
         '</div></div></div>';
     }).join('')+'</div>':
     '<div style="color:var(--mu);font-size:14px;padding:8px 0">Sem promoções activas</div>';
-  // Carregar cada foto, cortar em quadrado via canvas
-  av.forEach(function(p){
-    if(!p.foto)return;
-    var el=document.getElementById('pi_'+p.id);
-    if(!el)return;
-    var img=new Image();
-    img.crossOrigin='anonymous';
-    img.onload=function(){
-      var size=Math.min(img.width,img.height);
-      var sx=Math.floor((img.width-size)/2);
-      var sy=Math.floor((img.height-size)/2);
-      var cv=document.createElement('canvas');
-      cv.width=300;cv.height=300;
-      cv.getContext('2d').drawImage(img,sx,sy,size,size,0,0,300,300);
-      el.src=cv.toDataURL('image/jpeg',0.85);
-    };
-    img.onerror=function(){el.src=p.foto;};
-    img.src=p.foto+'?t='+Date.now();
-  });
-  // Folheto
   var imgs=D.folhetos.filter(function(f){return f.data&&f.data.length>10;});
   document.getElementById('fFolheto').innerHTML=imgs.length?
     '<div class="card"><div class="ct">Folheto</div><div class="fStrip">'+
