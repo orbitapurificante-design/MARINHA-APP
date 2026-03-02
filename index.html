@@ -55,14 +55,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 .qrSvgW{background:var(--n);border-radius:16px;padding:16px;display:inline-block;margin-bottom:12px}
 
 /* PROMOS */
-.promoG{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.pc{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(10,22,40,.07)}
 .pImg{width:100%;height:0;padding-bottom:100%;background:#eef2f7;position:relative;overflow:hidden}
 .pImg img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block}
-.bdg{position:absolute;top:6px;left:6px;background:var(--r);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px}
-.pb{padding:10px}.pn{font-size:13px;font-weight:700;margin-bottom:4px}
-.po{font-size:11px;color:var(--mu);text-decoration:line-through}
-.pv{font-size:15px;font-weight:800;color:var(--r)}
 
 /* FOLHETO */
 .fStrip{display:flex;gap:10px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}.fStrip::-webkit-scrollbar{display:none}
@@ -153,10 +147,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
   <div class="ecra" id="ecraFolheto">
     <div class="s">
       <div style="height:10px"></div>
-      <div class="card">
-        <div class="ct">Promoções</div>
-        <div id="fPromos"><div style="color:var(--mu);font-size:14px;padding:8px 0">A carregar...</div></div>
-      </div>
+
       <div id="fFolheto"></div>
     </div>
   </div>
@@ -343,19 +334,6 @@ function renderQR(){
 }
 
 function renderFolheto(){
-  var av=ativas();
-  document.getElementById('fPromos').innerHTML=av.length?
-    '<div class="promoG">'+av.map(function(p){
-      var po=parseFloat(p.preco_orig)||0,pn=parseFloat(p.preco_novo)||0;
-      var pct=(po>0&&pn>0)?Math.round((1-pn/po)*100):0;
-      return '<div class="pc">'+
-        '<div class="pi">'+(p.foto?'<img src="'+p.foto+'" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover">':(p.emoji||'🛒'))+(pct>0?'<span class="bdg">-'+pct+'%</span>':'')+
-        '</div><div class="pb"><div class="pn">'+p.nome+'</div><div style="display:flex;align-items:center;gap:4px">'+
-        (po>0?'<span class="po">'+po.toFixed(2)+'€</span>':'')+
-        (pn>0?'<span class="pv">'+pn.toFixed(2)+'€</span>':'')+
-        '</div></div></div>';
-    }).join('')+'</div>':
-    '<div style="color:var(--mu);font-size:14px;padding:8px 0">Sem promoções activas</div>';
   var imgs=D.folhetos.filter(function(f){return f.data&&f.data.length>10;});
   document.getElementById('fFolheto').innerHTML=imgs.length?
     '<div class="card"><div class="ct">Folheto</div><div class="fStrip">'+
