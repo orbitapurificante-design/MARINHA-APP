@@ -66,6 +66,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 /* VIEWER */
 .viewer{display:none;position:fixed;inset:0;z-index:800;background:#000;flex-direction:column}
 .viewer.a{display:flex}
+.pGrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .vTrack{display:flex;transition:transform .3s;height:100%}
 .vSlide{flex-shrink:0;width:100vw;display:flex;align-items:center;justify-content:center}
 .vSlide img{width:100%;height:100%;object-fit:contain}
@@ -258,7 +259,14 @@ function proxNivel(p){return p>=2000?{v:2000,l:'Nível máximo!'}:p>=1000?{v:200
 function descEur(p){return Math.floor((p||0)/(D.cfg.ptsDesc||100));}
 function ativas(){
   var h=hoje();
-  return D.promos.filter(function(p){return(!p.data_ini||p.data_ini<=h)&&(!p.data_fim||p.data_fim>=h);});
+  return D.promos.filter(function(p){
+    // Promo sem datas = sempre activa
+    // Promo com data_ini: só mostra se já começou
+    // Promo com data_fim: só mostra se ainda não acabou
+    var iniciou = !p.data_ini || p.data_ini==='' || p.data_ini<=h;
+    var naoAcabou = !p.data_fim || p.data_fim==='' || p.data_fim>=h;
+    return iniciou && naoAcabou;
+  });
 }
 
 function toast(m,ms){
@@ -361,7 +369,7 @@ function renderInicio(){
   document.getElementById('hNivel').textContent=n;
   document.getElementById('hProx').textContent=p.l;
   // Promos preview
-  var av=ativas().slice(0,2);
+  var av=ativas().slice(0,3);
   var el=document.getElementById('promosCard');
   if(av.length){
     el.style.display='block';
