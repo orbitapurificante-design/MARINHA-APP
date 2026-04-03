@@ -86,7 +86,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--n);color:#fff;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:.2s;pointer-events:none;white-space:nowrap}
 #toast.v{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 </head>
 <body>
 
@@ -211,8 +210,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
       <div style="height:10px"></div>
       <div class="card">
         <div class="ct">Manutenção</div>
-        <button class="bP" style="margin-bottom:8px" onclick="corrigirFotos()">🔧 Corrigir fotos das promoções</button>
-        <div id="corrigirLog" style="font-size:12px;color:var(--mu)"></div>
+        <button class="bP" style="margin-bottom:8px" onclick="testarSincronizacao()">🔍 Verificar sincronização com app</button>
+        <button class="bS" style="margin-bottom:8px" onclick="corrigirFotos()">🔧 Corrigir fotos das promoções</button>
+        <div id="corrigirLog" style="font-size:12px;color:var(--mu);line-height:1.6;margin-top:8px"></div>
       </div>
       <div class="card">
         <div class="ct">Configuração</div>
@@ -661,33 +661,16 @@ async function apagarCli(){
 function renderPromos(){
   var el=document.getElementById('listaPromos');
   if(!DB.promos.length){el.innerHTML='<div style="color:var(--mu);font-size:14px;padding:8px 0">Sem promoções</div>';return;}
+  var h=hoje();
   el.innerHTML='<div class="pGrid2">'+DB.promos.map(function(p){
     var po=parseFloat(p.preco_orig)||0,pn=parseFloat(p.preco_novo)||0;
     var pct=(po>0&&pn>0)?Math.round((1-pn/po)*100):0;
     return '<div class="pCard" onclick="editarPromo(\''+p.id+'\')">'+
-      '<div class="pImg">'+(p.foto?'<img id="adm_'+p.id+'" src="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block">':(p.emoji||'🛒'))+(pct>0?'<div class="pBdg">-'+pct+'%</div>':'')+'</div>'+
+      '<div class="pImg">'+(p.foto?'<img src="'+p.foto+'?cb='+Date.now()+'" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">':(p.emoji||'🛒'))+(pct>0?'<div class="pBdg">-'+pct+'%</div>':'')+'</div>'+
       '<div class="pBody"><div class="pNome">'+p.nome+'</div>'+
       '<div class="precos">'+(po>0?'<span class="pOrig">'+po.toFixed(2)+'€</span>':'')+(pn>0?'<span class="pNovo">'+pn.toFixed(2)+'€</span>':'')+'</div>'+
       '</div></div>';
   }).join('')+'</div>';
-  DB.promos.forEach(function(p){
-    if(!p.foto)return;
-    var imgEl=document.getElementById('adm_'+p.id);
-    if(!imgEl)return;
-    var tmp=new Image();
-    tmp.crossOrigin='anonymous';
-    tmp.onload=function(){
-      var size=Math.min(tmp.width,tmp.height);
-      var sx=Math.floor((tmp.width-size)/2);
-      var sy=Math.floor((tmp.height-size)/2);
-      var cv=document.createElement('canvas');
-      cv.width=200;cv.height=200;
-      cv.getContext('2d').drawImage(tmp,sx,sy,size,size,0,0,200,200);
-      imgEl.src=cv.toDataURL('image/jpeg',0.8);
-    };
-    tmp.onerror=function(){imgEl.src=p.foto;};
-    tmp.src=p.foto+'?t='+Date.now();
-  });
 }
 function abrirNovaPromo(){
   _fotoPromo='';
@@ -712,7 +695,7 @@ function editarPromo(id){
   _fotoPromo = ''; // reset - só muda se escolher nova foto
   var img=document.getElementById('mPromoFotoImg');
   var em=document.getElementById('mPromoFotoEmoji');
-  if(p.foto){ if(img){img.src=p.foto+'?t='+Date.now();img.style.display='block';} if(em)em.style.display='none'; }
+  if(p.foto){ if(img){img.src=(p.foto.startsWith('http')?p.foto+'?t='+Date.now():p.foto);img.style.display='block';} if(em)em.style.display='none'; }
   else { if(img){img.src='';img.style.display='none';} if(em)em.style.display=''; }
   document.getElementById('wApagarPromo').style.display='block';
   document.getElementById('mPromo').classList.add('a');
@@ -742,10 +725,17 @@ async function guardarPromo(){
   var fotoUrl='';
   if(_fotoPromo&&_fotoPromo.startsWith('data:')){
     toast('⏳ A enviar foto...');
-    // Usar timestamp no path para evitar cache do browser
     var fPath='promos/'+pid+'_'+Date.now()+'.jpg';
-    fotoUrl=await sbImgUp('marinha',fPath,_fotoPromo);
-    if(!fotoUrl)toast('⚠️ Foto não enviada',3000);
+    var storageUrl=await sbImgUp('marinha',fPath,_fotoPromo);
+    if(storageUrl){
+      fotoUrl=storageUrl;
+      console.log('Promo foto: guardada no Storage');
+    } else {
+      // Fallback: guardar base64 directamente no campo foto da tabela
+      fotoUrl=_fotoPromo;
+      console.log('Promo foto: Storage falhou → base64 directo ('+Math.round(_fotoPromo.length/1024)+'KB)');
+      toast('📷 Foto guardada directamente (bucket Storage não configurado)',3000);
+    }
   } else if(id){
     var ep=DB.promos.find(function(x){return x.id===id;});
     fotoUrl=ep?ep.foto||'':'';
@@ -816,16 +806,18 @@ function addFolheto(e){
         DB.folhetos.push(obj);
         // Guardar no IDB local sempre
         await idbSet('F_'+id,compressed);
-        // Tentar guardar no Supabase
+        // Tentar guardar no Supabase Storage
         var url=await sbImgUp('marinha','folhetos/'+id+'.jpg',compressed);
-        var dataGuardar=url||'';
+        // Se Storage falhou (bucket não existe ou sem permissão), usar base64 diretamente
+        var dataGuardar = url || compressed; // ← FALLBACK: base64 directo no campo
+        console.log('Folheto '+f.name+': '+(url?'Storage URL ('+url.length+'ch)':'base64 directo ('+Math.round(compressed.length/1024)+'KB)'));
         await sbUp('folhetos',{id:id,nome:f.name,data:dataGuardar,adicionado:hoje()});
-        // cache local
-        if(!url) DB.folhetos[DB.folhetos.length-1].data=compressed;
+        // Atualizar objeto local com a data final
+        DB.folhetos[DB.folhetos.length-1].data=dataGuardar;
         n++;
         if(n===total){
           renderFolheto();
-          toast(url?'✅ '+n+' página(s) adicionada(s)':'⚠️ '+n+' pág. guardada(s) só localmente (criar bucket "marinha" no Supabase)');
+          toast('✅ '+n+' página(s) adicionada(s)'+(url?' via Storage':' (base64 directo)'));
         }
       });
     };
@@ -866,66 +858,20 @@ function fecharViewer(){document.getElementById('viewer').classList.remove('a');
 // ══════════════════════════════════════════
 //  SCANNER
 // ══════════════════════════════════════════
-var _stream=null,_face='environment',_si=null;
+var _stream=null,_face='environment',_si=null,_det=null;
 function iniciarCam(){
   if(!navigator.mediaDevices){toast('⚠️ Câmara só em HTTPS');return;}
+  if(window.BarcodeDetector&&!_det)_det=new BarcodeDetector({formats:['qr_code']});
   document.getElementById('sPrincipal').style.display='none';
   document.getElementById('cWrap').classList.add('a');
-  document.getElementById('sCamStatus').textContent='A aceder à câmara...';
-  navigator.mediaDevices.getUserMedia({video:{facingMode:_face,width:{ideal:1280},height:{ideal:720}},audio:false})
-    .then(function(s){
-      _stream=s;
-      var v=document.getElementById('qrVid');
-      v.srcObject=s;v.play();
-      v.onloadedmetadata=function(){
-        document.getElementById('sCamStatus').textContent='✅ Aponte para o QR code';
-        iniciarLeitura();
-      };
-    })
-    .catch(function(e){
-      document.getElementById('sCamStatus').textContent='⚠️ '+e.message;
-      document.getElementById('sPrincipal').style.display='';
-      document.getElementById('cWrap').classList.remove('a');
-    });
+  document.getElementById('sCamStatus').textContent='A aceder...';
+  navigator.mediaDevices.getUserMedia({video:{facingMode:_face},audio:false})
+    .then(function(s){_stream=s;var v=document.getElementById('qrVid');v.srcObject=s;v.play();v.onloadedmetadata=function(){document.getElementById('sCamStatus').textContent=_det?'✅ Aponte para o QR':'⚠️ Sem suporte auto';if(_det)iniciarLeitura();};})
+    .catch(function(e){document.getElementById('sCamStatus').textContent='⚠️ '+e.message;});
 }
-function iniciarLeitura(){
-  var v=document.getElementById('qrVid');
-  var cv=document.createElement('canvas');
-  var ctx=cv.getContext('2d');
-  _si=setInterval(function(){
-    if(v.readyState<2||!v.videoWidth)return;
-    cv.width=v.videoWidth;cv.height=v.videoHeight;
-    ctx.drawImage(v,0,0,cv.width,cv.height);
-    var img=ctx.getImageData(0,0,cv.width,cv.height);
-    var code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
-    if(code){clearInterval(_si);_si=null;processarQR(code.data);}
-  },300);
-}
-function pararCam(){
-  clearInterval(_si);_si=null;
-  if(_stream){_stream.getTracks().forEach(function(t){t.stop();});_stream=null;}
-  var v=document.getElementById('qrVid');if(v)v.srcObject=null;
-  var cw=document.getElementById('cWrap');if(cw)cw.classList.remove('a');
-  var sp=document.getElementById('sPrincipal');if(sp)sp.style.display='';
-}
-function lerQRFoto(e){
-  var f=e.target.files[0];if(!f)return;
-  toast('⏳ A ler...');
-  var img=new Image();
-  var url=URL.createObjectURL(f);
-  img.onload=function(){
-    var cv=document.createElement('canvas');
-    cv.width=img.width;cv.height=img.height;
-    cv.getContext('2d').drawImage(img,0,0);
-    URL.revokeObjectURL(url);
-    var imgData=cv.getContext('2d').getImageData(0,0,cv.width,cv.height);
-    var code=jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'attemptBoth'});
-    if(code)processarQR(code.data);
-    else toast('⚠️ QR não encontrado na foto');
-  };
-  img.src=url;
-  try{e.target.value='';}catch(x){}
-}
+function iniciarLeitura(){var v=document.getElementById('qrVid'),cd=false;_si=setInterval(function(){if(v.readyState<2||!_det)return;_det.detect(v).then(function(cs){if(cs.length&&!cd){cd=true;setTimeout(function(){cd=false;},3000);processarQR(cs[0].rawValue);}}).catch(function(){});},400);}
+function pararCam(){clearInterval(_si);_si=null;if(_stream){_stream.getTracks().forEach(function(t){t.stop();});_stream=null;}var v=document.getElementById('qrVid');if(v)v.srcObject=null;var cw=document.getElementById('cWrap');if(cw)cw.classList.remove('a');var sp=document.getElementById('sPrincipal');if(sp)sp.style.display='';}
+function lerQRFoto(e){var f=e.target.files[0];if(!f)return;toast('⏳ A ler...');var img=new Image(),url=URL.createObjectURL(f);img.onload=function(){var cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;cv.getContext('2d').drawImage(img,0,0);URL.revokeObjectURL(url);if(!_det)_det=new BarcodeDetector({formats:['qr_code']});_det.detect(cv).then(function(cs){if(cs.length)processarQR(cs[0].rawValue);else toast('⚠️ QR não encontrado');}).catch(function(){toast('⚠️ Erro');});};img.src=url;try{e.target.value='';}catch(x){}}
 function pesqScan(q){
   var el=document.getElementById('resScan');
   if(!q||q.length<2){el.innerHTML='';return;}
@@ -1032,6 +978,37 @@ function copiarLink(){var url=window.location.origin+window.location.pathname.re
 function imprimirQR(){var url=window.location.origin+window.location.pathname.replace(/admin\.html$/,'')+'index.html';var w=window.open('','_blank');w.document.write('<html><body style="text-align:center;padding:40px;font-family:sans-serif"><h1>⚓ '+(DB.cfg.nomeLoja||'MARINHA')+'</h1><p>Programa de fidelização</p>'+document.getElementById('qrCfg').outerHTML+'<p>'+url+'</p><script>window.onload=function(){window.print()}<\/script></body></html>');w.document.close();}
 function exportar(){var b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='marinha_backup.json';a.click();}
 
+async function testarSincronizacao(){
+  var log=document.getElementById('corrigirLog');
+  log.textContent='🔍 A verificar...';
+  var promos=await sbGet('promos');
+  var folhetos=await sbGet('folhetos');
+  var msgs=[];
+  msgs.push('✅ Supabase acessível');
+  msgs.push('📢 Promoções: '+promos.length+' registos');
+  promos.forEach(function(p){
+    if(p.foto && p.foto.startsWith('data:')){
+      msgs.push('  ⚠️ "'+p.nome+'" tem foto em base64 ('+Math.round(p.foto.length/1024)+'KB) – ok para app cliente');
+    } else if(p.foto && p.foto.startsWith('http')){
+      msgs.push('  🌐 "'+p.nome+'" tem foto em Storage URL');
+    } else {
+      msgs.push('  ℹ️ "'+p.nome+'" sem foto');
+    }
+  });
+  msgs.push('📄 Folhetos: '+folhetos.length+' registos');
+  folhetos.forEach(function(f){
+    if(f.data && f.data.startsWith('data:')){
+      msgs.push('  ✅ "'+f.nome+'" base64 ('+Math.round(f.data.length/1024)+'KB)');
+    } else if(f.data && f.data.startsWith('http')){
+      msgs.push('  🌐 "'+f.nome+'" Storage URL');
+    } else {
+      msgs.push('  ❌ "'+f.nome+'" sem dados – NÃO aparecerá na app');
+    }
+  });
+  log.innerHTML=msgs.join('<br>');
+  toast('✅ Diagnóstico concluído');
+}
+
 
 // ══════════════════════════════════════════
 //  COMPRIMIR IMAGEM
@@ -1056,7 +1033,8 @@ function comprimirImg(base64, maxW, qualidade, cb){
 // ══════════════════════════════════════════
 async function corrigirFotos(){
   var log=document.getElementById('corrigirLog');
-  var promos=DB.promos.filter(function(p){return p.foto&&p.foto.includes('supabase');});
+  // Corrigir fotos que estão no Storage (URL) ou base64 grandes
+  var promos=DB.promos.filter(function(p){return p.foto&&(p.foto.includes('supabase')||p.foto.startsWith('data:'));});
   if(!promos.length){toast('Sem fotos para corrigir');return;}
   log.textContent='A corrigir '+promos.length+' foto(s)...';
   var done=0;
