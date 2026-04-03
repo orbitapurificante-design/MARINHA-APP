@@ -665,8 +665,9 @@ function renderPromos(){
   el.innerHTML='<div class="pGrid2">'+DB.promos.map(function(p){
     var po=parseFloat(p.preco_orig)||0,pn=parseFloat(p.preco_novo)||0;
     var pct=(po>0&&pn>0)?Math.round((1-pn/po)*100):0;
+    var fotoAdminSrc = p.foto ? (p.foto.startsWith('http') ? p.foto+'?cb='+Date.now() : p.foto) : '';
     return '<div class="pCard" onclick="editarPromo(\''+p.id+'\')">'+
-      '<div class="pImg">'+(p.foto?'<img src="'+p.foto+'?cb='+Date.now()+'" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">':(p.emoji||'🛒'))+(pct>0?'<div class="pBdg">-'+pct+'%</div>':'')+'</div>'+
+      '<div class="pImg">'+(fotoAdminSrc?'<img src="'+fotoAdminSrc+'" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">':(p.emoji||'🛒'))+(pct>0?'<div class="pBdg">-'+pct+'%</div>':'')+'</div>'+
       '<div class="pBody"><div class="pNome">'+p.nome+'</div>'+
       '<div class="precos">'+(po>0?'<span class="pOrig">'+po.toFixed(2)+'€</span>':'')+(pn>0?'<span class="pNovo">'+pn.toFixed(2)+'€</span>':'')+'</div>'+
       '</div></div>';
@@ -695,8 +696,19 @@ function editarPromo(id){
   _fotoPromo = ''; // reset - só muda se escolher nova foto
   var img=document.getElementById('mPromoFotoImg');
   var em=document.getElementById('mPromoFotoEmoji');
-  if(p.foto){ if(img){img.src=(p.foto.startsWith('http')?p.foto+'?t='+Date.now():p.foto);img.style.display='block';} if(em)em.style.display='none'; }
-  else { if(img){img.src='';img.style.display='none';} if(em)em.style.display=''; }
+  // Limpar sempre primeiro
+  img.src=''; img.style.display='none'; em.style.display='';
+  if(p.foto && p.foto.length > 5){
+    // base64 ou URL - mostrar preview
+    var fotoPreviewSrc = p.foto.startsWith('http') ? p.foto+'?t='+Date.now() : p.foto;
+    img.onload = function(){ img.style.display='block'; em.style.display='none'; };
+    img.onerror = function(){ img.style.display='none'; em.style.display=''; em.textContent=p.emoji||'🛒'; };
+    img.src = fotoPreviewSrc;
+    // Para base64 o onload pode não disparar se já estava em cache, forçar:
+    if(p.foto.startsWith('data:')){ img.style.display='block'; em.style.display='none'; }
+  } else {
+    em.textContent = p.emoji||'🛒';
+  }
   document.getElementById('wApagarPromo').style.display='block';
   document.getElementById('mPromo').classList.add('a');
 }
