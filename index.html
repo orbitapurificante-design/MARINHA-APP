@@ -201,9 +201,19 @@ function hd(){return{'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'ap
 
 async function sbGet(t,q){
   try{
-    var r=await fetch(SB+'/rest/v1/'+t+'?select=*'+(q?'&'+q:''),{headers:hd()});
-    return r.ok?await r.json():[];
-  }catch(e){return[];}
+    var url=SB+'/rest/v1/'+t+'?select=*'+(q?'&'+q:'');
+    var r=await fetch(url,{headers:hd()});
+    if(!r.ok){
+      var txt=await r.text();
+      console.error('sbGet ERRO',t,r.status,txt.slice(0,200));
+      return [];
+    }
+    var data=await r.json();
+    return data;
+  }catch(e){
+    console.error('sbGet exc',t,e.message);
+    return [];
+  }
 }
 async function sbUp(t,d){
   try{
@@ -259,29 +269,66 @@ function toast(m,ms){
 }
 
 async function sincronizar(){
-  var r=await Promise.all([
-    sbGet('promos'),
-    sbGet('folhetos'),
-    sbGet('config','id=eq.1')
-  ]);
-  if(Array.isArray(r[0])){
-    D.promos=r[0];
-    console.log('Promos recebidas:',r[0].length);
-    r[0].forEach(function(p){console.log(' -',p.nome,'foto:',(p.foto?p.foto.slice(0,50)+'...':'SEM FOTO'));});
+  console.log('🔄 Sincronizando com Supabase...');
+  try {
+    var r=await Promise.all([
+      sbGet('promos'),
+      sbGet('folhetos'),
+      sbGet('config','id=eq.1')
+    ]);
+
+    // ── PROMOÇÕES ──
+    if(Array.isArray(r[0])){
+      D.promos=r[0];
+      console.log('✅ Promos recebidas:',r[0].length);
+      r[0].forEach(function(p){
+        console.log(' - promo:',p.nome,'| foto:',(p.foto?p.foto.slice(0,60)+'...':'SEM FOTO'));
+      });
+    } else {
+      console.warn('⚠️ Promos: resposta inválida',r[0]);
+    }
+
+    // ── FOLHETOS ──
+    if(Array.isArray(r[1])){
+      D.folhetos=r[1];
+      console.log('✅ Folhetos recebidos:',r[1].length);
+      // Folhetos podem ter data como:
+      //   - URL do Storage: "https://...supabase.co/storage/v1/object/public/..."
+      //   - base64: "data:image/jpeg;base64,..."
+      //   - vazio: "" → tentar IDB local como fallback
+      r[1].forEach(function(f,i){
+        console.log(' - folheto:',f.nome,'| data tipo:',(f.data?
+          (f.data.startsWith('http')?'URL Storage ('+f.data.length+'ch)':
+          f.data.startsWith('data:')?'base64 ('+Math.round(f.data.length/1024)+'KB)':'outro')
+          :'VAZIO'));
+        if(!f.data||f.data===''){
+          // Tentar IDB local
+          idbGet('F_'+f.id).then(function(d){
+            if(d){
+              console.log(' → IDB fallback encontrado para folheto',f.id);
+              D.folhetos[i].data=d;
+              renderFolheto();
+            }
+          });
+        }
+      });
+      renderFolheto();
+    } else {
+      console.warn('⚠️ Folhetos: resposta inválida',r[1]);
+    }
+
+    // ── CONFIG ──
+    if(r[2]&&r[2][0]){
+      D.cfg.ptsEuro=r[2][0].pts_euro||10;
+      D.cfg.ptsDesc=r[2][0].pts_desc||100;
+      console.log('✅ Config carregada');
+    }
+
+    return true;
+  } catch(err) {
+    console.error('❌ Erro na sincronização:', err);
+    return false;
   }
-  if(Array.isArray(r[1])){
-    D.folhetos=r[1];
-    console.log('Folhetos recebidos:',r[1].length);
-    // Para folhetos sem data no Supabase, tentar IDB local
-    r[1].forEach(function(f,i){
-      if(!f.data||f.data===''){
-        idbGet('F_'+f.id).then(function(d){
-          if(d){D.folhetos[i].data=d;renderFolheto();}
-        });
-      }
-    });
-  }
-  if(r[2]&&r[2][0]){D.cfg.ptsEuro=r[2][0].pts_euro||10;D.cfg.ptsDesc=r[2][0].pts_desc||100;}
 }
 
 // ── NAV ──
@@ -319,7 +366,10 @@ function renderInicio(){
   if(av.length){
     el.style.display='block';
     document.getElementById('hPromos').innerHTML=av.map(function(p){
-      var img=p.foto?'<img src="'+p.foto+'" style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0">':'<div style="width:44px;height:44px;border-radius:10px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">'+(p.emoji||'🛒')+'</div>';
+      // foto pode ser URL do Storage ou base64
+      var fotoSrc = (p.foto && (p.foto.startsWith('http') || p.foto.startsWith('data:'))) ? p.foto : '';
+      var img=fotoSrc?'<img src="'+fotoSrc+'" style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">':
+        '<div style="width:44px;height:44px;border-radius:10px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">'+(p.emoji||'🛒')+'</div>';
       var pn=parseFloat(p.preco_novo)||0;
       return '<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05)">'+img+'<div style="flex:1"><div style="font-size:14px;font-weight:600">'+p.nome+'</div><div style="font-size:11px;color:var(--mu)">até '+fd(p.data_fim)+'</div></div>'+(pn>0?'<div style="font-size:16px;font-weight:800;color:var(--r)">'+pn.toFixed(2)+'€</div>':'')+'</div>';
     }).join('');
@@ -334,10 +384,18 @@ function renderQR(){
 }
 
 function renderFolheto(){
-  var imgs=D.folhetos.filter(function(f){return f.data&&f.data.length>10;});
+  // Aceitar: base64 (data:...) OU URL do Storage (http...) OU qualquer string com +10 chars
+  var imgs=D.folhetos.filter(function(f){
+    return f.data && f.data.length>10 && (f.data.startsWith('data:') || f.data.startsWith('http'));
+  });
+  console.log('📄 renderFolheto: '+imgs.length+' imagens disponíveis de '+D.folhetos.length+' total');
   document.getElementById('fFolheto').innerHTML=imgs.length?
     '<div class="card"><div class="ct">Folheto</div><div class="fStrip">'+
-    imgs.map(function(f,i){return'<div class="fTh" onclick="abrirV('+i+')"><img src="'+f.data+'" loading="lazy"></div>';}).join('')+
+    imgs.map(function(f,i){
+      return '<div class="fTh" onclick="abrirV('+i+')">'+
+        '<img src="'+f.data+'" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">'+
+        '</div>';
+    }).join('')+
     '</div></div>':'';
 }
 
@@ -359,7 +417,7 @@ function renderPerfil(){
 // ── VIEWER ──
 var _vIdx=0,_vImgs=[],_vTx=0;
 function abrirV(i){
-  _vImgs=D.folhetos.filter(function(f){return f.data&&f.data.length>10;});
+  _vImgs=D.folhetos.filter(function(f){return f.data&&f.data.length>10&&(f.data.startsWith('data:')||f.data.startsWith('http'));});
   if(!_vImgs.length)return;
   _vIdx=Math.max(0,Math.min(i,_vImgs.length-1));
   var tr=document.getElementById('vTrack');
@@ -415,10 +473,13 @@ function entrar(){
   document.getElementById('eReg').style.display='none';
   document.getElementById('eApp').classList.add('v');
   document.getElementById('cabNome').textContent=D.eu.nome.split(' ')[0];
-  sincronizar().then(function(){
+  toast('⏳ A carregar dados...');
+  sincronizar().then(function(ok){
     renderInicio();
     renderQR();
     renderFolheto();
+    if(ok) toast('✅ Dados atualizados!');
+    else toast('⚠️ Sem ligação – dados em cache',3000);
   });
   // Auto-refresh a cada 30s
   setInterval(function(){
