@@ -393,7 +393,7 @@ function renderFolheto(){
     '<div class="card"><div class="ct">Folheto</div><div class="fStrip">'+
     imgs.map(function(f,i){
       return '<div class="fTh" onclick="abrirV('+i+')">'+
-        '<img src="'+f.data+'" loading="lazy" onerror="this.parentElement.innerHTML='🖼️'">'+
+        '<img src="'+f.data+'" loading="lazy" onerror="this.parentElement.innerHTML=\'&#128247;\'">'+
         '</div>';
     }).join('')+
     '</div></div>':'';
