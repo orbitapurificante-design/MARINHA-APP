@@ -8,29 +8,41 @@
     <style>
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
         :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--r:#e74c3c}
-        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh}
-        #eReg{position:fixed;inset:0;z-index:1000;background:linear-gradient(160deg,var(--n),var(--s));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:16px}
-        .rInp{width:100%;max-width:300px;padding:15px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;text-align:center;outline:none;font-size:16px}
-        .rBtn{width:100%;max-width:300px;padding:15px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;cursor:pointer}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh;overflow-x:hidden}
+
+        /* TELA REGISTO */
+        #eReg{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,var(--n),var(--s));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:16px}
+        .rInp{width:100%;max-width:300px;padding:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:14px;color:#fff;text-align:center;font-size:16px;outline:none}
+        .rBtn{width:100%;max-width:300px;padding:16px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;font-size:16px;cursor:pointer}
+        .rBtn:disabled{opacity:0.5;cursor:not-allowed}
+
+        /* APP */
         #eApp{display:none}
-        .cab{height:60px;background:var(--n);display:flex;align-items:center;padding:0 16px;color:#fff;font-weight:700}
+        .cab{height:60px;background:var(--n);display:flex;align-items:center;padding:0 16px;color:#fff;font-weight:700;position:sticky;top:0;z-index:100}
         .ecra{padding:16px;display:none;padding-bottom:100px}
         .ecra.a{display:block}
+        
         .hero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:20px;color:#fff;margin-bottom:16px}
         .card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.05);margin-bottom:16px}
+        .ct{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:12px;letter-spacing:1px}
+
+        /* NAV */
         .nav{position:fixed;bottom:0;left:0;right:0;height:75px;background:#fff;display:flex;border-top:1px solid #eee;z-index:100}
         .nBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:none;border:none;color:var(--mu);font-size:11px;font-weight:700}
         .nBtn.a{color:var(--n)}
+
+        /* PROMOS */
         .pItem{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #eee}
-        .pImg{width:50px;height:50px;background:#f0f0f0;border-radius:10px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+        .pImg{width:50px;height:50px;background:#f0f0f0;border-radius:10px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px}
+        .pImg img{width:100%;height:100%;object-fit:cover}
     </style>
 </head>
 <body>
 
 <div id="eReg">
-    <h1 style="color:#fff;letter-spacing:4px">MARINHA</h1>
-    <input class="rInp" id="rNome" type="text" placeholder="Nome">
-    <input class="rInp" id="rTel" type="tel" placeholder="Telemóvel">
+    <h1 style="color:#fff;letter-spacing:4px;margin-bottom:10px">MARINHA</h1>
+    <input class="rInp" id="rNome" type="text" placeholder="Seu Nome">
+    <input class="rInp" id="rTel" type="tel" placeholder="Telemóvel (9 dígitos)">
     <button class="rBtn" id="btnEntrar" onclick="registar()">ENTRAR</button>
 </div>
 
@@ -39,7 +51,7 @@
     <div class="ecra a" id="ecraInicio">
         <div class="hero">
             <div id="hNome" style="font-size:22px;font-weight:800">Olá!</div>
-            <div id="hNum" style="opacity:0.6;font-size:13px;margin-bottom:15px">A carregar...</div>
+            <div id="hNum" style="opacity:0.6;font-size:13px;margin-bottom:15px">Cliente nº ----</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
                 <div style="background:rgba(255,255,255,0.1);padding:12px;border-radius:12px">
                     <div id="hPts" style="font-size:22px;font-weight:800">0</div>
@@ -52,16 +64,15 @@
             </div>
         </div>
         <div class="card">
-            <div style="font-size:11px;font-weight:700;color:var(--mu);margin-bottom:10px">PROMOÇÕES ATIVAS</div>
-            <div id="hPromos">A verificar...</div>
+            <div class="ct">Promoções Ativas</div>
+            <div id="hPromos">A carregar...</div>
         </div>
     </div>
     <div class="ecra" id="ecraQR">
-        <div class="card" style="text-align:center">
-            <div id="qrNum" style="font-size:24px;font-weight:800;color:var(--g);margin-bottom:10px">---</div>
-            <div style="background:#0a1628;padding:20px;display:inline-block;border-radius:15px">
-                <div style="color:#fff">QR CODE ATIVO</div>
-            </div>
+        <div class="card" style="text-align:center;padding:30px 20px">
+            <div id="qrNum" style="font-size:24px;font-weight:800;color:var(--g);margin-bottom:20px">---</div>
+            <div id="qrImg" style="background:#0a1628;padding:20px;display:inline-block;border-radius:15px;color:#fff">QR ATIVO</div>
+            <div id="qrNome" style="margin-top:20px;font-weight:700;text-transform:uppercase"></div>
         </div>
     </div>
     <nav class="nav">
@@ -78,67 +89,95 @@
 
     async function api(path, method = 'GET', body = null) {
         try {
-            const headers = { 'apikey': SK, 'Authorization': `Bearer ${SK}`, 'Content-Type': 'application/json' };
-            const r = await fetch(`${SB}/rest/v1/${path}`, { method, headers, body: body ? JSON.stringify(body) : null });
-            return r.ok ? await r.json() : null;
-        } catch (e) { return null; }
+            const h = { 'apikey': SK, 'Authorization': `Bearer ${SK}`, 'Content-Type': 'application/json' };
+            const res = await fetch(`${SB}/rest/v1/${path}`, { method, headers: h, body: body ? JSON.stringify(body) : null });
+            return res.ok ? await res.json() : null;
+        } catch (e) { console.error(e); return null; }
     }
 
     async function registar() {
         const n = document.getElementById('rNome').value.trim();
-        const t = document.getElementById('rTel').value.trim();
-        if(!n || !t) return alert('Preencha os dados');
+        const t = document.getElementById('rTel').value.trim().replace(/\s/g, '');
+        const btn = document.getElementById('btnEntrar');
 
-        document.getElementById('btnEntrar').innerText = 'A entrar...';
+        if (!n || t.length < 9) return alert('Introduza nome e telemóvel correto.');
 
-        // Tenta ligar, mas se falhar entra na mesma (Offline mode/Fallback)
-        let res = await api(`clientes?tel=eq.${t}`);
-        
-        if (res && res.length > 0) {
-            USER = res[0];
-        } else {
-            USER = { nome: n, tel: t, pts: 0, poupado: 0, num_cliente: 'T'+Math.floor(Math.random()*999) };
-            await api('clientes', 'POST', USER); // Tenta criar, se falhar segue
+        btn.disabled = true;
+        btn.innerText = 'A verificar...';
+
+        try {
+            // 1. Procurar cliente
+            const dados = await api(`clientes?tel=eq.${t}`);
+            
+            if (dados && dados.length > 0) {
+                USER = dados[0];
+            } else {
+                // 2. Criar se não existir
+                const novo = { nome: n, tel: t, pts: 0, poupado: 0, num_cliente: Math.floor(10000 + Math.random() * 89999).toString() };
+                await api('clientes', 'POST', novo);
+                USER = novo;
+            }
+            
+            localStorage.setItem('m_tel', t);
+            entrar();
+        } catch (e) {
+            alert('Erro de ligação. Tente novamente.');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'ENTRAR';
         }
-
-        localStorage.setItem('m_tel', t);
-        entrar();
     }
 
     function entrar() {
         document.getElementById('eReg').style.display = 'none';
         document.getElementById('eApp').style.display = 'block';
-        renderInicio();
+        ir('Inicio');
     }
 
     async function renderInicio() {
-        if(!USER) return;
-        document.getElementById('hNome').innerText = 'Olá, ' + USER.nome;
-        document.getElementById('hNum').innerText = 'Nº ' + USER.num_cliente;
+        if (!USER) return;
+        document.getElementById('hNome').innerText = 'Olá, ' + USER.nome.split(' ')[0] + '!';
+        document.getElementById('hNum').innerText = 'Cliente nº ' + USER.num_cliente;
         document.getElementById('hPts').innerText = USER.pts || 0;
         document.getElementById('hPou').innerText = (USER.poupado || 0).toFixed(2) + '€';
 
         const promos = await api('promos');
         const box = document.getElementById('hPromos');
-        if(promos && promos.length > 0) {
-            box.innerHTML = promos.map(p => `<div class="pItem"><div>${p.nome}</div><div style="margin-left:auto;font-weight:800;color:var(--r)">${p.preco_novo ? p.preco_novo+'€' : ''}</div></div>`).join('');
+        if (promos && promos.length > 0) {
+            box.innerHTML = promos.map(p => `
+                <div class="pItem">
+                    <div class="pImg">${p.foto ? `<img src="${p.foto}">` : '🛒'}</div>
+                    <div style="flex:1">
+                        <div style="font-weight:700;font-size:14px">${p.nome}</div>
+                        <div style="font-size:11px;color:var(--mu)">Oferta MARINHA</div>
+                    </div>
+                    <div style="color:var(--r);font-weight:800">${p.preco_novo ? parseFloat(p.preco_novo).toFixed(2) + '€' : ''}</div>
+                </div>
+            `).join('');
         } else {
-            box.innerText = "Sem promoções ativas de momento.";
+            box.innerHTML = '<p style="text-align:center;padding:10px;color:var(--mu)">Sem promoções hoje.</p>';
         }
     }
 
+    function renderQR() {
+        document.getElementById('qrNum').innerText = 'Nº ' + USER.num_cliente;
+        document.getElementById('qrNome').innerText = USER.nome;
+    }
+
     function ir(tab) {
-        document.querySelectorAll('.ecra').forEach(e => e.classList.remove('a'));
-        document.getElementById('ecra'+tab).classList.add('a');
+        document.querySelectorAll('.ecra, .nBtn').forEach(el => el.classList.remove('a'));
+        document.getElementById('ecra' + tab).classList.add('a');
+        if (tab === 'Inicio') renderInicio();
+        if (tab === 'QR') renderQR();
     }
 
     function sair() { localStorage.clear(); location.reload(); }
 
     window.onload = async () => {
         const t = localStorage.getItem('m_tel');
-        if(t) {
-            let res = await api(`clientes?tel=eq.${t}`);
-            if(res && res[0]) { USER = res[0]; entrar(); }
+        if (t) {
+            const res = await api(`clientes?tel=eq.${t}`);
+            if (res && res[0]) { USER = res[0]; entrar(); }
         }
     }
 </script>
