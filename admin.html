@@ -476,6 +476,8 @@ async function sincronizar(){
     });
   }
   if(r[3]&&r[3][0]){var c=r[3][0];DB.cfg.nomeLoja=c.nome_loja||'';DB.cfg.ptsEuro=c.pts_euro||10;DB.cfg.ptsDesc=c.pts_desc||100;}
+  // Re-render se estiver no tab folheto
+  if(_tab==='Folheto'){ renderPromos(); renderFolheto(); }
 }
 
 // ══════════════════════════════════════════
@@ -760,6 +762,13 @@ async function guardarPromo(){
   renderPromos();
   toast(ok?'✅ Guardado':'⚠️ Erro');
 }
+async function apagarFolheto(id){
+  if(!confirm('Apagar esta página do folheto?'))return;
+  await sbDel('folhetos',id);
+  DB.folhetos=DB.folhetos.filter(function(x){return x.id!==id;});
+  renderFolheto();
+  toast('🗑️ Página removida');
+}
 async function apagarPromo(){
   var id=document.getElementById('mPromoId').value;
   if(!confirm('Apagar promoção?'))return;
@@ -811,13 +820,18 @@ function addFolheto(e){
         // Se Storage falhou (bucket não existe ou sem permissão), usar base64 diretamente
         var dataGuardar = url || compressed; // ← FALLBACK: base64 directo no campo
         console.log('Folheto '+f.name+': '+(url?'Storage URL ('+url.length+'ch)':'base64 directo ('+Math.round(compressed.length/1024)+'KB)'));
-        await sbUp('folhetos',{id:id,nome:f.name,data:dataGuardar,adicionado:hoje()});
+        var okSb=await sbUp('folhetos',{id:id,nome:f.name,data:dataGuardar,adicionado:hoje()});
         // Atualizar objeto local com a data final
         DB.folhetos[DB.folhetos.length-1].data=dataGuardar;
         n++;
+        if(!okSb){
+          // Supabase rejeitou — mostrar aviso mas manter local
+          console.warn('folheto não guardado no Supabase - verificar tabela folhetos e RLS policies');
+          toast('⚠️ Folheto guardado localmente mas Supabase rejeitou. Verifica RLS na tabela folhetos.',6000);
+        }
         if(n===total){
           renderFolheto();
-          toast('✅ '+n+' página(s) adicionada(s)'+(url?' via Storage':' (base64 directo)'));
+          if(okSb) toast('✅ '+n+' página(s) adicionada(s)'+(url?' via Storage':' em base64'));
         }
       });
     };
@@ -828,7 +842,10 @@ function addFolheto(e){
 function renderFolheto(){
   var el=document.getElementById('stripFol');
   el.innerHTML=DB.folhetos.map(function(f,i){
-    return '<div class="fThumb" onclick="abrirViewer('+i+')">'+(f.data?'<img src="'+f.data+'" alt="">':'🖼️')+'</div>';
+    return '<div class="fThumb" style="position:relative">'+
+      '<div onclick="abrirViewer('+i+')" style="width:100%;height:100%">'+(f.data?'<img src="'+f.data+'" alt="">':'🖼️')+'</div>'+
+      '<button onclick="apagarFolheto(\''+f.id+'\')" style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(231,76,60,.9);color:#fff;border:none;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10">×</button>'+
+    '</div>';
   }).join('');
 }
 
