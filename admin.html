@@ -7,17 +7,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f8f9fa; font-family: sans-serif; }
+        body { background-color: #f8f9fa; }
         .admin-card { border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: none; }
-        .navbar { background-color: #0056b3 !important; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark mb-4">
+<nav class="navbar navbar-dark bg-primary mb-4">
     <div class="container">
-        <span class="navbar-brand mb-0 h1"><i class="bi bi-gear-fill me-2"></i>Gestão de Conteúdos</span>
-        <a href="index.html" class="btn btn-outline-light btn-sm">Ver Site Público</a>
+        <span class="navbar-brand mb-0 h1">Painel Admin (Sincronizado)</span>
+        <a href="index.html" class="btn btn-outline-light btn-sm">Ver App Clientes</a>
     </div>
 </nav>
 
@@ -27,22 +26,21 @@
             <div class="card admin-card p-4">
                 <form id="adminForm">
                     <div class="mb-4">
-                        <label class="form-label fw-bold text-secondary">Texto das Promoções</label>
-                        <textarea id="promoTexto" class="form-control" rows="3" placeholder="Ex: Promoções desta semana: Fruta com 10% desconto!"></textarea>
+                        <label class="form-label fw-bold text-primary">Texto das Promoções (App Clientes)</label>
+                        <textarea id="promoTexto" class="form-control" rows="3" placeholder="Escreva aqui a promoção..."></textarea>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold text-secondary">Atualizar Folheto (PDF ou Imagem)</label>
+                        <label class="form-label fw-bold text-primary">Novo Folheto (PDF ou Imagem)</label>
                         <input type="file" id="folhetoFile" class="form-control" accept="image/*,application/pdf">
-                        <div class="form-text mt-2 text-muted small">Este ficheiro será o que os clientes veem ao clicar em "Ver Folheto".</div>
                     </div>
 
-                    <button type="submit" id="btnGuardar" class="btn btn-primary w-100 py-2 fw-bold">
-                        <i class="bi bi-cloud-arrow-up-fill me-2"></i>Publicar Alterações
+                    <button type="submit" id="btnGuardar" class="btn btn-success w-100 py-3 fw-bold">
+                        <i class="bi bi-cloud-check-fill me-2"></i>ATUALIZAR APP CLIENTES
                     </button>
                 </form>
                 
-                <div id="statusMessage" class="mt-3 d-none"></div>
+                <div id="statusMessage" class="mt-3 d-none text-center fw-bold"></div>
             </div>
         </div>
     </div>
@@ -51,11 +49,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-    // Configurações fornecidas
     const SUPABASE_URL = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
-
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     const form = document.getElementById('adminForm');
     const btn = document.getElementById('btnGuardar');
     const status = document.getElementById('statusMessage');
@@ -64,39 +61,37 @@
         e.preventDefault();
         
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> A enviar para o servidor...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> A SINCRONIZAR...';
         status.className = "mt-3 alert alert-info";
-        status.innerText = "A atualizar dados...";
+        status.innerText = "A enviar para a base de dados...";
         status.classList.remove('d-none');
 
         const texto = document.getElementById('promoTexto').value;
         const file = document.getElementById('folhetoFile').files[0];
 
         try {
-            // 1. Atualizar Promoção
+            // 1. ATUALIZAR TABELA 'promos' (Coluna: 'promo_text')
             if (texto) {
                 const { error: pError } = await supabaseClient
-                    .from('promocoes')
-                    .upsert({ id: 1, texto: texto });
+                    .from('promos') // NOME DA TABELA CORRIGIDO
+                    .upsert({ id: 1, promo_text: texto }); // COLUNA CORRIGIDA
                 
                 if (pError) throw pError;
             }
 
-            // 2. Upload do Folheto
+            // 2. ATUALIZAR FOLHETO (Storage e Tabela 'folheto')
             if (file) {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `folheto_principal.${fileExt}`;
+                const fileName = `folheto_principal_${Date.now()}.${file.name.split('.').pop()}`;
                 
-                // Upload (upsert: true permite substituir o ficheiro antigo com o mesmo nome)
                 const { error: uploadError } = await supabaseClient.storage
                     .from('folhetos')
                     .upload(fileName, file, { upsert: true });
 
                 if (uploadError) throw uploadError;
 
-                // Obter URL pública e salvar na tabela
                 const { data: urlData } = supabaseClient.storage.from('folhetos').getPublicUrl(fileName);
                 
+                // Atualiza a tabela 'folheto' (que os clientes leem no index.html)
                 const { error: fError } = await supabaseClient
                     .from('folheto')
                     .upsert({ id: 1, url: urlData.publicUrl });
@@ -105,16 +100,16 @@
             }
 
             status.className = "mt-3 alert alert-success";
-            status.innerText = "Sucesso! O site já está atualizado.";
+            status.innerText = "✅ SUCESSO! A App dos clientes já foi atualizada.";
             form.reset();
 
         } catch (error) {
-            console.error(error);
+            console.error("Erro detalhado:", error);
             status.className = "mt-3 alert alert-danger";
-            status.innerText = "Erro: Verifique se o Bucket 'folhetos' existe no Supabase.";
+            status.innerText = "❌ ERRO: " + error.message;
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-2"></i>Publicar Alterações';
+            btn.innerHTML = '<i class="bi bi-cloud-check-fill me-2"></i>ATUALIZAR APP CLIENTES';
         }
     });
 </script>
