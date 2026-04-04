@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MARINHA – Gestão de Conteúdos</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --n: #0a1628; --s: #1a4a8a; --bg: #f4f1ec; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--n); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .admin-card { width: 100%; max-width: 600px; background: white; border-radius: 30px; padding: 40px; box-shadow: 0 25px 50px rgba(0,0,0,0.1); }
+        .form-control { border-radius: 12px; border: 2px solid #eee; padding: 15px; margin-bottom: 20px; }
+        .btn-publish { background: var(--n); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: 700; width: 100%; transition: 0.3s; text-transform: uppercase; }
+        .btn-publish:hover { background: var(--s); transform: translateY(-2px); }
+        #status { display: none; margin-top: 20px; border-radius: 12px; padding: 15px; font-weight: 600; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="admin-card">
+    <h2 class="text-center mb-4">Painel Marinha</h2>
+    
+    <form id="adminForm">
+        <label class="fw-bold mb-2">TEXTO DA PROMOÇÃO</label>
+        <textarea id="promoInput" class="form-control" rows="4" placeholder="Escreva a promoção..."></textarea>
+
+        <label class="fw-bold mb-2">FOLHETO (PDF OU IMAGEM)</label>
+        <input type="file" id="fileInput" class="form-control" accept="image/*,application/pdf">
+
+        <button type="submit" id="btnSubmit" class="btn-publish">Atualizar App agora</button>
+    </form>
+    
+    <div id="status"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    const SB_URL = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
+    const SB_KEY = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
+    const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+
+    document.getElementById('adminForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnSubmit');
+        const st = document.getElementById('status');
+        
+        btn.disabled = true;
+        btn.innerText = "A SINCRONIZAR...";
+
+        const promoText = document.getElementById('promoInput').value;
+        const fileFile = document.getElementById('fileInput').files[0];
+
+        try {
+            // 1. Gravar Texto na Tabela 'promos'
+            if (promoText) {
+                const { error: err1 } = await supabase.from('promos').upsert({ id: 1, promo_text: promoText });
+                if (err1) throw err1;
+            }
+
+            // 2. Gravar Folheto no Storage e na Tabela 'folhetos'
+            if (fileFile) {
+                const fileName = `folheto_${Date.now()}.${fileFile.name.split('.').pop()}`;
+                
+                // Upload para o balde 'folhetos'
+                const { error: errUp } = await supabase.storage.from('folhetos').upload(fileName, fileFile);
+                if (errUp) throw errUp;
+
+                // Obter link e guardar na tabela 'folhetos'
+                const { data: dUrl } = supabase.storage.from('folhetos').getPublicUrl(fileName);
+                const { error: err2 } = await supabase.from('folhetos').upsert({ id: 1, url: dUrl.publicUrl });
+                if (err2) throw err2;
+            }
+
+            st.style.display = "block";
+            st.className = "alert alert-success";
+            st.innerText = "✅ SUCESSO: App Atualizada!";
+            document.getElementById('adminForm').reset();
+
+        } catch (err) {
+            st.style.display = "block";
+            st.className = "alert alert-danger";
+            st.innerText = "❌ ERRO: " + err.message;
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Atualizar App agora";
+        }
+    });
+</script>
+</body>
+</html>
