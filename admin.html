@@ -11,18 +11,17 @@
         body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--n); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
         .admin-card { width: 100%; max-width: 600px; background: white; border-radius: 30px; padding: 50px; box-shadow: 0 25px 50px rgba(0,0,0,0.1); }
         .form-control { border-radius: 15px; border: 2px solid #eee; padding: 18px; font-size: 1.1rem; margin-bottom: 25px; }
-        .btn-publish { background: var(--n); color: white; border: none; padding: 20px; border-radius: 18px; font-weight: 800; font-size: 1.2rem; width: 100%; text-transform: uppercase; }
+        .btn-publish { background: var(--n); color: white; border: none; padding: 20px; border-radius: 18px; font-weight: 800; font-size: 1.2rem; width: 100%; text-transform: uppercase; cursor: pointer; }
         #status { margin-top: 30px; border-radius: 15px; font-weight: 700; padding: 20px; display: none; text-align: center; }
     </style>
 </head>
 <body>
-
 <div class="admin-card">
     <h2 class="text-center mb-4">Painel Marinha</h2>
     <form id="adminForm">
         <div class="mb-2">
             <label class="fw-bold mb-2">TEXTO DA PROMOÇÃO</label>
-            <textarea id="promoInput" class="form-control" rows="5" placeholder="Escreva aqui a promoção..."></textarea>
+            <textarea id="promoInput" class="form-control" rows="5" placeholder="Escreva a promoção..."></textarea>
         </div>
         <div class="mb-2">
             <label class="fw-bold mb-2">NOVO FOLHETO (PDF OU FOTO)</label>
@@ -30,44 +29,32 @@
         </div>
         <button type="submit" id="btnSubmit" class="btn-publish">Publicar Alterações</button>
     </form>
-    <div id="status" class="alert text-center"></div>
+    <div id="status" class="alert"></div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     const SB_URL = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
     const SB_KEY = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
     const supabase = window.supabase.createClient(SB_URL, SB_KEY);
-
     document.getElementById('adminForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnSubmit');
         const st = document.getElementById('status');
         btn.disabled = true; btn.innerText = "A GUARDAR...";
-        
         try {
             const promoText = document.getElementById('promoInput').value;
             const fileObj = document.getElementById('fileInput').files[0];
-
-            if (promoText) {
-                await supabase.from('promos').upsert({ id: 1, promo_text: promoText });
-            }
-
+            if (promoText) { await supabase.from('promos').upsert({ id: 1, promo_text: promoText }); }
             if (fileObj) {
                 const fName = `f_${Date.now()}.${fileObj.name.split('.').pop()}`;
                 await supabase.storage.from('folhetos').upload(fName, fileObj);
                 const { data } = supabase.storage.from('folhetos').getPublicUrl(fName);
                 await supabase.from('folhetos').upsert({ id: 1, url: data.publicUrl });
             }
-
-            st.className = "alert alert-success d-block";
-            st.innerText = "✅ SUCESSO! A App foi atualizada.";
+            st.className = "alert alert-success d-block"; st.innerText = "✅ SUCESSO! App atualizada.";
         } catch (err) {
-            st.className = "alert alert-danger d-block";
-            st.innerText = "❌ ERRO: " + err.message;
-        } finally {
-            btn.disabled = false; btn.innerText = "Publicar Alterações";
-        }
+            st.className = "alert alert-danger d-block"; st.innerText = "❌ ERRO: " + err.message;
+        } finally { btn.disabled = false; btn.innerText = "Publicar Alterações"; }
     });
 </script>
 </body>
