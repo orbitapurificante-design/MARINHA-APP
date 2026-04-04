@@ -1,52 +1,42 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Marinha - Gestão Total</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Marinha</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body { background: #f4f1ec; font-family: sans-serif; padding: 20px; }
-        .card-custom { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .img-preview { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; margin: 5px; border: 2px solid #eee; }
+        body { background: #f4f1ec; padding: 20px; font-family: sans-serif; }
+        .card-custom { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .img-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin: 5px; border: 1px solid #ddd; }
         .photo-item { position: relative; display: inline-block; }
-        .btn-delete { position: absolute; top: -5px; right: -5px; padding: 2px 6px; border-radius: 50%; }
+        .btn-del { position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
-<div class="container" style="max-width: 800px;">
-    <h2 class="text-center mb-4">Painel de Gestão Marinha</h2>
+<div class="container" style="max-width: 500px;">
+    <h3 class="text-center mb-4 fw-bold">Gestão Marinha</h3>
 
     <div class="card-custom">
-        <h5 class="text-primary"><i class="bi bi-megaphone"></i> Promoção de Topo</h5>
-        <textarea id="promoInput" class="form-control mb-3" rows="2" placeholder="Texto da promoção..."></textarea>
-        <button onclick="savePromo()" class="btn btn-primary w-100">Atualizar Texto</button>
+        <label class="fw-bold mb-2">PROMOÇÃO (TEXTO)</label>
+        <textarea id="promoInput" class="form-control mb-2" rows="2" placeholder="Texto da barra superior..."></textarea>
+        <button onclick="savePromo()" class="btn btn-dark w-100 fw-bold">GUARDAR TEXTO PROMO</button>
     </div>
 
     <div class="card-custom">
-        <h5 class="text-success"><i class="bi bi-journal-richtext"></i> Folheto de Produtos</h5>
-        
-        <div class="row g-2 mb-3">
-            <div class="col-6">
-                <label class="small fw-bold">Início</label>
-                <input type="text" id="dataInicio" class="form-control" placeholder="Ex: 01 Abr">
-            </div>
-            <div class="col-6">
-                <label class="small fw-bold">Fim</label>
-                <input type="text" id="dataFim" class="form-control" placeholder="Ex: 15 Abr">
-            </div>
+        <label class="fw-bold mb-2">FOLHETO (DATAS)</label>
+        <div class="d-flex gap-2 mb-2">
+            <input type="text" id="dataIni" class="form-control" placeholder="Início (Ex: 01 Abr)">
+            <input type="text" id="dataFim" class="form-control" placeholder="Fim (Ex: 15 Abr)">
         </div>
-        <button onclick="saveDatas()" class="btn btn-success btn-sm w-100 mb-4">Atualizar Datas do Folheto</button>
+        <button onclick="saveDates()" class="btn btn-success w-100 fw-bold">GUARDAR DATAS FOLHETO</button>
+    </div>
 
-        <label class="fw-bold mb-2">Adicionar Foto ao Folheto</label>
-        <input type="file" id="fileInput" class="form-control mb-3" accept="image/*">
-        <button id="btnUpload" onclick="uploadFoto()" class="btn btn-dark w-100">Subir Nova Foto</button>
-
-        <hr>
-        <label class="fw-bold mb-3">Fotos Atuais (Clique no X para apagar)</label>
-        <div id="galeriaAdmin" class="d-flex flex-wrap"></div>
+    <div class="card-custom">
+        <label class="fw-bold mb-2">FOLHETO (FOTOS)</label>
+        <input type="file" id="fileInput" class="form-control mb-2" accept="image/*">
+        <button id="upBtn" onclick="uploadImg()" class="btn btn-primary w-100 fw-bold mb-3">SUBIR FOTO AO FOLHETO</button>
+        <label class="small fw-bold text-muted">FOTOS NO FOLHETO ATUAL (Clique no X para apagar):</label>
+        <div id="galeria" class="d-flex flex-wrap mt-2"></div>
     </div>
 </div>
 
@@ -56,66 +46,47 @@
     const KEY = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
     const supabase = window.supabase.createClient(URL, KEY);
 
-    // CARREGAR DADOS AO ABRIR
-    window.onload = () => { loadPromo(); loadDatas(); loadGaleria(); };
+    window.onload = loadAll;
 
-    async function loadPromo() {
-        const { data } = await supabase.from('promos').select('*').eq('id', 1).single();
-        if (data) document.getElementById('promoInput').value = data.promo_text;
-    }
-
-    async function loadDatas() {
-        const { data } = await supabase.from('datas_folheto').select('*').eq('id', 1).single();
-        if (data) {
-            document.getElementById('dataInicio').value = data.data_inicio;
-            document.getElementById('dataFim').value = data.data_fim;
-        }
-    }
-
-    async function loadGaleria() {
-        const { data } = await supabase.from('folhetos').select('*').order('created_at', { ascending: false });
-        const container = document.getElementById('galeriaAdmin');
-        container.innerHTML = '';
-        data.forEach(item => {
-            container.innerHTML += `
-                <div class="photo-item">
-                    <img src="${item.url}" class="img-preview">
-                    <button onclick="deleteFoto(${item.id})" class="btn btn-danger btn-delete btn-sm">X</button>
-                </div>`;
+    async function loadAll() {
+        const { data: p } = await supabase.from('promos').select('*').eq('id', 1).single();
+        if(p) document.getElementById('promoInput').value = p.promo_text;
+        const { data: d } = await supabase.from('datas_folheto').select('*').eq('id', 1).single();
+        if(d) { document.getElementById('dataIni').value = d.data_inicio; document.getElementById('dataFim').value = d.data_fim; }
+        const { data: f } = await supabase.from('folhetos').select('*').order('created_at', {ascending:false});
+        const div = document.getElementById('galeria');
+        div.innerHTML = '';
+        if(f) f.forEach(img => {
+            div.innerHTML += `<div class="photo-item"><img src="${img.url}" class="img-preview"><button class="btn-del" onclick="delImg(${img.id})">X</button></div>`;
         });
     }
 
     async function savePromo() {
-        const txt = document.getElementById('promoInput').value;
-        await supabase.from('promos').upsert({ id: 1, promo_text: txt });
-        alert("Texto atualizado!");
+        await supabase.from('promos').upsert({ id: 1, promo_text: document.getElementById('promoInput').value });
+        alert("Promoção atualizada!");
     }
 
-    async function saveDatas() {
-        const ini = document.getElementById('dataInicio').value;
-        const fim = document.getElementById('dataFim').value;
-        await supabase.from('datas_folheto').upsert({ id: 1, data_inicio: ini, data_fim: fim });
+    async function saveDates() {
+        await supabase.from('datas_folheto').upsert({ id: 1, data_inicio: document.getElementById('dataIni').value, data_fim: document.getElementById('dataFim').value });
         alert("Datas atualizadas!");
     }
 
-    async function uploadFoto() {
+    async function uploadImg() {
         const file = document.getElementById('fileInput').files[0];
-        if(!file) return alert("Selecione uma foto!");
-        
-        document.getElementById('btnUpload').innerText = "A subir...";
+        if(!file) return alert("Selecione uma foto primeiro.");
+        document.getElementById('upBtn').innerText = "A ENVIAR...";
         const name = `f_${Date.now()}.${file.name.split('.').pop()}`;
         await supabase.storage.from('folhetos').upload(name, file);
         const { data } = supabase.storage.from('folhetos').getPublicUrl(name);
-        
         await supabase.from('folhetos').insert({ url: data.publicUrl });
-        document.getElementById('btnUpload').innerText = "Subir Nova Foto";
-        loadGaleria();
+        document.getElementById('upBtn').innerText = "SUBIR FOTO AO FOLHETO";
+        loadAll();
     }
 
-    async function deleteFoto(id) {
-        if(confirm("Apagar esta foto?")) {
+    async function delImg(id) {
+        if(confirm("Apagar esta foto do folheto?")) {
             await supabase.from('folhetos').delete().eq('id', id);
-            loadGaleria();
+            loadAll();
         }
     }
 </script>
