@@ -7,31 +7,29 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-        :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--r:#e74c3c;--gr:#27ae60}
-        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh;overflow-x:hidden}
+        :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--r:#e74c3c}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh}
 
         /* LOGIN */
         #eReg{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,var(--n),var(--s));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:16px}
         .rInp{width:100%;max-width:300px;padding:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:14px;color:#fff;text-align:center;font-size:16px;outline:none}
-        .rBtn{width:100%;max-width:300px;padding:16px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;font-size:16px;cursor:pointer}
+        .rBtn{width:100%;max-width:300px;padding:16px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;cursor:pointer}
 
         /* APP */
         #eApp{display:none}
-        .cab{height:60px;background:var(--n);display:flex;align-items:center;padding:0 16px;color:#fff;font-weight:700;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+        .cab{height:60px;background:var(--n);display:flex;align-items:center;padding:0 16px;color:#fff;font-weight:700;position:sticky;top:0;z-index:100}
         .ecra{padding:16px;display:none;padding-bottom:100px}
         .ecra.a{display:block}
         
-        /* CARDS */
         .hero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:20px;color:#fff;margin-bottom:16px}
         .card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.05);margin-bottom:16px}
         .ct{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:12px;letter-spacing:1px}
 
-        /* PROMOS ESTILO ADMIN */
+        /* PROMOS */
         .pItem{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0f0f0}
-        .pImg{width:60px;height:60px;background:#f8f8f8;border-radius:12px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative}
+        .pImg{width:60px;height:60px;background:#f8f8f8;border-radius:12px;overflow:hidden;flex-shrink:0;position:relative}
         .pImg img{width:100%;height:100%;object-fit:cover}
         .pBadge{position:absolute;top:0;left:0;background:var(--r);color:#fff;font-size:9px;font-weight:800;padding:2px 4px;border-bottom-right-radius:8px}
-        .pNome{font-weight:700;font-size:14px;margin-bottom:2px}
         .pPrecoOld{font-size:11px;text-decoration:line-through;color:var(--mu)}
         .pPrecoNew{font-size:16px;font-weight:800;color:var(--r)}
 
@@ -42,8 +40,6 @@
         .nav{position:fixed;bottom:0;left:0;right:0;height:75px;background:#fff;display:flex;border-top:1px solid #eee;z-index:100}
         .nBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:none;border:none;color:var(--mu);font-size:10px;font-weight:700;text-transform:uppercase}
         .nBtn.a{color:var(--n)}
-        .nBtn svg{width:22px;height:22px;margin-bottom:4px;fill:none;stroke:currentColor;stroke-width:2}
-        .nBtn.a svg{stroke:var(--g)}
     </style>
 </head>
 <body>
@@ -60,7 +56,7 @@
 
     <div class="ecra a" id="ecraInicio">
         <div class="hero">
-            <div id="hNome" style="font-size:22px;font-weight:800;margin-bottom:2px">Olá!</div>
+            <div id="hNome" style="font-size:22px;font-weight:800">Olá!</div>
             <div id="hNum" style="opacity:0.6;font-size:12px;margin-bottom:15px">Cliente nº ----</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
                 <div style="background:rgba(255,255,255,0.1);padding:12px;border-radius:12px">
@@ -73,7 +69,6 @@
                 </div>
             </div>
         </div>
-
         <div class="card">
             <div class="ct">Promoções Ativas</div>
             <div id="listPromos">A carregar promoções...</div>
@@ -81,24 +76,23 @@
     </div>
 
     <div class="ecra" id="ecraFolhetos">
-        <div class="ct" style="margin-left:5px">Folhetos Digitais</div>
+        <div class="ct">Folhetos Digitais</div>
         <div id="listFolhetos">A carregar folhetos...</div>
     </div>
 
     <div class="ecra" id="ecraQR">
-        <div class="card" style="text-align:center;padding:30px 20px">
+        <div class="card" style="text-align:center;padding:30px">
             <div id="qrNum" style="font-size:24px;font-weight:800;color:var(--g);margin-bottom:20px">---</div>
             <div style="background:var(--n);padding:20px;display:inline-block;border-radius:20px">
                 <svg id="qrSvg" width="180" height="180" style="display:block;background:#fff"></svg>
             </div>
-            <div id="qrNome" style="margin-top:20px;font-weight:700;text-transform:uppercase;letter-spacing:1px"></div>
         </div>
     </div>
 
     <nav class="nav">
-        <button class="nBtn a" id="nInicio" onclick="ir('Inicio')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Início</button>
-        <button class="nBtn" id="nFolhetos" onclick="ir('Folhetos')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Folheto</button>
-        <button class="nBtn" id="nQR" onclick="ir('QR')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h7v7h-7z"/></svg>Cartão</button>
+        <button class="nBtn a" id="nInicio" onclick="ir('Inicio')">Início</button>
+        <button class="nBtn" id="nFolhetos" onclick="ir('Folhetos')">Folheto</button>
+        <button class="nBtn" id="nQR" onclick="ir('QR')">Cartão</button>
     </nav>
 </div>
 
@@ -107,27 +101,35 @@
     const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
     let USER = null;
 
+    // Função API Centralizada com Logs
     async function api(path) {
         try {
             const h = { 'apikey': SK, 'Authorization': `Bearer ${SK}` };
             const r = await fetch(`${SB}/rest/v1/${path}`, { headers: h });
-            return r.ok ? await r.json() : [];
-        } catch (e) { return []; }
+            if (!r.ok) {
+                console.error("Erro na API:", await r.text());
+                return [];
+            }
+            return await r.json();
+        } catch (e) {
+            console.error("Erro de Rede:", e);
+            return [];
+        }
     }
 
     async function registar() {
         const n = document.getElementById('rNome').value.trim();
         const t = document.getElementById('rTel').value.trim();
-        if(!n || t.length < 9) return alert('Dados inválidos');
+        if(!n || !t) return alert('Preencha os dados');
 
-        const existe = await api(`clientes?tel=eq.${t}`);
-        if(existe && existe.length > 0) {
-            USER = existe[0];
+        const dados = await api(`clientes?tel=eq.${t}`);
+        if(dados && dados.length > 0) {
+            USER = dados[0];
         } else {
             USER = { nome: n, tel: t, pts: 0, poupado: 0, num_cliente: Math.floor(10000+Math.random()*89999).toString() };
-            fetch(`${SB}/rest/v1/clientes`, { 
+            await fetch(`${SB}/rest/v1/clientes`, { 
                 method: 'POST', 
-                headers: { 'apikey': SK, 'Authorization': `Bearer ${SK}`, 'Content-Type': 'application/json' },
+                headers: { 'apikey': SK, 'Authorization': `Bearer ${SK}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
                 body: JSON.stringify(USER)
             });
         }
@@ -148,58 +150,39 @@
         document.getElementById('hPts').innerText = USER.pts || 0;
         document.getElementById('hPou').innerText = (USER.poupado || 0).toFixed(2) + '€';
 
-        // Consulta de Promoções
-        const promos = await api('promos?order=id.desc');
+        const promos = await api('promos');
         const box = document.getElementById('listPromos');
         
-        if(promos.length > 0) {
+        if(promos && promos.length > 0) {
             box.innerHTML = promos.map(p => {
                 const desc = p.preco_ant && p.preco_novo ? Math.round((1 - p.preco_novo/p.preco_ant)*100) : 0;
                 return `
                 <div class="pItem">
                     <div class="pImg">
                         ${desc > 0 ? `<div class="pBadge">-${desc}%</div>` : ''}
-                        ${p.foto ? `<img src="${p.foto}">` : '🛒'}
+                        ${p.foto ? `<img src="${p.foto}">` : '<div style="padding:15px">🛒</div>'}
                     </div>
                     <div style="flex:1">
-                        <div class="pNome">${p.nome}</div>
+                        <div style="font-weight:700;font-size:14px">${p.nome}</div>
                         <div style="display:flex;align-items:baseline;gap:8px">
-                            <span class="pPrecoNew">${p.preco_novo ? p.preco_novo.toFixed(2)+'€' : ''}</span>
-                            ${p.preco_ant ? `<span class="pPrecoOld">${p.preco_ant.toFixed(2)}€</span>` : ''}
+                            <span class="pPrecoNew">${p.preco_novo ? parseFloat(p.preco_novo).toFixed(2)+'€' : ''}</span>
+                            ${p.preco_ant ? `<span class="pPrecoOld">${parseFloat(p.preco_ant).toFixed(2)}€</span>` : ''}
                         </div>
                     </div>
                 </div>`;
             }).join('');
         } else {
-            box.innerHTML = '<p style="text-align:center;color:var(--mu);padding:20px">Sem promoções hoje.</p>';
+            box.innerHTML = '<p style="text-align:center;padding:20px;color:var(--mu)">Sem promoções ativas.</p>';
         }
     }
 
     async function renderFolhetos() {
-        const folhetos = await api('folhetos?order=id.desc');
+        const folhetos = await api('folhetos');
         const box = document.getElementById('listFolhetos');
-        if(folhetos.length > 0) {
+        if(folhetos && folhetos.length > 0) {
             box.innerHTML = folhetos.map(f => `<img src="${f.data}" class="fImg">`).join('');
         } else {
-            box.innerHTML = '<div class="card" style="text-align:center;color:var(--mu)">Folheto indisponível.</div>';
-        }
-    }
-
-    function renderQR() {
-        document.getElementById('qrNum').innerText = 'Nº ' + USER.num_cliente;
-        document.getElementById('qrNome').innerText = USER.nome;
-        const svg = document.getElementById('qrSvg');
-        svg.innerHTML = '';
-        for(let i=0; i<15; i++) {
-            for(let j=0; j<15; j++) {
-                if(Math.random() > 0.6 || (i<4 && j<4) || (i<4 && j>10) || (i>10 && j<4)) {
-                    let r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                    r.setAttribute("x", i*12); r.setAttribute("y", j*12);
-                    r.setAttribute("width", 9); r.setAttribute("height", 9);
-                    r.setAttribute("fill", "#0a1628");
-                    svg.appendChild(r);
-                }
-            }
+            box.innerHTML = '<p style="text-align:center;padding:20px;color:var(--mu)">Nenhum folheto disponível.</p>';
         }
     }
 
@@ -209,7 +192,16 @@
         document.getElementById('n' + tab).classList.add('a');
         if(tab === 'Inicio') renderInicio();
         if(tab === 'Folhetos') renderFolhetos();
-        if(tab === 'QR') renderQR();
+        if(tab === 'QR') {
+            document.getElementById('qrNum').innerText = 'Nº ' + USER.num_cliente;
+            // Gera QR visual simples
+            const svg = document.getElementById('qrSvg'); svg.innerHTML = '';
+            for(let i=0; i<15; i++) for(let j=0; j<15; j++) if(Math.random()>0.5 || (i<4&&j<4)) {
+                let r = document.createElementNS("http://www.w3.org/2000/svg","rect");
+                r.setAttribute("x",i*12); r.setAttribute("y",j*12); r.setAttribute("width",10); r.setAttribute("height",10);
+                r.setAttribute("fill","#0a1628"); svg.appendChild(r);
+            }
+        }
     }
 
     window.onload = async () => {
