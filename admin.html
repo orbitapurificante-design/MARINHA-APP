@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--gr:#27ae60;--r:#e74c3c;--cr:#f5f0e8}
+:root{--n:#0f172a;--s:#1a4a8a;--g:#eab308;--gl:#e8c97a;--bg:#f8fafc;--mu:#7a8a9a;--gr:#27ae60;--r:#e74c3c;--cr:#f5f0e8}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh}
 
 /* ── PIN ── */
@@ -52,7 +52,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 .avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .cRow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.06);cursor:pointer}
 .cPts{font-size:18px;font-weight:800;color:var(--n)}.cPtsL{font-size:10px;color:var(--mu);text-align:center}
-.fThumb{flex-shrink:0;width:80px;height:110px;border-radius:10px;overflow:hidden;cursor:pointer;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:24px}
+.fThumb{flex-shrink:0;width:100px;height:140px;border-radius:12px;overflow:hidden;cursor:pointer;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1);border:1px solid #e2e8f0;transition:transform 0.2s}.fThumb:hover{transform:translateY(-4px)}
 .fThumb img{width:100%;height:100%;object-fit:cover}
 .strip{display:flex;gap:10px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}.strip::-webkit-scrollbar{display:none}
 .pGrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -465,15 +465,20 @@ async function sincronizar(){
   if(Array.isArray(r[1]))DB.promos=r[1];
   if(Array.isArray(r[2])){
     DB.folhetos=r[2];
-    // Se não tem URL do Storage, tentar IDB local como cache
-    DB.folhetos.forEach(function(f,i){
-      if(!f.data || f.data===''){ 
-        idbGet('F_'+f.id).then(function(d){
-          if(d)DB.folhetos[i].data=d;
-          renderFolheto();
-        }).catch(function(){});
+    // Garantir que as imagens locais (IDB) sejam carregadas se o Supabase não tiver o base64
+    for(let i=0; i<DB.folhetos.length; i++){
+      let f = DB.folhetos[i];
+      if(!f.data || f.data.length < 100){ 
+        try {
+          let localData = await idbGet('F_'+f.id);
+          if(localData) {
+            DB.folhetos[i].data = localData;
+            console.log('Folheto ' + f.id + ' carregado do IDB local');
+          }
+        } catch(e) { console.error('Erro ao ler IDB para folheto', f.id); }
       }
-    });
+    }
+    renderFolheto();
   }
   if(r[3]&&r[3][0]){var c=r[3][0];DB.cfg.nomeLoja=c.nome_loja||'';DB.cfg.ptsEuro=c.pts_euro||10;DB.cfg.ptsDesc=c.pts_desc||100;}
   // Re-render se estiver no tab folheto
@@ -495,7 +500,7 @@ function promosAtivas(){var h=hoje();return DB.promos.filter(function(p){return(
 // ══════════════════════════════════════════
 //  PIN
 // ══════════════════════════════════════════
-var _pin='', _pinOk=localStorage.getItem('MPIN')||'1234';
+var _pin='', _pinOk=localStorage.getItem('MPIN')||'0000';
 function pd(d){
   if(!d)return;
   if(_pin.length>=4)return;
@@ -813,25 +818,24 @@ function addFolheto(e){
         var id=uid();
         var obj={id:id,nome:f.name,data:compressed,adicionado:hoje()};
         DB.folhetos.push(obj);
-        // Guardar no IDB local sempre
-        await idbSet('F_'+id,compressed);
-        // Tentar guardar no Supabase Storage
-        var url=await sbImgUp('marinha','folhetos/'+id+'.jpg',compressed);
-        // Se Storage falhou (bucket não existe ou sem permissão), usar base64 diretamente
-        var dataGuardar = url || compressed; // ← FALLBACK: base64 directo no campo
-        console.log('Folheto '+f.name+': '+(url?'Storage URL ('+url.length+'ch)':'base64 directo ('+Math.round(compressed.length/1024)+'KB)'));
-        var okSb=await sbUp('folhetos',{id:id,nome:f.name,data:dataGuardar,adicionado:hoje()});
-        // Atualizar objeto local com a data final
-        DB.folhetos[DB.folhetos.length-1].data=dataGuardar;
+        // 1. Guardar no IDB local IMEDIATAMENTE (Garante persistência local)
+        await idbSet('F_'+id, compressed);
+        
+        // 2. Atualizar a UI local imediatamente para feedback instantâneo
+        renderFolheto();
+        
+        // 3. Tentar guardar no Supabase Storage (Opcional)
+        var url = await sbImgUp('marinha', 'folhetos/'+id+'.jpg', compressed);
+        
+        // 4. Guardar metadados no Supabase (com fallback para base64 se o storage falhar)
+        var dataParaSupabase = url || (compressed.length < 100000 ? compressed : ""); 
+        
+        var okSb = await sbUp('folhetos', {id:id, nome:f.name, data:dataParaSupabase, adicionado:hoje()});
+        
         n++;
-        if(!okSb){
-          // Supabase rejeitou — mostrar aviso mas manter local
-          console.warn('folheto não guardado no Supabase - verificar tabela folhetos e RLS policies');
-          toast('⚠️ Folheto guardado localmente mas Supabase rejeitou. Verifica RLS na tabela folhetos.',6000);
-        }
-        if(n===total){
+        if(n === total){
+          toast('✅ ' + n + ' página(s) guardada(s)');
           renderFolheto();
-          if(okSb) toast('✅ '+n+' página(s) adicionada(s)'+(url?' via Storage':' em base64'));
         }
       });
     };
