@@ -1,51 +1,35 @@
+<button onclick="openPromoModal()" class="btn-menu">PROMOÇÕES</button>
+<button onclick="openFolhetoModal()" class="btn-menu">FOLHETO</button>
+
+<div class="modal fade" id="promoModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body text-center p-4">
+    <h4 class="fw-bold mb-3">Promoções</h4>
+    <p id="modal-promo-text" class="fs-5"></p>
+    <button class="btn btn-dark w-100" data-bs-dismiss="modal">Fechar</button>
+</div></div></div></div>
+
+<div class="modal fade" id="folhetoModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-body p-4">
+    <h4 class="fw-bold text-center mb-1">Folheto de Produtos</h4>
+    <p id="modal-folheto-data" class="text-center text-muted mb-4 small"></p>
+    <div id="modal-folheto-fotos"></div>
+    <button class="btn btn-dark w-100 mt-3" data-bs-dismiss="modal">Fechar</button>
+</div></div></div></div>
+
 <script>
-    // ... manter as credenciais do supabase ...
-
-    async function fetchPromo() {
+    // Coloque estas funções no seu script principal do INDEX
+    async function openPromoModal() {
         const { data } = await supabase.from('promos').select('promo_text').eq('id', 1).single();
-        if (data) {
-            // Atualiza o texto na barra superior e no modal de promos
-            document.getElementById('promo-text').innerText = data.promo_text;
-            document.getElementById('modal-promo-content').innerText = data.promo_text;
-        }
+        document.getElementById('modal-promo-text').innerText = data ? data.promo_text : "Sem promoções de momento.";
+        new bootstrap.Modal(document.getElementById('promoModal')).show();
     }
 
-    async function fetchFolheto() {
-        // 1. Buscar Datas
+    async function openFolhetoModal() {
         const { data: d } = await supabase.from('datas_folheto').select('*').eq('id', 1).single();
-        if(d) {
-            document.getElementById('data-folheto').innerText = `Válido de ${d.data_inicio} a ${d.data_fim}`;
-        }
-
-        // 2. Buscar Fotos
-        const { data: fotos } = await supabase.from('folhetos').select('*').order('created_at', { ascending: false });
-        const container = document.getElementById('folheto-container');
-        container.innerHTML = '';
+        const { data: f } = await supabase.from('folhetos').select('*').order('created_at', {ascending:false});
         
-        if(fotos.length > 0) {
-            fotos.forEach(f => {
-                container.innerHTML += `<img src="${f.url}" class="img-fluid mb-3 rounded shadow-sm w-100">`;
-            });
-        } else {
-            container.innerHTML = '<p class="text-center text-muted">Folheto brevemente disponível.</p>';
-        }
-    }
-
-    // No comando que abre o modal de Promoções, garanta que ele NÃO chama fotos:
-    function openPromoModal() {
-        // Apenas abre o modal que tem o ID do texto
-        const myModal = new bootstrap.Modal(document.getElementById('promoModal'));
-        myModal.show();
+        document.getElementById('modal-folheto-data').innerText = d ? `Válido de ${d.data_inicio} a ${d.data_fim}` : "";
+        const divFotos = document.getElementById('modal-folheto-fotos');
+        divFotos.innerHTML = f && f.length > 0 ? f.map(img => `<img src="${img.url}" class="w-100 rounded mb-3 shadow-sm">`).join('') : "<p class='text-center'>Folheto brevemente disponível.</p>";
+        
+        new bootstrap.Modal(document.getElementById('folhetoModal')).show();
     }
 </script>
-
-<div class="modal fade" id="promoModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body text-center p-4">
-                <h4 class="fw-bold mb-3">Promoções Atuais</h4>
-                <p id="modal-promo-content" class="fs-5"></p> <button type="button" class="btn btn-primary w-100 mt-3" data-bs-dismiss="modal">Fechar</button>
-            </div>
-        </div>
-    </div>
-</div>
