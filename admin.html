@@ -7,40 +7,44 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f8f9fa; }
-        .admin-card { border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: none; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .admin-card { border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); border: none; background: white; }
+        .btn-primary { background-color: #007bff; border: none; padding: 12px; font-weight: 600; border-radius: 10px; }
+        .form-label { color: #495057; font-weight: 600; }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark bg-primary mb-4">
+<nav class="navbar navbar-dark bg-dark mb-4">
     <div class="container">
-        <span class="navbar-brand mb-0 h1">Painel Admin (Sincronizado)</span>
-        <a href="index.html" class="btn btn-outline-light btn-sm">Ver App Clientes</a>
+        <span class="navbar-brand mb-0 h1"><i class="bi bi-shield-lock me-2"></i>Painel Marinha-App</span>
     </div>
 </nav>
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-6">
             <div class="card admin-card p-4">
+                <h4 class="text-center mb-4">Atualizar App Clientes</h4>
+                
                 <form id="adminForm">
                     <div class="mb-4">
-                        <label class="form-label fw-bold text-primary">Texto das Promoções (App Clientes)</label>
-                        <textarea id="promoTexto" class="form-control" rows="3" placeholder="Escreva aqui a promoção..."></textarea>
+                        <label class="form-label">Texto da Promoção</label>
+                        <textarea id="promoTexto" class="form-control" rows="3" placeholder="Ex: Promoções de Hoje..."></textarea>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold text-primary">Novo Folheto (PDF ou Imagem)</label>
+                        <label class="form-label">Upload de Novo Folheto</label>
                         <input type="file" id="folhetoFile" class="form-control" accept="image/*,application/pdf">
+                        <div class="form-text">Isto irá atualizar o botão 'Ver Folheto' na App.</div>
                     </div>
 
-                    <button type="submit" id="btnGuardar" class="btn btn-success w-100 py-3 fw-bold">
-                        <i class="bi bi-cloud-check-fill me-2"></i>ATUALIZAR APP CLIENTES
+                    <button type="submit" id="btnGuardar" class="btn btn-primary w-100">
+                        <i class="bi bi-cloud-upload me-2"></i>GUARDAR E PUBLICAR
                     </button>
                 </form>
                 
-                <div id="statusMessage" class="mt-3 d-none text-center fw-bold"></div>
+                <div id="statusMessage" class="mt-3 d-none text-center p-3 rounded"></div>
             </div>
         </div>
     </div>
@@ -61,55 +65,58 @@
         e.preventDefault();
         
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> A SINCRONIZAR...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> A PUBLICAR...';
         status.className = "mt-3 alert alert-info";
-        status.innerText = "A enviar para a base de dados...";
+        status.innerText = "A ligar ao Supabase...";
         status.classList.remove('d-none');
 
         const texto = document.getElementById('promoTexto').value;
         const file = document.getElementById('folhetoFile').files[0];
 
         try {
-            // 1. ATUALIZAR TABELA 'promos' (Coluna: 'promo_text')
+            // 1. ATUALIZA A TABELA 'promos'
             if (texto) {
                 const { error: pError } = await supabaseClient
-                    .from('promos') // NOME DA TABELA CORRIGIDO
-                    .upsert({ id: 1, promo_text: texto }); // COLUNA CORRIGIDA
+                    .from('promos') 
+                    .upsert({ id: 1, promo_text: texto }); 
                 
                 if (pError) throw pError;
             }
 
-            // 2. ATUALIZAR FOLHETO (Storage e Tabela 'folheto')
+            // 2. ATUALIZA A TABELA 'folhetos'
             if (file) {
-                const fileName = `folheto_principal_${Date.now()}.${file.name.split('.').pop()}`;
+                // Nome único para o ficheiro para evitar problemas de cache
+                const fileName = `folheto_site_${Date.now()}.${file.name.split('.').pop()}`;
                 
+                // Faz upload para o Storage (Bucket: folhetos)
                 const { error: uploadError } = await supabaseClient.storage
                     .from('folhetos')
                     .upload(fileName, file, { upsert: true });
 
                 if (uploadError) throw uploadError;
 
+                // Pega a URL pública
                 const { data: urlData } = supabaseClient.storage.from('folhetos').getPublicUrl(fileName);
                 
-                // Atualiza a tabela 'folheto' (que os clientes leem no index.html)
+                // Grava a URL na tabela 'folhetos'
                 const { error: fError } = await supabaseClient
-                    .from('folheto')
+                    .from('folhetos') 
                     .upsert({ id: 1, url: urlData.publicUrl });
                 
                 if (fError) throw fError;
             }
 
             status.className = "mt-3 alert alert-success";
-            status.innerText = "✅ SUCESSO! A App dos clientes já foi atualizada.";
+            status.innerText = "✅ PUBLICADO! Verifique a App de Clientes agora.";
             form.reset();
 
         } catch (error) {
-            console.error("Erro detalhado:", error);
+            console.error(error);
             status.className = "mt-3 alert alert-danger";
             status.innerText = "❌ ERRO: " + error.message;
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-cloud-check-fill me-2"></i>ATUALIZAR APP CLIENTES';
+            btn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>GUARDAR E PUBLICAR';
         }
     });
 </script>
