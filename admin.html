@@ -474,6 +474,7 @@ async function sincronizar(){
           if(localData) {
             DB.folhetos[i].data = localData;
             console.log('Folheto ' + f.id + ' carregado do IDB local');
+            renderFolheto(); // Atualizar a cada imagem carregada para melhor UX
           }
         } catch(e) { console.error('Erro ao ler IDB para folheto', f.id); }
       }
@@ -858,12 +859,23 @@ function renderFolheto(){
 // ══════════════════════════════════════════
 var _vIdx=0,_vImgs=[],_vTx=0;
 function abrirViewer(i){
-  _vImgs=DB.folhetos.filter(function(f){return f.data;});
-  if(!_vImgs.length){toast('Imagens a carregar...');return;}
+  // Filtrar apenas folhetos que têm dados de imagem
+  _vImgs=DB.folhetos.filter(function(f){return f.data && f.data.length > 100;});
+  if(!_vImgs.length){toast('⚠️ Nenhuma imagem carregada');return;}
+  
+  // Encontrar o índice correto na lista filtrada
+  var targetId = DB.folhetos[i] ? DB.folhetos[i].id : null;
+  if(targetId) {
+    var newIdx = _vImgs.findIndex(function(img){ return img.id === targetId; });
+    if(newIdx !== -1) i = newIdx;
+  }
+
   _vIdx=Math.max(0,Math.min(i,_vImgs.length-1));
   var tr=document.getElementById('vTrack');
   tr.style.width=(_vImgs.length*100)+'vw';
-  tr.innerHTML=_vImgs.map(function(f){return'<div class="vSlide"><img src="'+f.data+'" alt=""></div>';}).join('');
+  tr.innerHTML=_vImgs.map(function(f){
+    return '<div class="vSlide"><img src="'+f.data+'" style="max-width:100%;max-height:100%;object-fit:contain"></div>';
+  }).join('');
   updViewer();
   document.getElementById('viewer').classList.add('a');
   tr.addEventListener('touchstart',function(e){_vTx=e.touches[0].clientX;},{passive:true});
