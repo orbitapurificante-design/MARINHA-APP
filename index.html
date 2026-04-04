@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <title>MARINHA – Fidelização</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-        :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--r:#e74c3c}
+        :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--r:#e74c3c;--gr:#27ae60}
         body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh}
 
         /* LOGIN */
@@ -15,40 +15,47 @@
         .rInp{width:100%;max-width:300px;padding:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:14px;color:#fff;text-align:center;font-size:16px;outline:none}
         .rBtn{width:100%;max-width:300px;padding:16px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;cursor:pointer}
 
-        /* APP */
+        /* APP STRUCTURE */
         #eApp{display:none}
-        .cab{height:60px;background:var(--n);display:flex;align-items:center;padding:0 16px;color:#fff;font-weight:700;position:sticky;top:0;z-index:100}
-        .ecra{padding:16px;display:none;padding-bottom:100px}
+        .cab{height:60px;background:var(--n);display:flex;align-items:center;padding:0 20px;color:#fff;font-weight:700;position:sticky;top:0;z-index:100}
+        .ecra{padding:20px;display:none;padding-bottom:100px}
         .ecra.a{display:block}
         
-        .hero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:20px;color:#fff;margin-bottom:16px}
-        .card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.05);margin-bottom:16px}
-        .ct{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:12px;letter-spacing:1px}
+        /* HOME HERO */
+        .hero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:24px;padding:24px;color:#fff;margin-bottom:24px;box-shadow:0 10px 20px rgba(10,22,40,0.2)}
+        .hGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+        .hItem{background:rgba(255,255,255,0.1);padding:15px;border-radius:16px;backdrop-filter:blur(5px)}
 
         /* PROMOS */
-        .pItem{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0f0f0}
-        .pImg{width:60px;height:60px;background:#f8f8f8;border-radius:12px;overflow:hidden;flex-shrink:0;position:relative}
+        .section-title{font-size:12px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:15px;display:block}
+        .pCard{background:#fff;border-radius:18px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:15px;box-shadow:0 4px 15px rgba(0,0,0,0.04)}
+        .pImg{width:70px;height:70px;background:#f8f8f8;border-radius:12px;overflow:hidden;flex-shrink:0;position:relative}
         .pImg img{width:100%;height:100%;object-fit:cover}
-        .pBadge{position:absolute;top:0;left:0;background:var(--r);color:#fff;font-size:9px;font-weight:800;padding:2px 4px;border-bottom-right-radius:8px}
-        .pPrecoOld{font-size:11px;text-decoration:line-through;color:var(--mu)}
-        .pPrecoNew{font-size:16px;font-weight:800;color:var(--r)}
+        .pBadge{position:absolute;top:0;left:0;background:var(--r);color:#fff;font-size:10px;font-weight:800;padding:3px 6px;border-bottom-right-radius:10px}
+        .pInfo{flex:1}
+        .pPrecos{display:flex;align-items:baseline;gap:8px;margin-top:4px}
+        .pNow{font-size:18px;font-weight:800;color:var(--n)}
+        .pOld{font-size:12px;text-decoration:line-through;color:var(--mu)}
 
         /* FOLHETOS */
-        .fImg{width:100%;border-radius:12px;margin-bottom:12px;display:block;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+        .fImg{width:100%;border-radius:16px;margin-bottom:15px;box-shadow:0 8px 20px rgba(0,0,0,0.1)}
 
-        /* NAV */
-        .nav{position:fixed;bottom:0;left:0;right:0;height:75px;background:#fff;display:flex;border-top:1px solid #eee;z-index:100}
-        .nBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:none;border:none;color:var(--mu);font-size:10px;font-weight:700;text-transform:uppercase}
-        .nBtn.a{color:var(--n)}
+        /* NAVIGATION */
+        .nav{position:fixed;bottom:20px;left:20px;right:20px;height:65px;background:var(--n);border-radius:20px;display:flex;align-items:center;padding:0 10px;box-shadow:0 10px 30px rgba(0,0,0,0.3)}
+        .nBtn{flex:1;background:none;border:none;color:rgba(255,255,255,0.5);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px}
+        .nBtn.a{color:var(--gl)}
+        .nBtn .dot{width:4px;height:4px;background:transparent;border-radius:50%;margin-top:2px}
+        .nBtn.a .dot{background:var(--gl)}
     </style>
 </head>
 <body>
 
 <div id="eReg">
-    <h1 style="color:#fff;letter-spacing:4px">MARINHA</h1>
-    <input class="rInp" id="rNome" type="text" placeholder="Nome">
-    <input class="rInp" id="rTel" type="tel" placeholder="Telemóvel">
-    <button class="rBtn" onclick="registar()">ENTRAR</button>
+    <h1 style="color:#fff;letter-spacing:4px;margin-bottom:8px">MARINHA</h1>
+    <p style="color:var(--gl);font-size:11px;font-weight:700;margin-bottom:20px">CLIENTE VIP</p>
+    <input class="rInp" id="rNome" type="text" placeholder="Nome Completo">
+    <input class="rInp" id="rTel" type="tel" placeholder="Nº Telemóvel">
+    <button class="rBtn" id="btnEntrar" onclick="registar()">ACEDER AO CARTÃO</button>
 </div>
 
 <div id="eApp">
@@ -56,43 +63,46 @@
 
     <div class="ecra a" id="ecraInicio">
         <div class="hero">
-            <div id="hNome" style="font-size:22px;font-weight:800">Olá!</div>
-            <div id="hNum" style="opacity:0.6;font-size:12px;margin-bottom:15px">Cliente nº ----</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <div style="background:rgba(255,255,255,0.1);padding:12px;border-radius:12px">
-                    <div id="hPts" style="font-size:22px;font-weight:800">0</div>
-                    <div style="font-size:10px;opacity:0.5">PONTOS</div>
+            <p style="opacity:0.8;font-size:14px">Bem-vindo,</p>
+            <h2 id="hNome" style="font-size:24px;font-weight:800">...</h2>
+            <div class="hGrid">
+                <div class="hItem">
+                    <div id="hPts" style="font-size:20px;font-weight:800">0</div>
+                    <div style="font-size:10px;opacity:0.7;font-weight:700">PONTOS ACUMULADOS</div>
                 </div>
-                <div style="background:rgba(255,255,255,0.1);padding:12px;border-radius:12px">
-                    <div id="hPou" style="font-size:22px;font-weight:800">0.00€</div>
-                    <div style="font-size:10px;opacity:0.5">POUPADO</div>
+                <div class="hItem">
+                    <div id="hPou" style="font-size:20px;font-weight:800">0.00€</div>
+                    <div style="font-size:10px;opacity:0.7;font-weight:700">TOTAL POUPADO</div>
                 </div>
             </div>
+            <p id="hNum" style="margin-top:15px;font-size:11px;opacity:0.5;text-align:right"></p>
         </div>
-        <div class="card">
-            <div class="ct">Promoções Ativas</div>
-            <div id="listPromos">A carregar promoções...</div>
-        </div>
+
+        <span class="section-title">Promoções em Destaque</span>
+        <div id="listPromos"></div>
     </div>
 
     <div class="ecra" id="ecraFolhetos">
-        <div class="ct">Folhetos Digitais</div>
-        <div id="listFolhetos">A carregar folhetos...</div>
+        <span class="section-title">Folhetos da Semana</span>
+        <div id="listFolhetos"></div>
     </div>
 
     <div class="ecra" id="ecraQR">
-        <div class="card" style="text-align:center;padding:30px">
-            <div id="qrNum" style="font-size:24px;font-weight:800;color:var(--g);margin-bottom:20px">---</div>
-            <div style="background:var(--n);padding:20px;display:inline-block;border-radius:20px">
-                <svg id="qrSvg" width="180" height="180" style="display:block;background:#fff"></svg>
+        <div class="hero" style="text-align:center;padding:40px 20px">
+            <span class="section-title" style="color:var(--gl)">O seu cartão digital</span>
+            <div id="qrBox" style="background:#fff;padding:15px;display:inline-block;border-radius:20px;margin:20px 0">
+                <svg id="qrSvg" width="180" height="180"></svg>
             </div>
+            <h3 id="qrNome" style="font-weight:800;text-transform:uppercase"></h3>
+            <p id="qrNum" style="opacity:0.6;font-size:14px"></p>
         </div>
     </div>
 
     <nav class="nav">
-        <button class="nBtn a" id="nInicio" onclick="ir('Inicio')">Início</button>
-        <button class="nBtn" id="nFolhetos" onclick="ir('Folhetos')">Folheto</button>
-        <button class="nBtn" id="nQR" onclick="ir('QR')">Cartão</button>
+        <button class="nBtn a" id="nInicio" onclick="ir('Inicio')">INÍCIO<div class="dot"></div></button>
+        <button class="nBtn" id="nFolhetos" onclick="ir('Folhetos')">FOLHETOS<div class="dot"></div></button>
+        <button class="nBtn" id="nQR" onclick="ir('QR')">CARTÃO<div class="dot"></div></button>
+        <button class="nBtn" onclick="sair()">SAIR</button>
     </nav>
 </div>
 
@@ -101,35 +111,31 @@
     const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
     let USER = null;
 
-    // Função API Centralizada com Logs
-    async function api(path) {
+    async function api(table) {
         try {
-            const h = { 'apikey': SK, 'Authorization': `Bearer ${SK}` };
-            const r = await fetch(`${SB}/rest/v1/${path}`, { headers: h });
-            if (!r.ok) {
-                console.error("Erro na API:", await r.text());
-                return [];
-            }
-            return await r.json();
-        } catch (e) {
-            console.error("Erro de Rede:", e);
-            return [];
-        }
+            const r = await fetch(`${SB}/rest/v1/${table}`, {
+                headers: { 'apikey': SK, 'Authorization': `Bearer ${SK}` }
+            });
+            return r.ok ? await r.json() : [];
+        } catch (e) { return []; }
     }
 
     async function registar() {
         const n = document.getElementById('rNome').value.trim();
         const t = document.getElementById('rTel').value.trim();
-        if(!n || !t) return alert('Preencha os dados');
+        const btn = document.getElementById('btnEntrar');
+        if(!n || !t) return alert('Por favor preencha os dados.');
 
-        const dados = await api(`clientes?tel=eq.${t}`);
-        if(dados && dados.length > 0) {
-            USER = dados[0];
+        btn.innerText = 'A carregar...';
+        
+        let res = await api(`clientes?tel=eq.${t}`);
+        if(res && res.length > 0) {
+            USER = res[0];
         } else {
             USER = { nome: n, tel: t, pts: 0, poupado: 0, num_cliente: Math.floor(10000+Math.random()*89999).toString() };
-            await fetch(`${SB}/rest/v1/clientes`, { 
-                method: 'POST', 
-                headers: { 'apikey': SK, 'Authorization': `Bearer ${SK}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+            await fetch(`${SB}/rest/v1/clientes`, {
+                method: 'POST',
+                headers: { 'apikey': SK, 'Authorization': `Bearer ${SK}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(USER)
             });
         }
@@ -144,46 +150,36 @@
     }
 
     async function renderInicio() {
-        if(!USER) return;
-        document.getElementById('hNome').innerText = 'Olá, ' + USER.nome.split(' ')[0] + '!';
-        document.getElementById('hNum').innerText = 'Cliente nº ' + USER.num_cliente;
+        document.getElementById('hNome').innerText = USER.nome;
+        document.getElementById('hNum').innerText = 'ID: ' + USER.num_cliente;
         document.getElementById('hPts').innerText = USER.pts || 0;
         document.getElementById('hPou').innerText = (USER.poupado || 0).toFixed(2) + '€';
 
-        const promos = await api('promos');
-        const box = document.getElementById('listPromos');
-        
-        if(promos && promos.length > 0) {
-            box.innerHTML = promos.map(p => {
-                const desc = p.preco_ant && p.preco_novo ? Math.round((1 - p.preco_novo/p.preco_ant)*100) : 0;
-                return `
-                <div class="pItem">
+        const promos = await api('promos?order=id.desc');
+        const list = document.getElementById('listPromos');
+        list.innerHTML = promos.length ? promos.map(p => {
+            const desc = p.preco_ant && p.preco_novo ? Math.round((1 - p.preco_novo/p.preco_ant)*100) : 0;
+            return `
+                <div class="pCard">
                     <div class="pImg">
                         ${desc > 0 ? `<div class="pBadge">-${desc}%</div>` : ''}
-                        ${p.foto ? `<img src="${p.foto}">` : '<div style="padding:15px">🛒</div>'}
+                        <img src="${p.foto || ''}" onerror="this.src='https://via.placeholder.com/100?text=Produto'">
                     </div>
-                    <div style="flex:1">
-                        <div style="font-weight:700;font-size:14px">${p.nome}</div>
-                        <div style="display:flex;align-items:baseline;gap:8px">
-                            <span class="pPrecoNew">${p.preco_novo ? parseFloat(p.preco_novo).toFixed(2)+'€' : ''}</span>
-                            ${p.preco_ant ? `<span class="pPrecoOld">${parseFloat(p.preco_ant).toFixed(2)}€</span>` : ''}
+                    <div class="pInfo">
+                        <div style="font-weight:700;font-size:15px">${p.nome}</div>
+                        <div class="pPrecos">
+                            <span class="pNow">${parseFloat(p.preco_novo).toFixed(2)}€</span>
+                            ${p.preco_ant ? `<span class="pOld">${parseFloat(p.preco_ant).toFixed(2)}€</span>` : ''}
                         </div>
                     </div>
                 </div>`;
-            }).join('');
-        } else {
-            box.innerHTML = '<p style="text-align:center;padding:20px;color:var(--mu)">Sem promoções ativas.</p>';
-        }
+        }).join('') : '<p style="text-align:center;color:var(--mu)">Nenhuma promoção ativa.</p>';
     }
 
     async function renderFolhetos() {
-        const folhetos = await api('folhetos');
-        const box = document.getElementById('listFolhetos');
-        if(folhetos && folhetos.length > 0) {
-            box.innerHTML = folhetos.map(f => `<img src="${f.data}" class="fImg">`).join('');
-        } else {
-            box.innerHTML = '<p style="text-align:center;padding:20px;color:var(--mu)">Nenhum folheto disponível.</p>';
-        }
+        const folhetos = await api('folhetos?order=id.desc');
+        const list = document.getElementById('listFolhetos');
+        list.innerHTML = folhetos.length ? folhetos.map(f => `<img src="${f.data}" class="fImg">`).join('') : '<p>Sem folhetos.</p>';
     }
 
     function ir(tab) {
@@ -193,10 +189,10 @@
         if(tab === 'Inicio') renderInicio();
         if(tab === 'Folhetos') renderFolhetos();
         if(tab === 'QR') {
-            document.getElementById('qrNum').innerText = 'Nº ' + USER.num_cliente;
-            // Gera QR visual simples
+            document.getElementById('qrNome').innerText = USER.nome;
+            document.getElementById('qrNum').innerText = 'Nº CLIENTE: ' + USER.num_cliente;
             const svg = document.getElementById('qrSvg'); svg.innerHTML = '';
-            for(let i=0; i<15; i++) for(let j=0; j<15; j++) if(Math.random()>0.5 || (i<4&&j<4)) {
+            for(let i=0;i<15;i++) for(let j=0;j<15;j++) if(Math.random()>0.5 || (i<3&&j<3)) {
                 let r = document.createElementNS("http://www.w3.org/2000/svg","rect");
                 r.setAttribute("x",i*12); r.setAttribute("y",j*12); r.setAttribute("width",10); r.setAttribute("height",10);
                 r.setAttribute("fill","#0a1628"); svg.appendChild(r);
@@ -204,10 +200,12 @@
         }
     }
 
+    function sair() { localStorage.clear(); location.reload(); }
+
     window.onload = async () => {
         const t = localStorage.getItem('m_tel');
         if(t) {
-            const res = await api(`clientes?tel=eq.${t}`);
+            let res = await api(`clientes?tel=eq.${t}`);
             if(res && res[0]) { USER = res[0]; entrar(); }
         }
     }
