@@ -1047,19 +1047,32 @@ async function testarSincronizacao(){
 //  COMPRIMIR IMAGEM
 // ══════════════════════════════════════════
 function comprimirImg(base64, maxW, qualidade, cb){
-  var img=new Image();
-  img.onload=function(){
-    var w=img.width, h=img.height;
-    // Cortar quadrado central
-    var size=Math.min(w,h);
-    var sx=Math.floor((w-size)/2);
-    var sy=Math.floor((h-size)/2);
-    var cv=document.createElement('canvas');
-    cv.width=maxW; cv.height=maxW;
-    cv.getContext('2d').drawImage(img,sx,sy,size,size,0,0,maxW,maxW);
-    cb(cv.toDataURL('image/jpeg',qualidade));
+  var img = new Image();
+  img.onload = function(){
+    var w = img.width, h = img.height;
+    var ratio = w / h;
+    
+    // Calcula as novas dimensões mantendo a proporção original
+    var newW = maxW;
+    var newH = Math.round(maxW / ratio);
+    
+    // Se a imagem for muito alta, limitamos a altura e ajustamos a largura
+    if (newH > 800) { // Limite de segurança para não criar ficheiros gigantes
+        newH = 800;
+        newW = Math.round(800 * ratio);
+    }
+
+    var cv = document.createElement('canvas');
+    cv.width = newW; 
+    cv.height = newH;
+    
+    // Desenha a imagem INTEIRA no canvas, sem cortes (sx, sy, size, size removidos)
+    var ctx = cv.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h, 0, 0, newW, newH);
+    
+    cb(cv.toDataURL('image/jpeg', qualidade));
   };
-  img.src=base64;
+  img.src = base64;
 }
 // ══════════════════════════════════════════
 //  CORRIGIR FOTOS
