@@ -155,7 +155,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
   <!-- FOLHETO/PROMOS -->
   <div class="ecra" id="ecraFolheto">
     <div class="s">
-      <div style="height:10px"></div>
+      <div style="height:12px"></div>
       <div class="card">
         <div class="ct">Promoções</div>
         <button class="bP" style="margin-bottom:12px" onclick="abrirNovaPromo()">+ Nova Promoção</button>
@@ -210,7 +210,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     <label class="lbl">Emoji (opcional)</label>
     <input class="inp" id="mPromoEmoji" type="text" placeholder="🦞">
     <label class="lbl">Foto (opcional)</label>
-    <div id="mPromoFotoPrev" style="width:80px;height:120px;border-radius:12px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:8px;overflow:hidden;position:relative;flex-shrink:0">
+    <div id="mPromoFotoPrev" style="width:80px;height:140px;border-radius:12px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:8px;overflow:hidden;position:relative;flex-shrink:0">
       <span id="mPromoFotoEmoji">🛒</span>
       <img id="mPromoFotoImg" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:12px">
     </div>
@@ -578,7 +578,7 @@ function prevFoto(e){
   var f=e.target.files[0];if(!f)return;
   var r=new FileReader();
   r.onload=function(ev){
-    comprimirImg(ev.target.result, 300, 0.6, function(compressed){
+    comprimirImg(ev.target.result, 400, 0.6, function(compressed){
       _fotoPromo = compressed;
       var img = document.getElementById('mPromoFotoImg');
       var emoji = document.getElementById('mPromoFotoEmoji');
@@ -965,7 +965,7 @@ async function corrigirFotos(){
       });
       // Cortar em quadrado e redimensionar
       var quadrado=await new Promise(function(res){
-        comprimirImg(b64,300,0.8,res);
+        comprimirImg(b64,400,0.8,res);
       });
       // Upload novo para Storage com novo path
       var novoPath='promos/'+p.id+'_'+Date.now()+'.jpg';
