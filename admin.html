@@ -826,10 +826,10 @@ function addFolheto(e){
         renderFolheto();
         
         // 3. Tentar guardar no Supabase Storage (Opcional)
-        var url = await sbImgUp('marinha', 'folhetos/'+id+'.jpg', compressed);
+        var url = await sbImgUp('marinha', 'folhetos/' + id + '.jpg', compressed);
         
         // 4. Guardar metadados no Supabase (com fallback para base64 se o storage falhar)
-        var dataParaSupabase = url || (compressed.length < 200000 ? compressed : ""); 
+        var dataParaSupabase = url || (compressed.length < 100000 ? compressed : ""); 
         
         var okSb = await sbUp('folhetos', {id:id, nome:f.name, data:dataParaSupabase, adicionado:hoje()});
         
