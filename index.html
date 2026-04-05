@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <title>DM – Fidelização</title>
-    <link rel="manifest" href="manifest.json?v=6">
+    <link rel="manifest" href="manifest.json?v=7">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -37,27 +37,28 @@
         .ecra{display:none;height:100%;padding-top:60px;padding-bottom:65px;overflow:hidden}.ecra.a{display:block}
         .s{padding:16px;height:100%;overflow-y:auto}
 
-        /* PROMOS CAROUSEL - FORMATO 5cm x 10cm (1:2) */
+        /* PROMOS CAROUSEL - DESIGN FLEXÍVEL (ADAPTA-SE À ALTURA DA FOTO) */
         #ecraPromos{background:#fff}
         .promo-wrapper{height:100%;width:100%;position:relative;overflow:hidden}
         .promo-container{display:flex;height:100%;transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);will-change:transform}
         .promo-page{min-width:100%;height:100%;display:flex;flex-direction:column;padding:10px;justify-content:center;align-items:center}
         
-        .promo-card-full{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.06);display:flex;flex-direction:column;width:100%;max-width:300px;aspect-ratio: 1 / 2;max-height: 100%;margin: 0 auto;border:1px solid #f0f0f0;position:relative}
+        /* O CARTÃO AGORA NÃO TEM ASPECT-RATIO FIXO, USA A ALTURA DA IMAGEM */
+        .promo-card-full{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.06);display:flex;flex-direction:column;width:100%;max-width:320px;max-height: 95%;margin: 0 auto;border:1px solid #f0f0f0;position:relative}
         
-        /* A IMAGEM AGORA APARECE COMPLETA SEM ZOOM (contain) */
-        .promo-img-box{width:100%;height:100%;position:relative;background:#f8f9fa;display:flex;align-items:center;justify-content:center;overflow:hidden}
-        .promo-img-box img{width:100%;height:100%;object-fit:contain;display:block} 
+        /* A IMAGEM APARECE NATURAL (contain) E COM ALTURA FLEXÍVEL */
+        .promo-img-box{width:100%;height:auto;flex-grow:1;position:relative;background:#f8f9fa;display:flex;align-items:center;justify-content:center;overflow:hidden}
+        .promo-img-box img{width:100%;height:auto;max-height:100%;object-fit:contain;display:block} 
         
         .promo-badge-full{position:absolute;top:12px;left:12px;background:var(--r);color:#fff;font-size:13px;font-weight:800;padding:5px 10px;border-radius:6px;z-index:5}
         .promo-date-tag{position:absolute;top:12px;right:12px;background:rgba(10,22,40,0.7);color:#fff;font-size:10px;font-weight:700;padding:4px 8px;border-radius:5px;z-index:5}
 
-        /* INFORMAÇÃO COMPACTA NA BASE - SOBREPOSTA À IMAGEM */
-        .promo-info-full{position:absolute;bottom:0;left:0;right:0;padding:12px;background:rgba(255,255,255,0.95);text-align:center;border-top:1px solid rgba(0,0,0,0.05);z-index:5}
-        .promo-name-full{font-size:16px;font-weight:800;margin-bottom:2px;color:var(--n)}
+        /* INFORMAÇÃO COMPACTA NA BASE */
+        .promo-info-full{width:100%;padding:10px;background:rgba(255,255,255,0.95);text-align:center;border-top:1px solid rgba(0,0,0,0.05);z-index:5}
+        .promo-name-full{font-size:15px;font-weight:800;margin-bottom:1px;color:var(--n)}
         .promo-prices-full{display:flex;align-items:baseline;justify-content:center;gap:8px}
-        .pNovo-full{font-size:24px;font-weight:800;color:var(--r)}
-        .pOrig-full{font-size:15px;color:var(--mu);text-decoration:line-through}
+        .pNovo-full{font-size:22px;font-weight:800;color:var(--r)}
+        .pOrig-full{font-size:14px;color:var(--mu);text-decoration:line-through}
 
         /* INDICATORS */
         .promo-indicators{position:absolute;bottom:15px;left:0;right:0;display:flex;justify-content:center;gap:8px;z-index:10}
@@ -129,7 +130,7 @@
         </div>
     </div>
 
-    <!-- PROMOÇÕES (SWIPE) - FORMATO 1:2 (5x10cm) SEM ZOOM -->
+    <!-- PROMOÇÕES (SWIPE) - DESIGN FLEXÍVEL (ADAPTA-SE À ALTURA DA FOTO) -->
     <div class="ecra a" id="ecraPromos">
         <div class="promo-wrapper" id="promoWrapper">
             <div class="promo-container" id="listPromos"></div>
