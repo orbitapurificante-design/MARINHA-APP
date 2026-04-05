@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <title>DM – Fidelização</title>
-    <link rel="manifest" href="manifest.json?v=4">
+    <link rel="manifest" href="manifest.json?v=5">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
         :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#ffffff;--mu:#7a8a9a;--r:#e74c3c;--gr:#27ae60}
         body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);height:100vh;overflow:hidden;position:fixed;width:100%}
 
-        /* LOGO - RECUPERADO DO ORIGINAL (index 13) */
+        /* LOGO - ORIGINAL */
         .logo-login{width:200px;height:auto;display:block;margin-bottom:20px}
         .cabLogo{height:32px;display:block}
 
@@ -37,32 +37,32 @@
         .ecra{display:none;height:100%;padding-top:60px;padding-bottom:65px;overflow:hidden}.ecra.a{display:block}
         .s{padding:16px;height:100%;overflow-y:auto}
 
-        /* PROMOS CAROUSEL - FORMATO A4 COM ALTURA MÁXIMA SEM CORTES */
+        /* PROMOS CAROUSEL - FORMATO 5cm x 10cm (1:2) */
         #ecraPromos{background:#fff}
         .promo-wrapper{height:100%;width:100%;position:relative;overflow:hidden}
         .promo-container{display:flex;height:100%;transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);will-change:transform}
-        .promo-page{min-width:100%;height:100%;display:flex;flex-direction:column;padding:10px;justify-content:center}
+        .promo-page{min-width:100%;height:100%;display:flex;flex-direction:column;padding:10px;justify-content:center;align-items:center}
         
-        .promo-card-full{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.06);display:flex;flex-direction:column;width:100%;height:100%;margin: 0 auto;border:1px solid #f0f0f0;position:relative}
+        .promo-card-full{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.06);display:flex;flex-direction:column;width:100%;max-width:300px;aspect-ratio: 1 / 2;max-height: 100%;margin: 0 auto;border:1px solid #f0f0f0;position:relative}
         
-        /* A IMAGEM AGORA OCUPA QUASE TODO O CARTÃO PARA EVITAR CORTES NO TOPO/BASE */
+        /* A IMAGEM AGORA PREENCHE O ESPAÇO TOTAL (1:2) SEM ESPAÇOS BRANCOS */
         .promo-img-box{width:100%;height:100%;position:relative;background:#f8f9fa;display:flex;align-items:center;justify-content:center;overflow:hidden}
-        .promo-img-box img{width:100%;height:100%;object-fit:contain;display:block} 
+        .promo-img-box img{width:100%;height:100%;object-fit:cover;display:block} /* Usamos cover para preencher todo o retângulo 1:2 */
         
-        .promo-badge-full{position:absolute;top:12px;left:12px;background:var(--r);color:#fff;font-size:12px;font-weight:800;padding:5px 10px;border-radius:6px;z-index:5}
-        .promo-date-tag{position:absolute;top:12px;right:12px;background:rgba(10,22,40,0.7);color:#fff;font-size:9px;font-weight:700;padding:4px 8px;border-radius:5px;z-index:5}
+        .promo-badge-full{position:absolute;top:12px;left:12px;background:var(--r);color:#fff;font-size:13px;font-weight:800;padding:5px 10px;border-radius:6px;z-index:5}
+        .promo-date-tag{position:absolute;top:12px;right:12px;background:rgba(10,22,40,0.7);color:#fff;font-size:10px;font-weight:700;padding:4px 8px;border-radius:5px;z-index:5}
 
-        /* INFORMAÇÃO COMPACTA NA BASE */
-        .promo-info-full{position:absolute;bottom:0;left:0;right:0;padding:10px;background:rgba(255,255,255,0.96);text-align:center;border-top:1px solid #f5f5f5;z-index:5}
+        /* INFORMAÇÃO COMPACTA NA BASE - SOBREPOSTA À IMAGEM PARA MAXIMIZAR O ESPAÇO */
+        .promo-info-full{position:absolute;bottom:0;left:0;right:0;padding:12px;background:rgba(255,255,255,0.95);text-align:center;border-top:1px solid rgba(0,0,0,0.05);z-index:5}
         .promo-name-full{font-size:16px;font-weight:800;margin-bottom:2px;color:var(--n)}
         .promo-prices-full{display:flex;align-items:baseline;justify-content:center;gap:8px}
-        .pNovo-full{font-size:22px;font-weight:800;color:var(--r)}
-        .pOrig-full{font-size:14px;color:var(--mu);text-decoration:line-through}
+        .pNovo-full{font-size:24px;font-weight:800;color:var(--r)}
+        .pOrig-full{font-size:15px;color:var(--mu);text-decoration:line-through}
 
         /* INDICATORS */
-        .promo-indicators{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:10}
-        .dot{width:5px;height:5px;border-radius:3px;background:rgba(0,0,0,0.1);transition:0.3s}
-        .dot.active{width:18px;background:var(--g)}
+        .promo-indicators{position:absolute;bottom:15px;left:0;right:0;display:flex;justify-content:center;gap:8px;z-index:10}
+        .dot{width:6px;height:6px;border-radius:3px;background:rgba(0,0,0,0.1);transition:0.3s}
+        .dot.active{width:20px;background:var(--g)}
 
         /* PERFIL */
         .pfp-card{background:#f8f9fa;border-radius:20px;padding:20px;margin-bottom:15px;border:1px solid #eee}
@@ -87,7 +87,6 @@
 <body>
 
 <div id="eReg">
-    <!-- LOGO FIXO COMO NO ORIGINAL -->
     <img class="logo-login" src="logoDM.jpg" alt="Logo">
     <p style="color:var(--s);font-size:11px;font-weight:800;letter-spacing:4px;text-transform:uppercase;margin-bottom:10px">Acesso Cliente</p>
     <input class="rInp" id="rNome" type="text" placeholder="Nome Completo">
@@ -130,7 +129,7 @@
         </div>
     </div>
 
-    <!-- PROMOÇÕES (SWIPE) - ALTURA MÁXIMA SEM CORTES -->
+    <!-- PROMOÇÕES (SWIPE) - FORMATO 1:2 (5x10cm) -->
     <div class="ecra a" id="ecraPromos">
         <div class="promo-wrapper" id="promoWrapper">
             <div class="promo-container" id="listPromos"></div>
