@@ -85,18 +85,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 .sAvatar{width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.3);color:var(--g);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--n);color:#fff;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:.2s;pointer-events:none;white-space:nowrap}
 #toast.v{opacity:1;transform:translateX(-50%) translateY(0)}
-
-	/* ── STORAGE MANAGER ── */
-	.storage-item{display:flex;align-items:center;gap:12px;padding:12px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 6px rgba(0,0,0,.04)}
-	.storage-img{width:50px;height:50px;border-radius:8px;object-fit:cover;background:#eef2f7}
-	.storage-info{flex:1}
-	.storage-name{font-size:13px;font-weight:700;color:var(--n);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
-	.storage-size{font-size:11px;color:var(--mu);font-weight:600}
-	.storage-del{width:32px;height:32px;border-radius:8px;background:rgba(231,76,60,.1);color:var(--r);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
-	.storage-total{background:var(--n);color:#fff;padding:15px;border-radius:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
-	.storage-total-val{font-size:18px;font-weight:800;color:var(--g)}
-
-	</style>
+</style>
 </head>
 <body>
 
@@ -215,26 +204,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     </div>
   </div>
 
-
-	  <!-- GESTÃO DE MEMÓRIA -->
-	  <div class="ecra" id="ecraStorage">
-	    <div class="s">
-	      <div style="height:10px"></div>
-	      <div class="storage-total">
-	        <div>
-	          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.7">Espaço Ocupado</div>
-	          <div class="storage-total-val" id="storageTotal">0.00 MB</div>
-	        </div>
-	        <button class="vBtn" onclick="limparTudoIDB()" style="background:var(--r)">Limpar Tudo</button>
-	      </div>
-	      <div class="card">
-	        <div class="ct">Imagens no IndexedDB</div>
-	        <div id="listaStorage"></div>
-	      </div>
-	    </div>
-	  </div>
-
-	  <!-- CONFIG -->
+  <!-- CONFIG -->
   <div class="ecra" id="ecraConfig">
     <div class="s">
       <div style="height:10px"></div>
@@ -859,7 +829,7 @@ function addFolheto(e){
         var url = await sbImgUp('marinha', 'folhetos/'+id+'.jpg', compressed);
         
         // 4. Guardar metadados no Supabase (com fallback para base64 se o storage falhar)
-        var dataParaSupabase = url || (compressed.length < 100000 ? compressed : ""); 
+        var dataParaSupabase = url || (compressed.length < 200000 ? compressed : ""); 
         
         var okSb = await sbUp('folhetos', {id:id, nome:f.name, data:dataParaSupabase, adicionado:hoje()});
         
