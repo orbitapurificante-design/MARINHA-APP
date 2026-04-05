@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--n:#0f172a;--s:#1a4a8a;--g:#eab308;--gl:#e8c97a;--bg:#f8fafc;--mu:#7a8a9a;--gr:#27ae60;--r:#e74c3c;--cr:#f5f0e8}
+:root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--gr:#27ae60;--r:#e74c3c;--cr:#f5f0e8}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh}
 
 /* ── PIN ── */
@@ -52,12 +52,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 .avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .cRow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.06);cursor:pointer}
 .cPts{font-size:18px;font-weight:800;color:var(--n)}.cPtsL{font-size:10px;color:var(--mu);text-align:center}
-.fThumb{flex-shrink:0;width:100px;height:140px;border-radius:12px;overflow:hidden;cursor:pointer;background:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1);border:1px solid #e2e8f0;transition:transform 0.2s}.fThumb:hover{transform:translateY(-4px)}
+.fThumb{flex-shrink:0;width:80px;height:110px;border-radius:10px;overflow:hidden;cursor:pointer;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:24px}
 .fThumb img{width:100%;height:100%;object-fit:cover}
 .strip{display:flex;gap:10px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}.strip::-webkit-scrollbar{display:none}
 .pGrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pCard{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(10,22,40,.07);cursor:pointer}
-.pImg{width:100%;height:0;padding-bottom:100%;background:#eef2f7;position:relative;overflow:hidden}
+.pImg{width:100%;height:0;padding-bottom:200%;background:#eef2f7;position:relative;overflow:hidden}
 .pImg img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block}
 .pBdg{position:absolute;top:6px;left:6px;background:var(--r);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px}
 .pBody{padding:10px}.pNome{font-size:13px;font-weight:700;margin-bottom:3px}
@@ -155,7 +155,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
   <!-- FOLHETO/PROMOS -->
   <div class="ecra" id="ecraFolheto">
     <div class="s">
-      <div style="height:12px"></div>
+      <div style="height:10px"></div>
       <div class="card">
         <div class="ct">Promoções</div>
         <button class="bP" style="margin-bottom:12px" onclick="abrirNovaPromo()">+ Nova Promoção</button>
@@ -172,6 +172,94 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     </div>
   </div>
 
+  <!-- SCANNER -->
+  <div class="ecra" id="ecraScan">
+    <div class="s">
+      <div style="height:10px"></div>
+      <div class="scan-box">
+        <div style="color:rgba(255,255,255,.5);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Scanner QR</div>
+        <div class="cWrap" id="cWrap">
+          <video id="qrVid" autoplay muted playsinline></video>
+          <div style="color:rgba(255,255,255,.6);font-size:12px;text-align:center;padding:6px" id="sCamStatus"></div>
+        </div>
+        <div id="sPrincipal">
+          <button class="bP" style="margin-bottom:8px" onclick="iniciarCam()">📷 Abrir câmara</button>
+          <label class="bS" style="text-align:center;cursor:pointer;display:block">
+            🖼️ Ler QR de foto
+            <input type="file" accept="image/*" onchange="lerQRFoto(this)" style="display:none">
+          </label>
+        </div>
+        <input class="scan-inp" type="text" placeholder="🔍 Ou pesquisar cliente..." oninput="pesqScan(this.value)" id="iScan">
+        <div id="resScan"></div>
+        <div class="qrRes" id="qrRes">
+          <div style="color:#fff;font-size:16px;font-weight:700" id="qrResTit"></div>
+          <div style="color:rgba(255,255,255,.7);font-size:14px;margin:4px 0" id="qrResNome"></div>
+          <div style="color:var(--g);font-size:13px;margin-bottom:12px" id="qrResSub"></div>
+          <div class="row">
+            <button class="bP" id="qrBtnCompra">💳 Registar compra</button>
+            <button class="bS" onclick="fecharQR()">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="ecra" id="ecraConfig">
+    <div class="s">
+      <div style="height:10px"></div>
+      <div class="card">
+        <div class="ct">Manutenção</div>
+        <button class="bP" style="margin-bottom:8px" onclick="testarSincronizacao()">🔍 Verificar sincronização com app</button>
+        <button class="bS" style="margin-bottom:8px" onclick="corrigirFotos()">🔧 Corrigir fotos das promoções</button>
+        <div id="corrigirLog" style="font-size:12px;color:var(--mu);line-height:1.6;margin-top:8px"></div>
+      </div>
+      <div class="card">
+        <div class="ct">Configuração</div>
+        <label class="lbl">Nome da loja</label>
+        <input class="inp" id="cfgNome" type="text" placeholder="Nome da loja">
+        <label class="lbl">Pontos por € gasto</label>
+        <input class="inp" id="cfgPtsEuro" type="number" value="10">
+        <label class="lbl">Pontos para 1€ desconto</label>
+        <input class="inp" id="cfgPtsDesc" type="number" value="100">
+        <button class="bP" onclick="guardarCfg()">✅ Guardar</button>
+      </div>
+      <div class="card">
+        <div class="ct">Link App Cliente</div>
+        <div style="font-size:12px;word-break:break-all;color:var(--s);margin-bottom:10px" id="cfgLink"></div>
+        <div class="row">
+          <button class="bS" onclick="copiarLink()">📋 Copiar link</button>
+          <button class="bS" onclick="imprimirQR()">🖨️ Imprimir QR</button>
+        </div>
+        <div style="margin-top:12px;text-align:center">
+          <svg id="qrCfg" width="150" height="150" viewBox="0 0 150 150"></svg>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Dados</div>
+        <button class="bS" onclick="exportar()">📤 Exportar backup</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="nBtn a" id="nDash" onclick="irTab('Dash')">
+      <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio
+    </button>
+    <button class="nBtn" id="nClientes" onclick="irTab('Clientes')">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes
+    </button>
+    <button class="nBtn" id="nFolheto" onclick="irTab('Folheto')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Promos
+    </button>
+    <button class="nBtn" id="nScan" onclick="irTab('Scan')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7"/></svg>Scanner
+    </button>
+    <button class="nBtn" id="nConfig" onclick="irTab('Config')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config
+    </button>
+  </nav>
+</div>
 
 <!-- MODAL CLIENTE -->
 <div class="modal" id="mCli">
@@ -210,7 +298,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     <label class="lbl">Emoji (opcional)</label>
     <input class="inp" id="mPromoEmoji" type="text" placeholder="🦞">
     <label class="lbl">Foto (opcional)</label>
-    <div id="mPromoFotoPrev" style="width:80px;height:140px;border-radius:12px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:8px;overflow:hidden;position:relative;flex-shrink:0">
+    <div id="mPromoFotoPrev" style="width:80px;height:80px;border-radius:12px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:8px;overflow:hidden;position:relative;flex-shrink:0">
       <span id="mPromoFotoEmoji">🛒</span>
       <img id="mPromoFotoImg" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:12px">
     </div>
@@ -245,6 +333,52 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     </div>
   </div>
 </div>
+
+<!-- MODAL COMPRA -->
+<div class="modal" id="mCompra">
+  <div class="mBox">
+    <div class="mTit">Registar Compra</div>
+    <label class="lbl">Cliente</label>
+    <select class="inp" id="mCompraCli" onchange="updCompra()">
+      <option value="">Selecionar...</option>
+    </select>
+    <div id="mCompraDesc" style="margin-bottom:10px"></div>
+    <label class="lbl">Valor da compra (€)</label>
+    <input class="inp" id="mCompraVal" type="number" step="0.01" placeholder="0.00" oninput="calcCompra()">
+    <div id="mCompraPrev" style="display:none;background:#eef2f7;border-radius:10px;padding:10px;margin-bottom:10px;font-size:14px;color:var(--s);font-weight:700"></div>
+    <button class="bP" style="margin-bottom:8px" onclick="confirmarCompra()">✅ Confirmar compra</button>
+    <button class="bS" onclick="fecharModal('mCompra')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL RECIBO -->
+<div class="modal" id="mRecibo">
+  <div class="mBox" style="text-align:center">
+    <div style="font-size:40px;margin-bottom:8px">✅</div>
+    <div style="font-size:20px;font-weight:800;margin-bottom:4px" id="rNome"></div>
+    <div style="font-size:14px;color:var(--gr);font-weight:700;margin-bottom:2px" id="rPts"></div>
+    <div style="font-size:13px;color:var(--mu);margin-bottom:4px" id="rTotal"></div>
+    <div style="font-size:13px;color:var(--gr);margin-bottom:16px" id="rDesc"></div>
+    <div style="background:var(--n);border-radius:14px;padding:14px;display:inline-block;margin-bottom:14px">
+      <svg id="rQR" width="150" height="150" viewBox="0 0 150 150"></svg>
+    </div>
+    <button class="bP" onclick="fecharModal('mRecibo')">Fechar</button>
+  </div>
+</div>
+
+<!-- VIEWER FOLHETO -->
+<div class="viewer" id="viewer">
+  <div class="vTop">
+    <button class="vBtn" onclick="fecharViewer()">← Fechar</button>
+    <span style="color:rgba(255,255,255,.6);font-size:13px" id="vCount"></span>
+    <div style="flex:1"></div>
+    <button class="vBtn" onclick="navV(-1)">‹</button>
+    <button class="vBtn" onclick="navV(1)">›</button>
+  </div>
+  <div class="vTrack" id="vTrack"></div>
+</div>
+
+<div id="toast"></div>
 
 <script>
 // ══════════════════════════════════════════
@@ -331,25 +465,17 @@ async function sincronizar(){
   if(Array.isArray(r[1]))DB.promos=r[1];
   if(Array.isArray(r[2])){
     DB.folhetos=r[2];
-    // Garantir que as imagens locais (IDB) sejam carregadas se o Supabase não tiver o base64
-    for(let i=0; i<DB.folhetos.length; i++){
-      let f = DB.folhetos[i];
-      if(!f.data || f.data.length < 100){ 
-        try {
-          let localData = await idbGet('F_'+f.id);
-          if(localData) {
-            DB.folhetos[i].data = localData;
-            console.log('Folheto ' + f.id + ' carregado do IDB local');
-            renderFolheto(); // Atualizar a cada imagem carregada para melhor UX
-          }
-        } catch(e) { console.error('Erro ao ler IDB para folheto', f.id); }
+    // Se não tem URL do Storage, tentar IDB local como cache
+    DB.folhetos.forEach(function(f,i){
+      if(!f.data || f.data===''){ 
+        idbGet('F_'+f.id).then(function(d){
+          if(d)DB.folhetos[i].data=d;
+          renderFolheto();
+        }).catch(function(){});
       }
-    }
-    renderFolheto();
+    });
   }
   if(r[3]&&r[3][0]){var c=r[3][0];DB.cfg.nomeLoja=c.nome_loja||'';DB.cfg.ptsEuro=c.pts_euro||10;DB.cfg.ptsDesc=c.pts_desc||100;}
-  // Re-render se estiver no tab folheto
-  if(_tab==='Folheto'){ renderPromos(); renderFolheto(); }
 }
 
 // ══════════════════════════════════════════
@@ -367,7 +493,7 @@ function promosAtivas(){var h=hoje();return DB.promos.filter(function(p){return(
 // ══════════════════════════════════════════
 //  PIN
 // ══════════════════════════════════════════
-var _pin='', _pinOk=localStorage.getItem('MPIN')||'0000';
+var _pin='', _pinOk=localStorage.getItem('MPIN')||'1234';
 function pd(d){
   if(!d)return;
   if(_pin.length>=4)return;
@@ -578,7 +704,7 @@ function prevFoto(e){
   var f=e.target.files[0];if(!f)return;
   var r=new FileReader();
   r.onload=function(ev){
-    comprimirImg(ev.target.result, 400, 0.6, function(compressed){
+    comprimirImg(ev.target.result, 400, 800, 0.7, function(compressed){
       _fotoPromo = compressed;
       var img = document.getElementById('mPromoFotoImg');
       var emoji = document.getElementById('mPromoFotoEmoji');
@@ -598,18 +724,7 @@ async function guardarPromo(){
   var pid=id||uid();
   var fotoUrl='';
   if(_fotoPromo&&_fotoPromo.startsWith('data:')){
-    toast('⏳ A enviar foto...');
-    var fPath='promos/'+pid+'_'+Date.now()+'.jpg';
-    var storageUrl=await sbImgUp('marinha',fPath,_fotoPromo);
-    if(storageUrl){
-      fotoUrl=storageUrl;
-      console.log('Promo foto: guardada no Storage');
-    } else {
-      // Fallback: guardar base64 directamente no campo foto da tabela
-      fotoUrl=_fotoPromo;
-      console.log('Promo foto: Storage falhou → base64 directo ('+Math.round(_fotoPromo.length/1024)+'KB)');
-      toast('📷 Foto guardada directamente (bucket Storage não configurado)',3000);
-    }
+    fotoUrl=_fotoPromo;
   } else if(id){
     var ep=DB.promos.find(function(x){return x.id===id;});
     fotoUrl=ep?ep.foto||'':'';
@@ -633,13 +748,6 @@ async function guardarPromo(){
   fecharModal('mPromo');
   renderPromos();
   toast(ok?'✅ Guardado':'⚠️ Erro');
-}
-async function apagarFolheto(id){
-  if(!confirm('Apagar esta página do folheto?'))return;
-  await sbDel('folhetos',id);
-  DB.folhetos=DB.folhetos.filter(function(x){return x.id!==id;});
-  renderFolheto();
-  toast('🗑️ Página removida');
 }
 async function apagarPromo(){
   var id=document.getElementById('mPromoId').value;
@@ -685,24 +793,14 @@ function addFolheto(e){
         var id=uid();
         var obj={id:id,nome:f.name,data:compressed,adicionado:hoje()};
         DB.folhetos.push(obj);
-        // 1. Guardar no IDB local IMEDIATAMENTE (Garante persistência local)
-        await idbSet('F_'+id, compressed);
-        
-        // 2. Atualizar a UI local imediatamente para feedback instantâneo
-        renderFolheto();
-        
-        // 3. Tentar guardar no Supabase Storage (Opcional)
-        var url = await sbImgUp('marinha', 'folhetos/' + id + '.jpg', compressed);
-        
-        // 4. Guardar metadados no Supabase (com fallback para base64 se o storage falhar)
-        var dataParaSupabase = url || (compressed.length < 100000 ? compressed : ""); 
-        
-        var okSb = await sbUp('folhetos', {id:id, nome:f.name, data:dataParaSupabase, adicionado:hoje()});
-        
+        await idbSet('F_'+id,compressed);
+        // Guardar base64 directamente no Supabase (sem Storage)
+        var okSb=await sbUp('folhetos',{id:id,nome:f.name,data:compressed,adicionado:hoje()});
+        DB.folhetos[DB.folhetos.length-1].data=compressed;
         n++;
-        if(n === total){
-          toast('✅ ' + n + ' página(s) guardada(s)');
+        if(n===total){
           renderFolheto();
+          toast(okSb?'✅ '+n+' página(s) adicionada(s)':'⚠️ Erro ao guardar. Verifica RLS da tabela folhetos.',okSb?2500:6000);
         }
       });
     };
@@ -713,10 +811,7 @@ function addFolheto(e){
 function renderFolheto(){
   var el=document.getElementById('stripFol');
   el.innerHTML=DB.folhetos.map(function(f,i){
-    return '<div class="fThumb" style="position:relative">'+
-      '<div onclick="abrirViewer('+i+')" style="width:100%;height:100%">'+(f.data?'<img src="'+f.data+'" alt="">':'🖼️')+'</div>'+
-      '<button onclick="apagarFolheto(\''+f.id+'\')" style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(231,76,60,.9);color:#fff;border:none;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10">×</button>'+
-    '</div>';
+    return '<div class="fThumb" onclick="abrirViewer('+i+')">'+(f.data?'<img src="'+f.data+'" alt="">':'🖼️')+'</div>';
   }).join('');
 }
 
@@ -725,23 +820,12 @@ function renderFolheto(){
 // ══════════════════════════════════════════
 var _vIdx=0,_vImgs=[],_vTx=0;
 function abrirViewer(i){
-  // Filtrar apenas folhetos que têm dados de imagem
-  _vImgs=DB.folhetos.filter(function(f){return f.data && f.data.length > 100;});
-  if(!_vImgs.length){toast('⚠️ Nenhuma imagem carregada');return;}
-  
-  // Encontrar o índice correto na lista filtrada
-  var targetId = DB.folhetos[i] ? DB.folhetos[i].id : null;
-  if(targetId) {
-    var newIdx = _vImgs.findIndex(function(img){ return img.id === targetId; });
-    if(newIdx !== -1) i = newIdx;
-  }
-
+  _vImgs=DB.folhetos.filter(function(f){return f.data;});
+  if(!_vImgs.length){toast('Imagens a carregar...');return;}
   _vIdx=Math.max(0,Math.min(i,_vImgs.length-1));
   var tr=document.getElementById('vTrack');
   tr.style.width=(_vImgs.length*100)+'vw';
-  tr.innerHTML=_vImgs.map(function(f){
-    return '<div class="vSlide"><img src="'+f.data+'" style="max-width:100%;max-height:100%;object-fit:contain"></div>';
-  }).join('');
+  tr.innerHTML=_vImgs.map(function(f){return'<div class="vSlide"><img src="'+f.data+'" alt=""></div>';}).join('');
   updViewer();
   document.getElementById('viewer').classList.add('a');
   tr.addEventListener('touchstart',function(e){_vTx=e.touches[0].clientX;},{passive:true});
@@ -912,33 +996,21 @@ async function testarSincronizacao(){
 // ══════════════════════════════════════════
 //  COMPRIMIR IMAGEM
 // ══════════════════════════════════════════
-function comprimirImg(base64, maxW, qualidade, cb){
-  var img = new Image();
-  img.onload = function(){
-    var w = img.width, h = img.height;
-    var ratio = w / h;
-    
-    // Calcula as novas dimensões mantendo a proporção original
-    var newW = maxW;
-    var newH = Math.round(maxW / ratio);
-    
-    // Se a imagem for muito alta, limitamos a altura e ajustamos a largura
-    if (newH > 800) { // Limite de segurança para não criar ficheiros gigantes
-        newH = 800;
-        newW = Math.round(800 * ratio);
-    }
-
-    var cv = document.createElement('canvas');
-    cv.width = newW; 
-    cv.height = newH;
-    
-    // Desenha a imagem INTEIRA no canvas, sem cortes (sx, sy, size, size removidos)
-    var ctx = cv.getContext('2d');
-    ctx.drawImage(img, 0, 0, w, h, 0, 0, newW, newH);
-    
-    cb(cv.toDataURL('image/jpeg', qualidade));
+function comprimirImg(base64, maxW, maxH, qualidade, cb){
+  // maxW=400, maxH=800, mantém proporção, sem corte
+  var img=new Image();
+  img.onload=function(){
+    var w=img.width, h=img.height;
+    var ratio=w/h;
+    var newW=maxW;
+    var newH=Math.round(newW/ratio);
+    if(newH>maxH){ newH=maxH; newW=Math.round(newH*ratio); }
+    var cv=document.createElement('canvas');
+    cv.width=newW; cv.height=newH;
+    cv.getContext('2d').drawImage(img,0,0,newW,newH);
+    cb(cv.toDataURL('image/jpeg',qualidade));
   };
-  img.src = base64;
+  img.src=base64;
 }
 // ══════════════════════════════════════════
 //  CORRIGIR FOTOS
@@ -965,7 +1037,7 @@ async function corrigirFotos(){
       });
       // Cortar em quadrado e redimensionar
       var quadrado=await new Promise(function(res){
-        comprimirImg(b64,400,0.8,res);
+        comprimirImg(b64,400,800,0.8,res);
       });
       // Upload novo para Storage com novo path
       var novoPath='promos/'+p.id+'_'+Date.now()+'.jpg';
