@@ -454,9 +454,6 @@ async function sbDel(t, id) {
 }
 
 // ── STORAGE UPLOAD ──
-// Faz upload de um Blob/File para o Supabase Storage
-// path: ex. "folhetos/abc123.jpg" ou "promos/xyz.jpg"
-// Retorna a URL pública ou null em caso de erro
 async function sbStorageUp(path, blob, mime) {
   try {
     var url = SB + '/storage/v1/object/' + BUCKET + '/' + path;
@@ -476,7 +473,6 @@ async function sbStorageUp(path, blob, mime) {
       toast('⚠️ Storage erro (' + r.status + '): ' + txt.slice(0, 80), 5000);
       return null;
     }
-    // URL pública
     return SB + '/storage/v1/object/public/' + BUCKET + '/' + path;
   } catch(e) {
     console.error('Storage upload exception', e);
@@ -484,7 +480,6 @@ async function sbStorageUp(path, blob, mime) {
   }
 }
 
-// Apaga ficheiro do Storage
 async function sbStorageDel(path) {
   try {
     var r = await fetch(SB + '/storage/v1/object/' + BUCKET + '/' + path, {
@@ -493,56 +488,6 @@ async function sbStorageDel(path) {
     });
     return r.ok;
   } catch(e) { return false; }
-}
-
-// Converte base64 dataURL para Blob
-function dataURLtoBlob(dataURL) {
-  var arr = dataURL.split(',');
-  var mime = arr[0].match(/:(.*?);/)[1];
-  var bstr = atob(arr[1]);
-  var n = bstr.length;
-  var u8arr = new Uint8Array(n);
-  while (n--) u8arr[n] = bstr.charCodeAt(n);
-  return new Blob([u8arr], { type: mime });
-}
-
-// ══════════════════════════════════════════
-//  IndexedDB (cache local)
-// ══════════════════════════════════════════
-var _idb = null;
-function idbOpen() {
-  if (_idb) return Promise.resolve(_idb);
-  return new Promise(function(res, rej) {
-    var req = indexedDB.open('marinhaDB', 2);
-    req.onupgradeneeded = function(e) {
-      var db = e.target.result;
-      if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
-    };
-    req.onsuccess = function(e) { _idb = e.target.result; res(_idb); };
-    req.onerror = function() { rej(req.error); };
-  });
-}
-async function idbSet(k, v) {
-  try {
-    var db = await idbOpen();
-    return new Promise(function(res) {
-      var tx = db.transaction('kv', 'readwrite');
-      tx.objectStore('kv').put(v, k);
-      tx.oncomplete = function() { res(true); };
-      tx.onerror = function() { res(false); };
-    });
-  } catch(e) { return false; }
-}
-async function idbGet(k) {
-  try {
-    var db = await idbOpen();
-    return new Promise(function(res) {
-      var tx = db.transaction('kv', 'readonly');
-      var req = tx.objectStore('kv').get(k);
-      req.onsuccess = function() { res(req.result); };
-      req.onerror = function() { res(null); };
-    });
-  } catch(e) { return null; }
 }
 
 // ══════════════════════════════════════════
@@ -558,7 +503,6 @@ async function sincronizar() {
     ]);
     DB.clientes = clis || [];
     DB.promos = pros || [];
-    // folhetos: guardar apenas id, nome, url (sem base64 em memória)
     DB.folhetos = (fols || []).map(function(f) {
       return { id: f.id, nome: f.nome, url: f.url || f.data || '', adicionado: f.adicionado || '' };
     });
@@ -777,51 +721,55 @@ async function apagarCli() {
 }
 
 // ══════════════════════════════════════════
-//  PROMOÇÕES — upload para Storage (pasta promos/)
+//  COMPRESSÃO DE IMAGEM (UNIFICADA)
 // ══════════════════════════════════════════
-var _fotoPromoBlob = null; // Blob da foto selecionada
-var _fotoPromoDataURL = ''; // preview local
-
-function prevFotoPromo(e) {
-  var f = e.target.files[0]; if (!f) return;
-  // Ler ficheiro original sem redimensionar para preview
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    _fotoPromoDataURL = ev.target.result;
-    // Mostrar preview sem cortes (object-fit: contain)
-    var img = document.getElementById('mPromoFotoImg');
-    var emoji = document.getElementById('mPromoFotoEmoji');
-    img.src = _fotoPromoDataURL;
-    img.style.display = 'block';
-    emoji.style.display = 'none';
-    // Preparar blob para upload (comprimir mantendo proporção, sem cortes)
-    prepararBlobPromo(ev.target.result, f.type, function(blob) {
-      _fotoPromoBlob = blob;
-      var kb = Math.round(blob.size / 1024);
-      toast('✅ Foto pronta: ' + kb + 'KB');
-    });
-  };
-  reader.readAsDataURL(f);
-  try { e.target.value = ''; } catch(x) {}
+function comprimirParaBlob(file, maxDim, qualidade) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var img = new Image();
+      img.onload = function() {
+        var w = img.width, h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+          else { w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        var cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        cv.toBlob(function(blob) { resolve(blob); }, 'image/jpeg', qualidade);
+      };
+      img.onerror = reject;
+      img.src = ev.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
-// Comprime imagem mantendo proporção original (sem cortes)
-function prepararBlobPromo(dataURL, origMime, cb) {
-  var img = new Image();
-  img.onload = function() {
-    var w = img.width, h = img.height;
-    // Redimensionar se muito grande, mantendo proporção
-    var maxDim = 1200;
-    if (w > maxDim || h > maxDim) {
-      if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
-      else { w = Math.round(w * maxDim / h); h = maxDim; }
-    }
-    var cv = document.createElement('canvas');
-    cv.width = w; cv.height = h;
-    cv.getContext('2d').drawImage(img, 0, 0, w, h);
-    cv.toBlob(function(blob) { cb(blob); }, 'image/jpeg', 0.85);
-  };
-  img.src = dataURL;
+// ══════════════════════════════════════════
+//  PROMOÇÕES — upload para pasta 'promos'
+// ══════════════════════════════════════════
+var _fotoPromoBlob = null;
+
+async function prevFotoPromo(e) {
+  var f = e.target.files[0]; if (!f) return;
+  toast('⏳ A processar foto...');
+  try {
+    var blob = await comprimirParaBlob(f, 1200, 0.85);
+    _fotoPromoBlob = blob;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var img = document.getElementById('mPromoFotoImg');
+      var emoji = document.getElementById('mPromoFotoEmoji');
+      img.src = ev.target.result;
+      img.style.display = 'block';
+      emoji.style.display = 'none';
+      toast('✅ Foto pronta');
+    };
+    reader.readAsDataURL(blob);
+  } catch(err) { toast('⚠️ Erro ao processar foto'); }
+  try { e.target.value = ''; } catch(x) {}
 }
 
 function renderPromos() {
@@ -843,7 +791,6 @@ function renderPromos() {
 
 function abrirNovaPromo() {
   _fotoPromoBlob = null;
-  _fotoPromoDataURL = '';
   document.getElementById('mPromoId').value = '';
   document.getElementById('mPromoTit').textContent = 'Nova Promoção';
   ['mPromoNome', 'mPromoEmoji', 'mPromoOrig', 'mPromoNovo', 'mPromoIni', 'mPromoFim'].forEach(function(i) { document.getElementById(i).value = ''; });
@@ -857,7 +804,6 @@ function abrirNovaPromo() {
 function editarPromo(id) {
   var p = DB.promos.find(function(x) { return x.id === id; }); if (!p) return;
   _fotoPromoBlob = null;
-  _fotoPromoDataURL = '';
   document.getElementById('mPromoId').value = p.id;
   document.getElementById('mPromoTit').textContent = 'Editar Promoção';
   document.getElementById('mPromoNome').value = p.nome || '';
@@ -887,22 +833,19 @@ async function guardarPromo() {
   var pid = id || uid();
   var fotoUrl = '';
 
-  // Se há nova foto para fazer upload
   if (_fotoPromoBlob) {
     toast('⏳ A enviar foto...');
     document.getElementById('upBarPromo').style.display = 'block';
-    document.getElementById('upBarPromoFill').style.width = '40%';
+    document.getElementById('upBarPromoFill').style.width = '50%';
     var path = 'promos/' + pid + '_' + Date.now() + '.jpg';
     fotoUrl = await sbStorageUp(path, _fotoPromoBlob, 'image/jpeg');
     document.getElementById('upBarPromoFill').style.width = '100%';
     if (!fotoUrl) {
       document.getElementById('upBarPromo').style.display = 'none';
-      toast('⚠️ Erro ao enviar foto para Storage', 4000);
-      return;
+      toast('⚠️ Erro no upload'); return;
     }
     setTimeout(function() { document.getElementById('upBarPromo').style.display = 'none'; }, 600);
   } else if (id) {
-    // Manter foto existente
     var ep = DB.promos.find(function(x) { return x.id === id; });
     fotoUrl = ep ? (ep.foto || '') : '';
   }
@@ -922,7 +865,7 @@ async function guardarPromo() {
   var ok = await sbUp('promos', d);
   fecharModal('mPromo');
   renderPromos();
-  toast(ok ? '✅ Guardado' : '⚠️ Erro ao guardar');
+  toast(ok ? '✅ Guardado' : '⚠️ Erro');
 }
 
 async function apagarPromo() {
@@ -934,7 +877,7 @@ async function apagarPromo() {
 }
 
 // ══════════════════════════════════════════
-//  FOLHETO — upload para Storage (pasta folhetos/)
+//  FOLHETO — upload para pasta 'promos' (conforme pedido)
 // ══════════════════════════════════════════
 async function addFolheto(e) {
   var files = Array.prototype.slice.call(e.target.files);
@@ -948,150 +891,86 @@ async function addFolheto(e) {
 
   var total = files.length;
   var done = 0;
-  var erros = 0;
 
   for (var i = 0; i < files.length; i++) {
     var f = files[i];
     status.textContent = 'A enviar ' + (i + 1) + ' de ' + total + '...';
-    fill.style.width = Math.round((i / total) * 80) + '%';
+    fill.style.width = Math.round((i / total) * 100) + '%';
 
     try {
-      // Comprimir mantendo proporção original (sem cortes, sem forçar quadrado)
       var blob = await comprimirParaBlob(f, 1800, 0.85);
       var id = uid();
-      var ext = f.name.split('.').pop().toLowerCase() || 'jpg';
-      var path = 'folhetos/' + id + '.' + ext;
-
-      // Upload para Supabase Storage na pasta folhetos
+      var path = 'promos/folheto_' + id + '.jpg'; // Usando pasta promos conforme pedido
       var url = await sbStorageUp(path, blob, 'image/jpeg');
       if (url) {
         var obj = { id: id, nome: f.name, url: url, adicionado: hoje() };
         DB.folhetos.push(obj);
-        // Guardar referência na tabela folhetos (apenas url, sem base64)
         await sbUp('folhetos', { id: id, nome: f.name, url: url, adicionado: hoje() });
         done++;
-      } else {
-        erros++;
       }
-    } catch(err) {
-      console.error('Erro folheto', err);
-      erros++;
-    }
+    } catch(err) { console.error(err); }
   }
 
   fill.style.width = '100%';
-  setTimeout(function() { bar.style.display = 'none'; fill.style.width = '0%'; }, 800);
-
+  setTimeout(function() { bar.style.display = 'none'; }, 800);
   renderFolheto();
-  if (erros === 0) {
-    status.textContent = '✅ ' + done + ' página(s) adicionada(s)';
-    toast('✅ ' + done + ' página(s) adicionada(s) ao folheto');
-  } else {
-    status.textContent = '⚠️ ' + done + ' ok, ' + erros + ' com erro';
-    toast('⚠️ ' + erros + ' erro(s) no upload. Verifica RLS do Storage.', 5000);
-  }
+  toast('✅ ' + done + ' página(s) adicionada(s)');
   try { e.target.value = ''; } catch(x) {}
-}
-
-// Comprime ficheiro File para Blob, mantendo proporção (sem cortes)
-function comprimirParaBlob(file, maxDim, qualidade) {
-  return new Promise(function(resolve, reject) {
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      var img = new Image();
-      img.onload = function() {
-        var w = img.width, h = img.height;
-        // Redimensionar apenas se necessário, mantendo proporção
-        if (w > maxDim || h > maxDim) {
-          if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
-          else { w = Math.round(w * maxDim / h); h = maxDim; }
-        }
-        var cv = document.createElement('canvas');
-        cv.width = w; cv.height = h;
-        cv.getContext('2d').drawImage(img, 0, 0, w, h);
-        cv.toBlob(function(blob) { resolve(blob); }, 'image/jpeg', qualidade);
-      };
-      img.onerror = reject;
-      img.src = ev.target.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }
 
 function renderFolheto() {
   var el = document.getElementById('stripFol');
-  if (!DB.folhetos.length) {
-    el.innerHTML = '<div style="color:var(--mu);font-size:13px;padding:8px 0">Sem páginas no folheto</div>';
-    return;
-  }
+  if (!DB.folhetos.length) { el.innerHTML = '<div style="color:var(--mu);font-size:13px;padding:8px 0">Sem páginas</div>'; return; }
   el.innerHTML = DB.folhetos.map(function(f, i) {
     var src = f.url || f.data || '';
     return '<div class="fThumb" onclick="abrirViewer(' + i + ')">' +
-      (src ? '<img src="' + src + '" alt="Pág ' + (i + 1) + '" loading="lazy">' : '🖼️') +
+      (src ? '<img src="' + src + '" alt="" loading="lazy">' : '🖼️') +
       '<div class="fDel" onclick="event.stopPropagation();apagarFolheto(\'' + f.id + '\')">×</div>' +
       '</div>';
   }).join('');
 }
 
 async function apagarFolheto(id) {
-  if (!confirm('Remover esta página do folheto?')) return;
+  if (!confirm('Remover página?')) return;
   var f = DB.folhetos.find(function(x) { return x.id === id; });
   if (f && f.url && f.url.includes('/storage/')) {
-    // Extrair path do URL e apagar do Storage
     var match = f.url.match(/\/object\/public\/[^/]+\/(.+)$/);
     if (match) await sbStorageDel(match[1]);
   }
   await sbDel('folhetos', id);
   DB.folhetos = DB.folhetos.filter(function(x) { return x.id !== id; });
   renderFolheto();
-  toast('🗑️ Página removida');
+  toast('🗑️ Removida');
 }
 
 // ══════════════════════════════════════════
-//  VIEWER FULLSCREEN (uma imagem por ecrã)
+//  VIEWER FULLSCREEN
 // ══════════════════════════════════════════
-var _vIdx = 0, _vImgs = [], _vTx = 0, _vTy = 0;
+var _vIdx = 0, _vImgs = [], _vTx = 0;
 
 function abrirViewer(i) {
   _vImgs = DB.folhetos.filter(function(f) { return f.url || f.data; });
-  if (!_vImgs.length) { toast('Sem imagens para mostrar'); return; }
+  if (!_vImgs.length) return;
   _vIdx = Math.max(0, Math.min(i, _vImgs.length - 1));
-
   var tr = document.getElementById('vTrack');
-  // Cada slide ocupa 100vw × 100vh, imagem com object-fit:contain (sem cortes)
   tr.style.width = (_vImgs.length * 100) + 'vw';
   tr.innerHTML = _vImgs.map(function(f) {
-    var src = f.url || f.data || '';
-    return '<div class="vSlide"><img src="' + src + '" alt="" loading="lazy"></div>';
+    return '<div class="vSlide"><img src="' + (f.url || f.data) + '" alt=""></div>';
   }).join('');
-
   updViewer();
   document.getElementById('viewer').classList.add('a');
-
-  // Swipe touch
-  tr.ontouchstart = function(e) { _vTx = e.touches[0].clientX; _vTy = e.touches[0].clientY; };
+  tr.ontouchstart = function(e) { _vTx = e.touches[0].clientX; };
   tr.ontouchend = function(e) {
     var dx = e.changedTouches[0].clientX - _vTx;
-    var dy = e.changedTouches[0].clientY - _vTy;
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) navV(dx < 0 ? 1 : -1);
+    if (Math.abs(dx) > 40) navV(dx < 0 ? 1 : -1);
   };
 }
-
 function updViewer() {
   document.getElementById('vTrack').style.transform = 'translateX(-' + (_vIdx * 100) + 'vw)';
   document.getElementById('vCount').textContent = (_vIdx + 1) + ' / ' + _vImgs.length;
 }
 function navV(d) { _vIdx = Math.max(0, Math.min(_vImgs.length - 1, _vIdx + d)); updViewer(); }
 function fecharViewer() { document.getElementById('viewer').classList.remove('a'); }
-
-// Teclado para viewer
-document.addEventListener('keydown', function(e) {
-  if (!document.getElementById('viewer').classList.contains('a')) return;
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navV(1);
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') navV(-1);
-  if (e.key === 'Escape') fecharViewer();
-});
 
 // ══════════════════════════════════════════
 //  SCANNER
@@ -1295,23 +1174,15 @@ async function testarSincronizacao() {
   msgs.push('✅ Supabase acessível');
   msgs.push('📢 Promoções: ' + promos.length + ' registos');
   promos.forEach(function(p) {
-    if (p.foto && p.foto.startsWith('http') && p.foto.includes('supabase')) {
-      msgs.push('  🌐 "' + p.nome + '" → Storage URL ✅');
-    } else if (p.foto && p.foto.startsWith('data:')) {
-      msgs.push('  ⚠️ "' + p.nome + '" → base64 (antigo, ' + Math.round(p.foto.length / 1024) + 'KB)');
-    } else {
-      msgs.push('  ℹ️ "' + p.nome + '" → sem foto');
-    }
+    if (p.foto && p.foto.startsWith('http')) msgs.push('  🌐 "' + p.nome + '" → Storage URL ✅');
+    else if (p.foto && p.foto.startsWith('data:')) msgs.push('  ⚠️ "' + p.nome + '" → base64 antigo');
+    else msgs.push('  ℹ️ "' + p.nome + '" → sem foto');
   });
   msgs.push('📄 Folhetos: ' + folhetos.length + ' registos');
   folhetos.forEach(function(f) {
-    if (f.url && f.url.startsWith('http')) {
-      msgs.push('  ✅ "' + f.nome + '" → Storage URL');
-    } else if (f.data && f.data.startsWith('data:')) {
-      msgs.push('  ⚠️ "' + f.nome + '" → base64 antigo (' + Math.round(f.data.length / 1024) + 'KB) – migrar');
-    } else {
-      msgs.push('  ❌ "' + f.nome + '" → sem dados');
-    }
+    if (f.url && f.url.startsWith('http')) msgs.push('  ✅ "' + f.nome + '" → Storage URL');
+    else if (f.data && f.data.startsWith('data:')) msgs.push('  ⚠️ "' + f.nome + '" → base64 antigo');
+    else msgs.push('  ❌ "' + f.nome + '" → sem dados');
   });
   log.innerHTML = msgs.join('<br>');
   toast('✅ Diagnóstico concluído');
