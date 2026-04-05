@@ -3,335 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-    <title>DM – Fidelização</title>
-    <link rel="manifest" href="manifest.json?v=7">
+    <title>MARINHA – Fidelização</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-        :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#ffffff;--mu:#7a8a9a;--r:#e74c3c;--gr:#27ae60}
-        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);height:100vh;overflow:hidden;position:fixed;width:100%}
-
-        /* LOGO - ORIGINAL */
-        .logo-login{width:200px;height:auto;display:block;margin-bottom:20px}
-        .cabLogo{height:32px;display:block}
+        :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--r:#e74c3c;--gr:#27ae60}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh}
 
         /* LOGIN */
-        #eReg{position:fixed;inset:0;z-index:9999;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;gap:12px}
-        .rInp{width:100%;max-width:300px;padding:14px;background:#f4f7fa;border:1.5px solid #e1e8ed;border-radius:12px;color:var(--n);text-align:center;font-size:16px;outline:none;font-family:'DM Sans',sans-serif}
-        .rBtn{width:100%;max-width:300px;padding:14px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:12px;font-weight:800;cursor:pointer;font-size:16px;font-family:'DM Sans',sans-serif}
+        #eReg{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,var(--n),var(--s));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:16px}
+        .rInp{width:100%;max-width:300px;padding:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:14px;color:#fff;text-align:center;font-size:16px;outline:none}
+        .rBtn{width:100%;max-width:300px;padding:16px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;cursor:pointer}
 
         /* APP STRUCTURE */
-        #eApp{display:none;flex-direction:column;height:100vh;overflow:hidden}
-        #eApp.v{display:flex}
-        .cab{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;background:#fff;display:flex;align-items:center;padding:0 16px;box-shadow:0 1px 5px rgba(0,0,0,0.05);justify-content:space-between}
-        .cabT{color:var(--n);font-size:16px;font-weight:800}
-
-        /* NAV */
-        .nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#fff;border-top:1px solid rgba(0,0,0,.07);display:flex;height:65px}
-        .nBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;font-size:10px;font-weight:700;color:var(--mu);font-family:'DM Sans',sans-serif}
-        .nBtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2}
-        .nBtn.a{color:var(--n)}
-        .nBtn.a svg{stroke:var(--g)}
-
-        /* ECRAS */
-        .ecra{display:none;height:100%;padding-top:60px;padding-bottom:65px;overflow:hidden}.ecra.a{display:block}
-        .s{padding:16px;height:100%;overflow-y:auto}
-
-        /* PROMOS CAROUSEL - DESIGN FLEXÍVEL (ADAPTA-SE À ALTURA DA FOTO) */
-        #ecraPromos{background:#fff}
-        .promo-wrapper{height:100%;width:100%;position:relative;overflow:hidden}
-        .promo-container{display:flex;height:100%;transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);will-change:transform}
-        .promo-page{min-width:100%;height:100%;display:flex;flex-direction:column;padding:10px;justify-content:center;align-items:center}
+        #eApp{display:none}
+        .cab{height:60px;background:var(--n);display:flex;align-items:center;padding:0 20px;color:#fff;font-weight:700;position:sticky;top:0;z-index:100}
+        .ecra{padding:20px;display:none;padding-bottom:100px}
+        .ecra.a{display:block}
         
-        /* O CARTÃO AGORA NÃO TEM ASPECT-RATIO FIXO, USA A ALTURA DA IMAGEM */
-        .promo-card-full{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.06);display:flex;flex-direction:column;width:100%;max-width:320px;max-height: 95%;margin: 0 auto;border:1px solid #f0f0f0;position:relative}
-        
-        /* A IMAGEM APARECE NATURAL (contain) E COM ALTURA FLEXÍVEL */
-        .promo-img-box{width:100%;height:auto;flex-grow:1;position:relative;background:#f8f9fa;display:flex;align-items:center;justify-content:center;overflow:hidden}
-        .promo-img-box img{width:100%;height:auto;max-height:100%;object-fit:contain;display:block} 
-        
-        .promo-badge-full{position:absolute;top:12px;left:12px;background:var(--r);color:#fff;font-size:13px;font-weight:800;padding:5px 10px;border-radius:6px;z-index:5}
-        .promo-date-tag{position:absolute;top:12px;right:12px;background:rgba(10,22,40,0.7);color:#fff;font-size:10px;font-weight:700;padding:4px 8px;border-radius:5px;z-index:5}
+        /* HOME HERO */
+        .hero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:24px;padding:24px;color:#fff;margin-bottom:24px;box-shadow:0 10px 20px rgba(10,22,40,0.2)}
+        .hGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+        .hItem{background:rgba(255,255,255,0.1);padding:15px;border-radius:16px;backdrop-filter:blur(5px)}
 
-        /* INFORMAÇÃO COMPACTA NA BASE */
-        .promo-info-full{width:100%;padding:10px;background:rgba(255,255,255,0.95);text-align:center;border-top:1px solid rgba(0,0,0,0.05);z-index:5}
-        .promo-name-full{font-size:15px;font-weight:800;margin-bottom:1px;color:var(--n)}
-        .promo-prices-full{display:flex;align-items:baseline;justify-content:center;gap:8px}
-        .pNovo-full{font-size:22px;font-weight:800;color:var(--r)}
-        .pOrig-full{font-size:14px;color:var(--mu);text-decoration:line-through}
+        /* PROMOS */
+        .section-title{font-size:12px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:15px;display:block}
+        .pCard{background:#fff;border-radius:18px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:15px;box-shadow:0 4px 15px rgba(0,0,0,0.04)}
+        .pImg{width:70px;height:70px;background:#f8f8f8;border-radius:12px;overflow:hidden;flex-shrink:0;position:relative}
+        .pImg img{width:100%;height:100%;object-fit:cover}
+        .pBadge{position:absolute;top:0;left:0;background:var(--r);color:#fff;font-size:10px;font-weight:800;padding:3px 6px;border-bottom-right-radius:10px}
+        .pInfo{flex:1}
+        .pPrecos{display:flex;align-items:baseline;gap:8px;margin-top:4px}
+        .pNow{font-size:18px;font-weight:800;color:var(--n)}
+        .pOld{font-size:12px;text-decoration:line-through;color:var(--mu)}
 
-        /* INDICATORS */
-        .promo-indicators{position:absolute;bottom:15px;left:0;right:0;display:flex;justify-content:center;gap:8px;z-index:10}
-        .dot{width:6px;height:6px;border-radius:3px;background:rgba(0,0,0,0.1);transition:0.3s}
-        .dot.active{width:20px;background:var(--g)}
+        /* FOLHETOS */
+        .fImg{width:100%;border-radius:16px;margin-bottom:15px;box-shadow:0 8px 20px rgba(0,0,0,0.1)}
 
-        /* PERFIL */
-        .pfp-card{background:#f8f9fa;border-radius:20px;padding:20px;margin-bottom:15px;border:1px solid #eee}
-        .pfp-row{margin-bottom:12px}
-        .pfp-label{font-size:10px;font-weight:800;text-transform:uppercase;color:var(--mu);margin-bottom:4px;display:block}
-        .pfp-input{width:100%;background:#fff;border:1.5px solid #e1e8ed;padding:10px;border-radius:10px;font-size:15px;font-weight:600;color:var(--n);outline:none;font-family:'DM Sans',sans-serif}
-        .btn-save{background:var(--n);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:700;width:100%;cursor:pointer}
-        .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-        .stat-item{background:linear-gradient(135deg,var(--n),var(--s));padding:12px;border-radius:15px;color:#fff}
-        .stat-val{font-size:18px;font-weight:800}
-        .stat-lbl{font-size:9px;opacity:0.7;font-weight:700;text-transform:uppercase}
-
-        /* QR */
-        .qrHero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:24px;padding:30px 15px;color:#fff;text-align:center;margin:15px}
-        .qrBox{background:#fff;padding:15px;display:inline-block;border-radius:20px;margin:15px 0}
-
-        /* TOAST */
-        #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--n);color:#fff;padding:10px 20px;border-radius:25px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
-        #toast.v{opacity:1;transform:translateX(-50%) translateY(0)}
+        /* NAVIGATION */
+        .nav{position:fixed;bottom:20px;left:20px;right:20px;height:65px;background:var(--n);border-radius:20px;display:flex;align-items:center;padding:0 10px;box-shadow:0 10px 30px rgba(0,0,0,0.3)}
+        .nBtn{flex:1;background:none;border:none;color:rgba(255,255,255,0.5);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px}
+        .nBtn.a{color:var(--gl)}
+        .nBtn .dot{width:4px;height:4px;background:transparent;border-radius:50%;margin-top:2px}
+        .nBtn.a .dot{background:var(--gl)}
     </style>
 </head>
 <body>
 
 <div id="eReg">
-    <img class="logo-login" src="logoDM.jpg" alt="Logo">
-    <p style="color:var(--s);font-size:11px;font-weight:800;letter-spacing:4px;text-transform:uppercase;margin-bottom:10px">Acesso Cliente</p>
+    <h1 style="color:#fff;letter-spacing:4px;margin-bottom:8px">MARINHA</h1>
+    <p style="color:var(--gl);font-size:11px;font-weight:700;margin-bottom:20px">CLIENTE VIP</p>
     <input class="rInp" id="rNome" type="text" placeholder="Nome Completo">
     <input class="rInp" id="rTel" type="tel" placeholder="Nº Telemóvel">
-    <button class="rBtn" id="btnEntrar" onclick="registar()">ENTRAR NA APP</button>
+    <button class="rBtn" id="btnEntrar" onclick="registar()">ACEDER AO CARTÃO</button>
 </div>
 
 <div id="eApp">
-    <div class="cab">
-        <img class="cabLogo" src="logoDM.jpg" alt="Logo">
-        <div class="cabT" id="cabUserNome">Olá!</div>
-    </div>
+    <div class="cab">MARINHA</div>
 
-    <!-- PERFIL -->
-    <div class="ecra" id="ecraInicio">
-        <div class="s">
-            <h2 style="font-size:22px;font-weight:800;margin-bottom:15px">O Meu Perfil</h2>
-            <div class="pfp-card">
-                <div class="pfp-row">
-                    <span class="pfp-label">Nome Completo</span>
-                    <input type="text" id="pNome" class="pfp-input">
+    <div class="ecra a" id="ecraInicio">
+        <div class="hero">
+            <p style="opacity:0.8;font-size:14px">Bem-vindo,</p>
+            <h2 id="hNome" style="font-size:24px;font-weight:800">...</h2>
+            <div class="hGrid">
+                <div class="hItem">
+                    <div id="hPts" style="font-size:20px;font-weight:800">0</div>
+                    <div style="font-size:10px;opacity:0.7;font-weight:700">PONTOS ACUMULADOS</div>
                 </div>
-                <div class="pfp-row">
-                    <span class="pfp-label">Telemóvel</span>
-                    <input type="tel" id="pTel" class="pfp-input">
-                </div>
-                <button class="btn-save" onclick="salvarPerfil()">Atualizar Dados</button>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-val" id="hPts">0</div>
-                    <div class="stat-lbl">Pontos</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-val" id="hPou">0.00€</div>
-                    <div class="stat-lbl">Poupado</div>
+                <div class="hItem">
+                    <div id="hPou" style="font-size:20px;font-weight:800">0.00€</div>
+                    <div style="font-size:10px;opacity:0.7;font-weight:700">TOTAL POUPADO</div>
                 </div>
             </div>
-            <button onclick="sair()" style="width:100%;margin-top:20px;background:none;border:1.5px solid #eee;padding:10px;border-radius:10px;color:var(--r);font-weight:700;font-size:12px">Sair da Conta</button>
+            <p id="hNum" style="margin-top:15px;font-size:11px;opacity:0.5;text-align:right"></p>
         </div>
+
+        <span class="section-title">Promoções em Destaque</span>
+        <div id="listPromos"></div>
     </div>
 
-    <!-- PROMOÇÕES (SWIPE) - DESIGN FLEXÍVEL (ADAPTA-SE À ALTURA DA FOTO) -->
-    <div class="ecra a" id="ecraPromos">
-        <div class="promo-wrapper" id="promoWrapper">
-            <div class="promo-container" id="listPromos"></div>
-            <div class="promo-indicators" id="promoDots"></div>
-        </div>
+    <div class="ecra" id="ecraFolhetos">
+        <span class="section-title">Folhetos da Semana</span>
+        <div id="listFolhetos"></div>
     </div>
 
-    <!-- CARTÃO QR -->
     <div class="ecra" id="ecraQR">
-        <div class="s">
-            <div class="qrHero">
-                <p style="font-size:10px;opacity:0.6;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:800">Cartão Digital</p>
-                <div class="qrBox">
-                    <svg id="qrSvg" width="160" height="160" viewBox="0 0 160 160"></svg>
-                </div>
-                <h3 id="qrNome" style="font-weight:800;font-size:18px;text-transform:uppercase;margin-bottom:2px"></h3>
-                <p id="qrNum" style="opacity:0.6;font-size:13px;font-weight:600"></p>
+        <div class="hero" style="text-align:center;padding:40px 20px">
+            <span class="section-title" style="color:var(--gl)">O seu cartão digital</span>
+            <div id="qrBox" style="background:#fff;padding:15px;display:inline-block;border-radius:20px;margin:20px 0">
+                <svg id="qrSvg" width="180" height="180"></svg>
             </div>
+            <h3 id="qrNome" style="font-weight:800;text-transform:uppercase"></h3>
+            <p id="qrNum" style="opacity:0.6;font-size:14px"></p>
         </div>
     </div>
 
-    <!-- NAV -->
     <nav class="nav">
-        <button class="nBtn" id="nInicio" onclick="ir('Inicio')">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Perfil
-        </button>
-        <button class="nBtn a" id="nPromos" onclick="ir('Promos')">
-            <svg viewBox="0 0 24 24"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-            Promoções
-        </button>
-        <button class="nBtn" id="nQR" onclick="ir('QR')">
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h7v7h-7z"/></svg>
-            Cartão
-        </button>
+        <button class="nBtn a" id="nInicio" onclick="ir('Inicio')">INÍCIO<div class="dot"></div></button>
+        <button class="nBtn" id="nFolhetos" onclick="ir('Folhetos')">FOLHETOS<div class="dot"></div></button>
+        <button class="nBtn" id="nQR" onclick="ir('QR')">CARTÃO<div class="dot"></div></button>
+        <button class="nBtn" onclick="sair()">SAIR</button>
     </nav>
 </div>
 
-<div id="toast"></div>
-
 <script>
-const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
-const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
-let USER = null;
-let currentPromoIdx = 0;
-let promoCount = 0;
+    const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
+    const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
+    let USER = null;
 
-function hd(){ return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json' }; }
+    async function api(table) {
+        try {
+            const r = await fetch(`${SB}/rest/v1/${table}`, {
+                headers: { 'apikey': SK, 'Authorization': `Bearer ${SK}` }
+            });
+            return r.ok ? await r.json() : [];
+        } catch (e) { return []; }
+    }
 
-function toast(m) {
-    var t = document.getElementById('toast');
-    t.textContent = m; t.classList.add('v');
-    setTimeout(() => t.classList.remove('v'), 2500);
-}
-
-function hoje(){ return new Date().toISOString().slice(0,10); }
-function fd(d){ return d ? new Date(d).toLocaleDateString('pt-PT',{day:'2-digit',month:'short'}) : ''; }
-
-async function api(table) {
-    try {
-        const r = await fetch(SB + '/rest/v1/' + table, { headers: hd() });
-        return r.ok ? await r.json() : [];
-    } catch(e) { return []; }
-}
-
-async function registar() {
-    try {
+    async function registar() {
         const n = document.getElementById('rNome').value.trim();
-        const t = document.getElementById('rTel').value.trim().replace(/\s/g,'');
-        if(!n || t.length < 9) { toast('⚠️ Preencha nome e telemóvel'); return; }
-        let res = await api('clientes?tel=eq.' + t);
-        if(res && res.length > 0) { USER = res[0]; }
-        else {
-            const num = (Math.floor(10000 + Math.random() * 89999)).toString();
-            USER = { id: Date.now().toString(36), nome: n, tel: t, pts: 0, poupado: 0, num_cliente: num, visitas: 0, historico: [], desde: hoje() };
-            await fetch(SB + '/rest/v1/clientes', { method: 'POST', headers: Object.assign({}, hd(), { 'Prefer': 'return=representation' }), body: JSON.stringify(USER) });
+        const t = document.getElementById('rTel').value.trim();
+        const btn = document.getElementById('btnEntrar');
+        if(!n || !t) return alert('Por favor preencha os dados.');
+
+        btn.innerText = 'A carregar...';
+        
+        let res = await api(`clientes?tel=eq.${t}`);
+        if(res && res.length > 0) {
+            USER = res[0];
+        } else {
+            USER = { nome: n, tel: t, pts: 0, poupado: 0, num_cliente: Math.floor(10000+Math.random()*89999).toString() };
+            await fetch(`${SB}/rest/v1/clientes`, {
+                method: 'POST',
+                headers: { 'apikey': SK, 'Authorization': `Bearer ${SK}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(USER)
+            });
         }
         localStorage.setItem('m_tel', t);
         entrar();
-    } catch (e) { toast('⚠️ Erro ao aceder.'); }
-}
+    }
 
-function entrar() {
-    document.getElementById('eReg').style.display = 'none';
-    document.getElementById('eApp').classList.add('v');
-    document.getElementById('eApp').style.display = 'flex';
-    ir('Promos');
-}
+    function entrar() {
+        document.getElementById('eReg').style.display = 'none';
+        document.getElementById('eApp').style.display = 'block';
+        ir('Inicio');
+    }
 
-function ir(tab) {
-    document.querySelectorAll('.ecra').forEach(el => el.classList.remove('a'));
-    document.querySelectorAll('.nBtn').forEach(el => el.classList.remove('a'));
-    document.getElementById('ecra' + tab).classList.add('a');
-    document.getElementById('n' + tab).classList.add('a');
-    if(tab === 'Inicio') renderPerfil();
-    if(tab === 'Promos') renderPromos();
-    if(tab === 'QR') renderQR();
-}
+    async function renderInicio() {
+        document.getElementById('hNome').innerText = USER.nome;
+        document.getElementById('hNum').innerText = 'ID: ' + USER.num_cliente;
+        document.getElementById('hPts').innerText = USER.pts || 0;
+        document.getElementById('hPou').innerText = (USER.poupado || 0).toFixed(2) + '€';
 
-function renderPerfil() {
-    if(!USER) return;
-    document.getElementById('pNome').value = USER.nome;
-    document.getElementById('pTel').value = USER.tel;
-    document.getElementById('hPts').textContent = USER.pts || 0;
-    document.getElementById('hPou').textContent = parseFloat(USER.poupado || 0).toFixed(2) + '€';
-    document.getElementById('cabUserNome').textContent = 'Olá, ' + USER.nome.split(' ')[0] + '!';
-}
-
-async function salvarPerfil() {
-    const n = document.getElementById('pNome').value.trim();
-    const t = document.getElementById('pTel').value.trim();
-    if(!n || t.length < 9) { toast('⚠️ Dados inválidos'); return; }
-    try {
-        const r = await fetch(SB + '/rest/v1/clientes?id=eq.' + USER.id, { method: 'PATCH', headers: hd(), body: JSON.stringify({ nome: n, tel: t }) });
-        if(r.ok) { USER.nome = n; USER.tel = t; localStorage.setItem('m_tel', t); toast('✅ Dados atualizados!'); renderPerfil(); }
-    } catch(e) { toast('❌ Erro ao guardar'); }
-}
-
-async function renderPromos() {
-    const h = hoje();
-    const promos = await api('promos?order=id.desc');
-    const activas = promos.filter(p => (!p.data_ini || p.data_ini <= h) && (!p.data_fim || p.data_fim >= h));
-    const list = document.getElementById('listPromos');
-    const dots = document.getElementById('promoDots');
-    if(!activas.length) { list.innerHTML = '<div class="promo-page"><p style="color:var(--mu);text-align:center;padding:20px">Nenhuma promoção ativa.</p></div>'; dots.innerHTML = ''; return; }
-    promoCount = activas.length;
-    currentPromoIdx = 0;
-    list.innerHTML = activas.map(p => {
-        var po = parseFloat(p.preco_orig) || 0;
-        var pn = parseFloat(p.preco_novo) || 0;
-        var pct = (po > 0 && pn > 0) ? Math.round((1 - pn/po) * 100) : 0;
-        var fotoSrc = (p.foto && (p.foto.startsWith('http') || p.foto.startsWith('data:'))) ? p.foto : '';
-        var imgHtml = fotoSrc ? `<img src="${fotoSrc}">` : `<div style="font-size:80px">${p.emoji || '🛒'}</div>`;
-        var dataFim = p.data_fim ? `<div class="promo-date-tag">Até ${fd(p.data_fim)}</div>` : '';
-        return `
-            <div class="promo-page">
-                <div class="promo-card-full">
-                    <div class="promo-img-box">
-                        ${imgHtml}
-                        ${pct > 0 ? `<div class="promo-badge-full">-${pct}%</div>` : ''}
-                        ${dataFim}
+        const promos = await api('promos?order=id.desc');
+        const list = document.getElementById('listPromos');
+        list.innerHTML = promos.length ? promos.map(p => {
+            const desc = p.preco_ant && p.preco_novo ? Math.round((1 - p.preco_novo/p.preco_ant)*100) : 0;
+            return `
+                <div class="pCard">
+                    <div class="pImg">
+                        ${desc > 0 ? `<div class="pBadge">-${desc}%</div>` : ''}
+                        <img src="${p.foto || ''}" onerror="this.src='https://via.placeholder.com/100?text=Produto'">
                     </div>
-                    <div class="promo-info-full">
-                        <div class="promo-name-full">${p.nome}</div>
-                        <div class="promo-prices-full">
-                            ${pn > 0 ? `<span class="pNovo-full">${pn.toFixed(2)}€</span>` : ''}
-                            ${po > 0 ? `<span class="pOrig-full">${po.toFixed(2)}€</span>` : ''}
+                    <div class="pInfo">
+                        <div style="font-weight:700;font-size:15px">${p.nome}</div>
+                        <div class="pPrecos">
+                            <span class="pNow">${parseFloat(p.preco_novo).toFixed(2)}€</span>
+                            ${p.preco_ant ? `<span class="pOld">${parseFloat(p.preco_ant).toFixed(2)}€</span>` : ''}
                         </div>
                     </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-    dots.innerHTML = activas.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('');
-    updateCarousel();
-}
+                </div>`;
+        }).join('') : '<p style="text-align:center;color:var(--mu)">Nenhuma promoção ativa.</p>';
+    }
 
-let touchStartX = 0;
-let touchEndX = 0;
-const wrapper = document.getElementById('promoWrapper');
-wrapper.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
-wrapper.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; handleSwipe(); }, false);
-function handleSwipe() {
-    const threshold = 50;
-    if (touchEndX < touchStartX - threshold && currentPromoIdx < promoCount - 1) { currentPromoIdx++; updateCarousel(); }
-    if (touchEndX > touchStartX + threshold && currentPromoIdx > 0) { currentPromoIdx--; updateCarousel(); }
-}
-function updateCarousel() {
-    document.getElementById('listPromos').style.transform = `translateX(-${currentPromoIdx * 100}%)`;
-    document.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === currentPromoIdx));
-}
-function renderQR() {
-    if(!USER) return;
-    document.getElementById('qrNome').textContent = USER.nome;
-    document.getElementById('qrNum').textContent = 'Nº: ' + (USER.num_cliente || '—');
-    var svg = document.getElementById('qrSvg');
-    svg.innerHTML = '';
-    var txt = 'DM:' + (USER.id || USER.tel);
-    var size = 160; var cells = 21; var cell = size / cells;
-    var seed = 0; for(var i=0;i<txt.length;i++) seed = (seed*31 + txt.charCodeAt(i)) & 0xFFFFFF;
-    var rand = function(){ seed=(seed*1664525+1013904223)&0xFFFFFF; return seed/0xFFFFFF; };
-    var bg = document.createElementNS('http://www.w3.org/2000/svg','rect');
-    bg.setAttribute('width',size); bg.setAttribute('height',size); bg.setAttribute('fill','#fff');
-    svg.appendChild(bg);
-    for(var r=0;r<cells;r++) for(var c=0;c<cells;c++) {
-        var isFinder = (r<7&&c<7)||(r<7&&c>=cells-7)||(r>=cells-7&&c<7);
-        var isFinderBorder = (r===7||c===7||r===cells-8||c===cells-8) && !isFinder;
-        var filled = false;
-        if(isFinder){ var dr=r<7?r:r-(cells-7), dc=c<7?c:c-(cells-7); filled=(dr===0||dr===6||dc===0||dc===6||(dr>=2&&dr<=4&&dc>=2&&dc<=4)); }
-        else if(!isFinderBorder){ filled = rand() > 0.5; }
-        if(filled){ var rect=document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',c*cell); rect.setAttribute('y',r*cell); rect.setAttribute('width',cell-0.5); rect.setAttribute('height',cell-0.5); rect.setAttribute('fill','#0a1628'); svg.appendChild(rect); }
+    async function renderFolhetos() {
+        const folhetos = await api('folhetos?order=id.desc');
+        const list = document.getElementById('listFolhetos');
+        list.innerHTML = folhetos.length ? folhetos.map(f => `<img src="${f.data}" class="fImg">`).join('') : '<p>Sem folhetos.</p>';
     }
-}
-function sair() { if(confirm('Sair?')) { localStorage.clear(); location.reload(); } }
-window.onload = async function() {
-    const t = localStorage.getItem('m_tel');
-    if(t) {
-        let res = await api('clientes?tel=eq.' + t);
-        if(res && res[0]) { USER = res[0]; entrar(); return; }
+
+    function ir(tab) {
+        document.querySelectorAll('.ecra, .nBtn').forEach(el => el.classList.remove('a'));
+        document.getElementById('ecra' + tab).classList.add('a');
+        document.getElementById('n' + tab).classList.add('a');
+        if(tab === 'Inicio') renderInicio();
+        if(tab === 'Folhetos') renderFolhetos();
+        if(tab === 'QR') {
+            document.getElementById('qrNome').innerText = USER.nome;
+            document.getElementById('qrNum').innerText = 'Nº CLIENTE: ' + USER.num_cliente;
+            const svg = document.getElementById('qrSvg'); svg.innerHTML = '';
+            for(let i=0;i<15;i++) for(let j=0;j<15;j++) if(Math.random()>0.5 || (i<3&&j<3)) {
+                let r = document.createElementNS("http://www.w3.org/2000/svg","rect");
+                r.setAttribute("x",i*12); r.setAttribute("y",j*12); r.setAttribute("width",10); r.setAttribute("height",10);
+                r.setAttribute("fill","#0a1628"); svg.appendChild(r);
+            }
+        }
     }
-};
+
+    function sair() { localStorage.clear(); location.reload(); }
+
+    window.onload = async () => {
+        const t = localStorage.getItem('m_tel');
+        if(t) {
+            let res = await api(`clientes?tel=eq.${t}`);
+            if(res && res[0]) { USER = res[0]; entrar(); }
+        }
+    }
 </script>
 </body>
 </html>
