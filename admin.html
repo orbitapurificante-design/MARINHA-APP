@@ -1059,7 +1059,7 @@ function comprimirImg(base64, maxW, qualidade, cb){
     // Se a imagem for muito alta, limitamos a altura e ajustamos a largura
     if (newH > 800) { // Limite de segurança para não criar ficheiros gigantes
         newH = 800;
-        newW = Math.round(800 * ratio);
+        newW = Math.round(1200 * ratio);
     }
 
     var cv = document.createElement('canvas');
