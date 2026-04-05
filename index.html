@@ -7,208 +7,338 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-        :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--r:#e74c3c;--gr:#27ae60}
+        :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#ffffff;--mu:#7a8a9a;--r:#e74c3c;--gr:#27ae60}
         body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh}
 
         /* LOGIN */
-        #eReg{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,var(--n),var(--s));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:16px}
-        .rInp{width:100%;max-width:300px;padding:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:14px;color:#fff;text-align:center;font-size:16px;outline:none}
-        .rBtn{width:100%;max-width:300px;padding:16px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;cursor:pointer}
+        #eReg{position:fixed;inset:0;z-index:9999;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:14px}
+        .rInp{width:100%;max-width:320px;padding:16px;background:#f4f7fa;border:1.5px solid #e1e8ed;border-radius:14px;color:var(--n);text-align:center;font-size:16px;outline:none;font-family:'DM Sans',sans-serif}
+        .rInp::placeholder{color:#999}
+        .rBtn{width:100%;max-width:320px;padding:16px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;cursor:pointer;font-size:16px;font-family:'DM Sans',sans-serif}
 
-        /* APP STRUCTURE */
-        #eApp{display:none}
-        .cab{height:60px;background:var(--n);display:flex;align-items:center;padding:0 20px;color:#fff;font-weight:700;position:sticky;top:0;z-index:100}
-        .ecra{padding:20px;display:none;padding-bottom:100px}
-        .ecra.a{display:block}
-        
-        /* HOME HERO */
-        .hero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:24px;padding:24px;color:#fff;margin-bottom:24px;box-shadow:0 10px 20px rgba(10,22,40,0.2)}
-        .hGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
-        .hItem{background:rgba(255,255,255,0.1);padding:15px;border-radius:16px;backdrop-filter:blur(5px)}
+        /* APP */
+        #eApp{display:none;flex-direction:column;min-height:100vh}
+        #eApp.v{display:flex}
+        .cab{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;background:linear-gradient(135deg,var(--n),var(--s));display:flex;align-items:center;padding:0 16px;box-shadow:0 3px 16px rgba(0,0,0,.25)}
+        .cabT{color:#fff;font-size:17px;font-weight:700;flex:1}
 
-        /* PROMOS */
-        .section-title{font-size:12px;font-weight:800;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:15px;display:block}
-        .pCard{background:#fff;border-radius:18px;padding:12px;margin-bottom:12px;display:flex;align-items:center;gap:15px;box-shadow:0 4px 15px rgba(0,0,0,0.04)}
-        .pImg{width:70px;height:70px;background:#f8f8f8;border-radius:12px;overflow:hidden;flex-shrink:0;position:relative}
-        .pImg img{width:100%;height:100%;object-fit:cover}
-        .pBadge{position:absolute;top:0;left:0;background:var(--r);color:#fff;font-size:10px;font-weight:800;padding:3px 6px;border-bottom-right-radius:10px}
-        .pInfo{flex:1}
-        .pPrecos{display:flex;align-items:baseline;gap:8px;margin-top:4px}
-        .pNow{font-size:18px;font-weight:800;color:var(--n)}
-        .pOld{font-size:12px;text-decoration:line-through;color:var(--mu)}
+        /* NAV — igual ao admin */
+        .nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#fff;border-top:1px solid rgba(0,0,0,.07);display:flex;height:68px}
+        .nBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);font-family:'DM Sans',sans-serif}
+        .nBtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+        .nBtn.a{color:var(--n)}
+        .nBtn.a svg{stroke:var(--g)}
+
+        /* ECRAS */
+        .ecra{display:none;padding:72px 0 80px;min-height:100vh}.ecra.a{display:block}
+        .s{padding:0 16px}
+
+        /* HERO */
+        .hero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:22px;color:#fff;margin-bottom:16px}
+        .hGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+        .hItem{background:rgba(255,255,255,0.1);padding:14px;border-radius:14px}
+        .hVal{font-size:22px;font-weight:800}
+        .hLbl{font-size:10px;opacity:0.6;font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px}
+
+        /* PROMOS — estilo admin */
+        .section-title{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;display:block}
+        .pGrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+        .pCard{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(10,22,40,.07)}
+        .pImgW{width:100%;padding-bottom:100%;background:#eef2f7;position:relative;overflow:hidden}
+        .pImgW img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block}
+        .pImgW .pEmoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px}
+        .pBdg{position:absolute;top:6px;left:6px;background:var(--r);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;z-index:1}
+        .pBody{padding:10px}
+        .pNome{font-size:13px;font-weight:700;margin-bottom:4px;line-height:1.2}
+        .precos{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+        .pOrig{font-size:11px;color:var(--mu);text-decoration:line-through}
+        .pNovo{font-size:15px;font-weight:800;color:var(--r)}
+        .pData{font-size:10px;color:var(--mu);margin-top:3px}
 
         /* FOLHETOS */
-        .fImg{width:100%;border-radius:16px;margin-bottom:15px;box-shadow:0 8px 20px rgba(0,0,0,0.1)}
+        .fImg{width:100%;border-radius:14px;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,.1);display:block}
 
-        /* NAVIGATION */
-        .nav{position:fixed;bottom:20px;left:20px;right:20px;height:65px;background:var(--n);border-radius:20px;display:flex;align-items:center;padding:0 10px;box-shadow:0 10px 30px rgba(0,0,0,0.3)}
-        .nBtn{flex:1;background:none;border:none;color:rgba(255,255,255,0.5);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px}
-        .nBtn.a{color:var(--gl)}
-        .nBtn .dot{width:4px;height:4px;background:transparent;border-radius:50%;margin-top:2px}
-        .nBtn.a .dot{background:var(--gl)}
+        /* QR */
+        .qrHero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:32px 20px;color:#fff;text-align:center}
+
+        /* TOAST */
+        #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--n);color:#fff;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:.2s;pointer-events:none;white-space:nowrap}
+        #toast.v{opacity:1;transform:translateX(-50%) translateY(0)}
     </style>
 </head>
 <body>
 
 <div id="eReg">
-    <h1 style="color:#fff;letter-spacing:4px;margin-bottom:8px">MARINHA</h1>
-    <p style="color:var(--gl);font-size:11px;font-weight:700;margin-bottom:20px">CLIENTE VIP</p>
-    <input class="rInp" id="rNome" type="text" placeholder="Nome Completo">
-    <input class="rInp" id="rTel" type="tel" placeholder="Nº Telemóvel">
+    <img src="data:image/jpeg;base64,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" style="width:180px;margin-bottom:20px;border-radius:12px;">
+    <p style="color:var(--s);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px">Cliente VIP</p>
+    <input class="rInp" id="rNome" type="text" placeholder="Nome Completo" autocomplete="name">
+    <input class="rInp" id="rTel" type="tel" placeholder="Nº Telemóvel" autocomplete="tel">
     <button class="rBtn" id="btnEntrar" onclick="registar()">ACEDER AO CARTÃO</button>
+    <p style="color:var(--mu);font-size:12px;text-align:center;max-width:280px;line-height:1.5">O seu cartão fica guardado neste dispositivo.</p>
 </div>
 
 <div id="eApp">
-    <div class="cab">MARINHA</div>
+    <div class="cab">
+        <div class="cabT" id="cabNome">MARINHA</div>
+    </div>
 
+    <!-- INÍCIO -->
     <div class="ecra a" id="ecraInicio">
-        <div class="hero">
-            <p style="opacity:0.8;font-size:14px">Bem-vindo,</p>
-            <h2 id="hNome" style="font-size:24px;font-weight:800">...</h2>
-            <div class="hGrid">
-                <div class="hItem">
-                    <div id="hPts" style="font-size:20px;font-weight:800">0</div>
-                    <div style="font-size:10px;opacity:0.7;font-weight:700">PONTOS ACUMULADOS</div>
+        <div class="s">
+            <div style="height:10px"></div>
+            <div class="hero">
+                <p style="opacity:0.6;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px">Bem-vindo</p>
+                <h2 id="hNome" style="font-size:26px;font-weight:800;margin-top:2px">...</h2>
+                <div class="hGrid">
+                    <div class="hItem">
+                        <div class="hVal" id="hPts">0</div>
+                        <div class="hLbl">Pontos</div>
+                    </div>
+                    <div class="hItem">
+                        <div class="hVal" id="hPou">0.00€</div>
+                        <div class="hLbl">Total Poupado</div>
+                    </div>
                 </div>
-                <div class="hItem">
-                    <div id="hPou" style="font-size:20px;font-weight:800">0.00€</div>
-                    <div style="font-size:10px;opacity:0.7;font-weight:700">TOTAL POUPADO</div>
-                </div>
+                <p id="hNum" style="margin-top:14px;font-size:11px;opacity:0.45;text-align:right;letter-spacing:1px"></p>
             </div>
-            <p id="hNum" style="margin-top:15px;font-size:11px;opacity:0.5;text-align:right"></p>
+            <span class="section-title">Promoções em Destaque</span>
+            <div id="listPromos"></div>
         </div>
-
-        <span class="section-title">Promoções em Destaque</span>
-        <div id="listPromos"></div>
     </div>
 
+    <!-- FOLHETOS -->
     <div class="ecra" id="ecraFolhetos">
-        <span class="section-title">Folhetos da Semana</span>
-        <div id="listFolhetos"></div>
-    </div>
-
-    <div class="ecra" id="ecraQR">
-        <div class="hero" style="text-align:center;padding:40px 20px">
-            <span class="section-title" style="color:var(--gl)">O seu cartão digital</span>
-            <div id="qrBox" style="background:#fff;padding:15px;display:inline-block;border-radius:20px;margin:20px 0">
-                <svg id="qrSvg" width="180" height="180"></svg>
-            </div>
-            <h3 id="qrNome" style="font-weight:800;text-transform:uppercase"></h3>
-            <p id="qrNum" style="opacity:0.6;font-size:14px"></p>
+        <div class="s">
+            <div style="height:10px"></div>
+            <span class="section-title">Folhetos da Semana</span>
+            <div id="listFolhetos"></div>
         </div>
     </div>
 
+    <!-- CARTÃO QR -->
+    <div class="ecra" id="ecraQR">
+        <div class="s">
+            <div style="height:10px"></div>
+            <div class="qrHero">
+                <p style="font-size:11px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">O seu cartão digital</p>
+                <div style="background:#fff;padding:14px;display:inline-block;border-radius:16px;margin:16px 0">
+                    <svg id="qrSvg" width="160" height="160" viewBox="0 0 160 160"></svg>
+                </div>
+                <h3 id="qrNome" style="font-weight:800;font-size:18px;text-transform:uppercase;margin-bottom:4px"></h3>
+                <p id="qrNum" style="opacity:0.5;font-size:13px"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAV com SVG icons — igual ao admin -->
     <nav class="nav">
-        <button class="nBtn a" id="nInicio" onclick="ir('Inicio')">INÍCIO<div class="dot"></div></button>
-        <button class="nBtn" id="nFolhetos" onclick="ir('Folhetos')">FOLHETOS<div class="dot"></div></button>
-        <button class="nBtn" id="nQR" onclick="ir('QR')">CARTÃO<div class="dot"></div></button>
-        <button class="nBtn" onclick="sair()">SAIR</button>
+        <button class="nBtn a" id="nInicio" onclick="ir('Inicio')">
+            <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Início
+        </button>
+        <button class="nBtn" id="nFolhetos" onclick="ir('Folhetos')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Folhetos
+        </button>
+        <button class="nBtn" id="nQR" onclick="ir('QR')">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7"/></svg>
+            Cartão
+        </button>
+        <button class="nBtn" onclick="sair()">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sair
+        </button>
     </nav>
 </div>
 
+<div id="toast"></div>
+
 <script>
-    const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
-    const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
-    let USER = null;
+const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
+const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
+let USER = null;
 
-    async function api(table) {
-        try {
-            const r = await fetch(`${SB}/rest/v1/${table}`, {
-                headers: { 'apikey': SK, 'Authorization': `Bearer ${SK}` }
-            });
-            return r.ok ? await r.json() : [];
-        } catch (e) { return []; }
-    }
+function hd(){ return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json' }; }
 
-    async function registar() {
+function toast(m, ms) {
+    var t = document.getElementById('toast');
+    t.textContent = m; t.classList.add('v');
+    clearTimeout(t._t); t._t = setTimeout(function(){ t.classList.remove('v'); }, ms || 2500);
+}
+
+function hoje(){ return new Date().toISOString().slice(0,10); }
+function fd(d){ return d ? new Date(d).toLocaleDateString('pt-PT',{day:'2-digit',month:'short'}) : ''; }
+
+async function api(table) {
+    try {
+        const r = await fetch(SB + '/rest/v1/' + table, { headers: hd() });
+        return r.ok ? await r.json() : [];
+    } catch(e) { return []; }
+}
+
+async function registar() {
+    try {
         const n = document.getElementById('rNome').value.trim();
-        const t = document.getElementById('rTel').value.trim();
+        const t = document.getElementById('rTel').value.trim().replace(/\s/g,'');
         const btn = document.getElementById('btnEntrar');
-        if(!n || !t) return alert('Por favor preencha os dados.');
-
-        btn.innerText = 'A carregar...';
-        
-        let res = await api(`clientes?tel=eq.${t}`);
+        if(!n || t.length < 9) { toast('⚠️ Preencha nome e telemóvel'); return; }
+        btn.textContent = 'A carregar...'; btn.disabled = true;
+        console.log('A tentar registar:', n, t);
+        let res = await api('clientes?tel=eq.' + t);
         if(res && res.length > 0) {
             USER = res[0];
         } else {
-            USER = { nome: n, tel: t, pts: 0, poupado: 0, num_cliente: Math.floor(10000+Math.random()*89999).toString() };
-            await fetch(`${SB}/rest/v1/clientes`, {
+            const num = (Math.floor(10000 + Math.random() * 89999)).toString();
+            USER = { id: Date.now().toString(36), nome: n, tel: t, pts: 0, poupado: 0, num_cliente: num, visitas: 0, historico: [], desde: hoje() };
+            await fetch(SB + '/rest/v1/clientes', {
                 method: 'POST',
-                headers: { 'apikey': SK, 'Authorization': `Bearer ${SK}`, 'Content-Type': 'application/json' },
+                headers: Object.assign({}, hd(), { 'Prefer': 'return=representation' }),
                 body: JSON.stringify(USER)
             });
         }
         localStorage.setItem('m_tel', t);
         entrar();
+    } catch (err) {
+        console.error('Erro no registo:', err);
+        toast('⚠️ Erro ao aceder. Verifique a ligação.');
+        document.getElementById('btnEntrar').textContent = 'ACEDER AO CARTÃO';
+        document.getElementById('btnEntrar').disabled = false;
     }
+}
 
-    function entrar() {
-        document.getElementById('eReg').style.display = 'none';
-        document.getElementById('eApp').style.display = 'block';
-        ir('Inicio');
+function entrar() {
+    document.getElementById('eReg').style.display = 'none';
+    document.getElementById('eApp').classList.add('v');
+    document.getElementById('eApp').style.display = 'flex';
+    ir('Inicio');
+}
+
+function ir(tab) {
+    document.querySelectorAll('.ecra').forEach(function(el){ el.classList.remove('a'); });
+    document.querySelectorAll('.nBtn').forEach(function(el){ el.classList.remove('a'); });
+    var ecra = document.getElementById('ecra' + tab);
+    var btn = document.getElementById('n' + tab);
+    if(ecra) ecra.classList.add('a');
+    if(btn) btn.classList.add('a');
+    if(tab === 'Inicio') renderInicio();
+    if(tab === 'Folhetos') renderFolhetos();
+    if(tab === 'QR') renderQR();
+    window.scrollTo(0, 0);
+}
+
+async function renderInicio() {
+    if(!USER) return;
+    document.getElementById('hNome').textContent = USER.nome;
+    document.getElementById('hNum').textContent = 'Nº ' + (USER.num_cliente || '—');
+    document.getElementById('hPts').textContent = USER.pts || 0;
+    document.getElementById('hPou').textContent = parseFloat(USER.poupado || 0).toFixed(2) + '€';
+    document.getElementById('cabNome').textContent = USER.nome.split(' ')[0];
+
+    const h = hoje();
+    const promos = await api('promos?order=id.desc');
+    // Filtrar activas (sem datas = sempre activa)
+    const activas = promos.filter(function(p){
+        var ok1 = !p.data_ini || p.data_ini === '' || p.data_ini <= h;
+        var ok2 = !p.data_fim || p.data_fim === '' || p.data_fim >= h;
+        return ok1 && ok2;
+    });
+
+    const list = document.getElementById('listPromos');
+    if(!activas.length) {
+        list.innerHTML = '<p style="color:var(--mu);text-align:center;padding:20px">Nenhuma promoção ativa.</p>';
+        return;
     }
+    list.innerHTML = '<div class="pGrid2">' + activas.map(function(p) {
+        // campos: nome, foto, emoji, preco_orig, preco_novo, data_ini, data_fim
+        var po = parseFloat(p.preco_orig) || 0;
+        var pn = parseFloat(p.preco_novo) || 0;
+        var pct = (po > 0 && pn > 0) ? Math.round((1 - pn/po) * 100) : 0;
+        var fotoSrc = (p.foto && (p.foto.startsWith('http') || p.foto.startsWith('data:'))) ? p.foto : '';
+        var imgHtml = fotoSrc
+            ? '<img src="' + fotoSrc + '" onerror="this.style.display=\'none\'">'
+            : '<div class="pEmoji">' + (p.emoji || '🛒') + '</div>';
+        var dataFimHtml = p.data_fim ? '<div class="pData">Válido até ' + fd(p.data_fim) + '</div>' : '';
+        return '<div class="pCard">' +
+            '<div class="pImgW">' +
+                imgHtml +
+                (pct > 0 ? '<div class="pBdg">-' + pct + '%</div>' : '') +
+            '</div>' +
+            '<div class="pBody">' +
+                '<div class="pNome">' + p.nome + '</div>' +
+                '<div class="precos">' +
+                    (pn > 0 ? '<span class="pNovo">' + pn.toFixed(2) + '€</span>' : '') +
+                    (po > 0 ? '<span class="pOrig">' + po.toFixed(2) + '€</span>' : '') +
+                '</div>' +
+                dataFimHtml +
+            '</div>' +
+        '</div>';
+    }).join('') + '</div>';
+}
 
-    async function renderInicio() {
-        document.getElementById('hNome').innerText = USER.nome;
-        document.getElementById('hNum').innerText = 'ID: ' + USER.num_cliente;
-        document.getElementById('hPts').innerText = USER.pts || 0;
-        document.getElementById('hPou').innerText = (USER.poupado || 0).toFixed(2) + '€';
-
-        const promos = await api('promos?order=id.desc');
-        const list = document.getElementById('listPromos');
-        list.innerHTML = promos.length ? promos.map(p => {
-            const desc = p.preco_ant && p.preco_novo ? Math.round((1 - p.preco_novo/p.preco_ant)*100) : 0;
-            return `
-                <div class="pCard">
-                    <div class="pImg">
-                        ${desc > 0 ? `<div class="pBadge">-${desc}%</div>` : ''}
-                        <img src="${p.foto || ''}" onerror="this.src='https://via.placeholder.com/100?text=Produto'">
-                    </div>
-                    <div class="pInfo">
-                        <div style="font-weight:700;font-size:15px">${p.nome}</div>
-                        <div class="pPrecos">
-                            <span class="pNow">${parseFloat(p.preco_novo).toFixed(2)}€</span>
-                            ${p.preco_ant ? `<span class="pOld">${parseFloat(p.preco_ant).toFixed(2)}€</span>` : ''}
-                        </div>
-                    </div>
-                </div>`;
-        }).join('') : '<p style="text-align:center;color:var(--mu)">Nenhuma promoção ativa.</p>';
+async function renderFolhetos() {
+    const folhetos = await api('folhetos?order=id.desc');
+    const list = document.getElementById('listFolhetos');
+    if(!folhetos || !folhetos.length) {
+        list.innerHTML = '<p style="color:var(--mu);text-align:center;padding:20px">Sem folhetos de momento.</p>';
+        return;
     }
-
-    async function renderFolhetos() {
-        const folhetos = await api('folhetos?order=id.desc');
-        const list = document.getElementById('listFolhetos');
-        list.innerHTML = folhetos.length ? folhetos.map(f => `<img src="${f.data}" class="fImg">`).join('') : '<p>Sem folhetos.</p>';
-    }
-
-    function ir(tab) {
-        document.querySelectorAll('.ecra, .nBtn').forEach(el => el.classList.remove('a'));
-        document.getElementById('ecra' + tab).classList.add('a');
-        document.getElementById('n' + tab).classList.add('a');
-        if(tab === 'Inicio') renderInicio();
-        if(tab === 'Folhetos') renderFolhetos();
-        if(tab === 'QR') {
-            document.getElementById('qrNome').innerText = USER.nome;
-            document.getElementById('qrNum').innerText = 'Nº CLIENTE: ' + USER.num_cliente;
-            const svg = document.getElementById('qrSvg'); svg.innerHTML = '';
-            for(let i=0;i<15;i++) for(let j=0;j<15;j++) if(Math.random()>0.5 || (i<3&&j<3)) {
-                let r = document.createElementNS("http://www.w3.org/2000/svg","rect");
-                r.setAttribute("x",i*12); r.setAttribute("y",j*12); r.setAttribute("width",10); r.setAttribute("height",10);
-                r.setAttribute("fill","#0a1628"); svg.appendChild(r);
-            }
+    list.innerHTML = folhetos.map(function(f){
+        var src = f.data;
+        // Se data estiver vazio ou não for URL/base64, construir URL do Storage
+        if(!src || (!src.startsWith('http') && !src.startsWith('data:'))) {
+            src = SB + '/storage/v1/object/public/marinha/folhetos/' + f.id + '.jpg';
         }
+        return '<img src="' + src + '" class="fImg" loading="lazy" onerror="this.style.display='none'">';
+    }).join('');
+});
+    if(!validos.length) {
+        list.innerHTML = '<p style="color:var(--mu);text-align:center;padding:20px">Sem folhetos de momento.</p>';
+        return;
     }
+    list.innerHTML = validos.map(function(f){
+        return '<img src="' + f.data + '" class="fImg" loading="lazy" onerror="this.style.display=\'none\'">';
+    }).join('');
+}
 
-    function sair() { localStorage.clear(); location.reload(); }
-
-    window.onload = async () => {
-        const t = localStorage.getItem('m_tel');
-        if(t) {
-            let res = await api(`clientes?tel=eq.${t}`);
-            if(res && res[0]) { USER = res[0]; entrar(); }
-        }
+function renderQR() {
+    if(!USER) return;
+    document.getElementById('qrNome').textContent = USER.nome;
+    document.getElementById('qrNum').textContent = 'Nº CLIENTE: ' + (USER.num_cliente || '—');
+    // Gerar QR simples
+    var svg = document.getElementById('qrSvg');
+    svg.innerHTML = '';
+    var txt = 'MARINHA:' + (USER.id || USER.tel);
+    var size = 160; var cells = 21; var cell = size / cells;
+    // Pattern baseado no texto
+    var seed = 0; for(var i=0;i<txt.length;i++) seed = (seed*31 + txt.charCodeAt(i)) & 0xFFFFFF;
+    var rand = function(){ seed=(seed*1664525+1013904223)&0xFFFFFF; return seed/0xFFFFFF; };
+    var bg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    bg.setAttribute('width',size); bg.setAttribute('height',size); bg.setAttribute('fill','#fff');
+    svg.appendChild(bg);
+    for(var r=0;r<cells;r++) for(var c=0;c<cells;c++) {
+        // Finder patterns nos cantos
+        var isFinder = (r<7&&c<7)||(r<7&&c>=cells-7)||(r>=cells-7&&c<7);
+        var isFinderBorder = (r===7||c===7||r===cells-8||c===cells-8) && !isFinder;
+        var filled = false;
+        if(isFinder){ var dr=r<7?r:r-(cells-7), dc=c<7?c:c-(cells-7); filled=(dr===0||dr===6||dc===0||dc===6||(dr>=2&&dr<=4&&dc>=2&&dc<=4)); }
+        else if(!isFinderBorder){ filled = rand() > 0.5; }
+        if(filled){ var rect=document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',c*cell); rect.setAttribute('y',r*cell); rect.setAttribute('width',cell-0.5); rect.setAttribute('height',cell-0.5); rect.setAttribute('fill','#0a1628'); svg.appendChild(rect); }
     }
+}
+
+function sair() {
+    if(!confirm('Sair da conta?')) return;
+    localStorage.clear();
+    location.reload();
+}
+
+window.onload = async function() {
+    const t = localStorage.getItem('m_tel');
+    if(t) {
+        let res = await api('clientes?tel=eq.' + t);
+        if(res && res[0]) { USER = res[0]; entrar(); return; }
+    }
+};
 </script>
 </body>
 </html>
