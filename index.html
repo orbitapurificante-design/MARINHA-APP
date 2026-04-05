@@ -1,424 +1,358 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0a1628">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>MARINHA – Folheto</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-/* ── RESET & BASE ── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-:root {
-  --n: #0a1628;
-  --s: #1a4a8a;
-  --g: #c9a84c;
-  --gl: #e8c97a;
-  --bg: #f4f1ec;
-  --mu: #7a8a9a;
-  --r: #e74c3c;
-  --gr: #27ae60;
-}
-html, body {
-  width: 100%; height: 100%;
-  overflow: hidden;
-  background: #000;
-  font-family: 'DM Sans', sans-serif;
-  color: #fff;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+    <title>MARINHA – Fidelização</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+        :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#ffffff;--mu:#7a8a9a;--r:#e74c3c;--gr:#27ae60}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh;overflow-x:hidden}
 
-/* ── ECRÃ DE CARREGAMENTO ── */
-#splash {
-  position: fixed; inset: 0; z-index: 9999;
-  background: linear-gradient(160deg, var(--n), var(--s));
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 16px;
-}
-.splashT { font-family: 'Playfair Display', serif; font-size: 42px; color: #f5f0e8; letter-spacing: 6px; }
-.splashS { color: var(--g); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; }
-.splashSpinner {
-  width: 36px; height: 36px;
-  border: 3px solid rgba(201,168,76,.3);
-  border-top-color: var(--g);
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-#splash.hide { opacity: 0; transition: opacity .4s; pointer-events: none; }
+        /* LOGIN */
+        #eReg{position:fixed;inset:0;z-index:9999;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:14px}
+        .rInp{width:100%;max-width:320px;padding:16px;background:#f4f7fa;border:1.5px solid #e1e8ed;border-radius:14px;color:var(--n);text-align:center;font-size:16px;outline:none;font-family:'DM Sans',sans-serif}
+        .rInp::placeholder{color:#999}
+        .rBtn{width:100%;max-width:320px;padding:16px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;cursor:pointer;font-size:16px;font-family:'DM Sans',sans-serif}
 
-/* ── VIEWER PRINCIPAL (fullscreen, uma imagem por ecrã) ── */
-#viewer {
-  position: fixed; inset: 0;
-  background: #000;
-  overflow: hidden;
-  touch-action: pan-y;
-}
+        /* APP */
+        #eApp{display:none;flex-direction:column;min-height:100vh}
+        #eApp.v{display:flex}
+        .cab{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;background:linear-gradient(135deg,var(--n),var(--s));display:flex;align-items:center;padding:0 16px;box-shadow:0 3px 16px rgba(0,0,0,.25)}
+        .cabT{color:#fff;font-size:17px;font-weight:700;flex:1}
 
-/* Track horizontal de slides */
-#track {
-  display: flex;
-  height: 100%;
-  transition: transform .35s cubic-bezier(.4, 0, .2, 1);
-  will-change: transform;
-}
+        /* NAV */
+        .nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#fff;border-top:1px solid rgba(0,0,0,.07);display:flex;height:68px}
+        .nBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);font-family:'DM Sans',sans-serif}
+        .nBtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+        .nBtn.a{color:var(--n)}
+        .nBtn.a svg{stroke:var(--g)}
 
-/* Cada slide = 100vw × 100vh */
-.slide {
-  flex-shrink: 0;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: #000;
-}
+        /* ECRAS */
+        .ecra{display:none;padding:72px 0 80px;min-height:100vh}.ecra.a{display:block}
+        .s{padding:0 16px}
 
-/* Imagem ocupa todo o ecrã sem cortes */
-.slide img {
-  width: 100vw;
-  height: 100vh;
-  object-fit: contain;
-  object-position: center;
-  display: block;
-  user-select: none;
-  -webkit-user-drag: none;
-}
+        /* HERO */
+        .hero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:22px;color:#fff;margin-bottom:16px}
+        .hGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+        .hItem{background:rgba(255,255,255,0.1);padding:14px;border-radius:14px}
+        .hVal{font-size:22px;font-weight:800}
+        .hLbl{font-size:10px;opacity:0.6;font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px}
 
-/* ── HUD SUPERIOR ── */
-#hud {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  padding: env(safe-area-inset-top, 12px) 16px 12px;
-  background: linear-gradient(rgba(0,0,0,.65), transparent);
-  display: flex; align-items: center; gap: 10px;
-  transition: opacity .3s;
-}
-#hud.hide { opacity: 0; pointer-events: none; }
-.hudLogo { font-family: 'Playfair Display', serif; font-size: 20px; color: #f5f0e8; letter-spacing: 3px; flex: 1; }
-#hudCount { font-size: 13px; color: rgba(255,255,255,.65); font-weight: 600; }
-.hudBtn {
-  padding: 7px 14px;
-  background: rgba(255,255,255,.15);
-  border: none; color: #fff;
-  border-radius: 8px; cursor: pointer;
-  font-family: 'DM Sans', sans-serif; font-size: 13px;
-  backdrop-filter: blur(4px);
-}
+        /* PROMOS */
+        .section-title{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;display:block}
+        .pGrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+        .pCard{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(10,22,40,.07)}
+        .pImgW{width:100%;aspect-ratio:3/4;background:#eef2f7;position:relative;overflow:hidden}
+        .pImgW img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;display:block;background:#eef2f7}
+        .pImgW .pEmoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px}
+        .pBdg{position:absolute;top:6px;left:6px;background:var(--r);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;z-index:1}
+        .pBody{padding:10px}
+        .pNome{font-size:13px;font-weight:700;margin-bottom:4px;line-height:1.2}
+        .precos{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+        .pOrig{font-size:11px;color:var(--mu);text-decoration:line-through}
+        .pNovo{font-size:15px;font-weight:800;color:var(--r)}
+        .pData{font-size:10px;color:var(--mu);margin-top:3px}
 
-/* ── HUD INFERIOR ── */
-#hudBot {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  padding: 12px 16px env(safe-area-inset-bottom, 12px);
-  background: linear-gradient(transparent, rgba(0,0,0,.65));
-  display: flex; align-items: center; justify-content: center; gap: 16px;
-  transition: opacity .3s;
-}
-#hudBot.hide { opacity: 0; pointer-events: none; }
-.navBtn {
-  width: 48px; height: 48px;
-  background: rgba(255,255,255,.15);
-  border: none; color: #fff;
-  border-radius: 50%; cursor: pointer;
-  font-size: 22px; display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(4px);
-  transition: background .15s, transform .1s;
-}
-.navBtn:active { background: rgba(255,255,255,.3); transform: scale(.92); }
-.navBtn:disabled { opacity: .3; cursor: default; }
+        /* FOLHETOS FULLSCREEN VIEWER */
+        #ecraFolhetos{padding:0;background:#000;overflow:hidden}
+        .vTrack{display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1);height:100vh;will-change:transform}
+        .vSlide{flex-shrink:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+        .vSlide img{width:100vw;height:100vh;object-fit:contain;display:block;touch-action:pan-y pinch-zoom}
+        .vHud{position:fixed;top:72px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;z-index:110;pointer-events:none}
+        .vCount{background:rgba(0,0,0,0.5);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;backdrop-filter:blur(4px)}
+        .vDots{position:fixed;bottom:84px;left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:110;pointer-events:none}
+        .vDot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);transition:0.2s}
+        .vDot.a{background:var(--g);transform:scale(1.3)}
 
-/* Indicadores de página (dots) */
-#dots {
-  display: flex; gap: 6px; align-items: center;
-  max-width: calc(100vw - 140px);
-  overflow: hidden;
-}
-.dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.35);
-  transition: background .2s, transform .2s;
-  flex-shrink: 0;
-}
-.dot.a { background: var(--g); transform: scale(1.4); }
+        /* QR */
+        .qrHero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:32px 20px;color:#fff;text-align:center}
 
-/* ── ECRÃ VAZIO ── */
-#empty {
-  display: none;
-  position: fixed; inset: 0; z-index: 50;
-  background: linear-gradient(160deg, var(--n), var(--s));
-  flex-direction: column; align-items: center; justify-content: center; gap: 16px;
-  text-align: center; padding: 32px;
-}
-#empty.show { display: flex; }
-.emptyIcon { font-size: 64px; }
-.emptyT { font-family: 'Playfair Display', serif; font-size: 28px; color: #f5f0e8; letter-spacing: 4px; }
-.emptyS { color: rgba(255,255,255,.55); font-size: 14px; line-height: 1.6; max-width: 280px; }
-
-/* ── TOAST ── */
-#toast {
-  position: fixed; bottom: 80px; left: 50%;
-  transform: translateX(-50%) translateY(8px);
-  background: rgba(10,22,40,.9);
-  color: #fff; padding: 10px 20px;
-  border-radius: 24px; font-size: 14px; font-weight: 600;
-  z-index: 9999; opacity: 0; transition: .2s;
-  pointer-events: none; white-space: nowrap;
-  max-width: 90vw; text-align: center;
-  backdrop-filter: blur(8px);
-}
-#toast.v { opacity: 1; transform: translateX(-50%) translateY(0); }
-</style>
+        /* TOAST */
+        #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--n);color:#fff;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:.2s;pointer-events:none;white-space:nowrap}
+        #toast.v{opacity:1;transform:translateX(-50%) translateY(0)}
+    </style>
 </head>
 <body>
 
-<!-- Splash de carregamento -->
-<div id="splash">
-  <div class="splashT">MARINHA</div>
-  <div class="splashS">A carregar folheto...</div>
-  <div class="splashSpinner"></div>
+<div id="eReg">
+    <img src="data:image/jpeg;base64,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" style="width:180px;margin-bottom:20px;border-radius:12px;">
+    <p style="color:var(--s);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px">Cliente VIP</p>
+    <input class="rInp" id="rNome" type="text" placeholder="Nome Completo" autocomplete="name">
+    <input class="rInp" id="rTel" type="tel" placeholder="Nº Telemóvel" autocomplete="tel">
+    <button class="rBtn" id="btnEntrar" onclick="registar()">ACEDER AO CARTÃO</button>
 </div>
 
-<!-- Viewer fullscreen -->
-<div id="viewer">
-  <div id="track"></div>
-</div>
+<div id="eApp">
+    <div class="cab">
+        <div class="cabT" id="cabNome">MARINHA</div>
+    </div>
 
-<!-- HUD superior -->
-<div id="hud">
-  <div class="hudLogo" id="hudLogo">MARINHA</div>
-  <span id="hudCount"></span>
-  <button class="hudBtn" onclick="toggleHud()">⊞</button>
-</div>
+    <!-- INÍCIO -->
+    <div class="ecra a" id="ecraInicio">
+        <div class="s">
+            <div style="height:10px"></div>
+            <div class="hero">
+                <p style="opacity:0.6;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px">Bem-vindo</p>
+                <h2 id="hNome" style="font-size:26px;font-weight:800;margin-top:2px">...</h2>
+                <div class="hGrid">
+                    <div class="hItem">
+                        <div class="hVal" id="hPts">0</div>
+                        <div class="hLbl">Pontos</div>
+                    </div>
+                    <div class="hItem">
+                        <div class="hVal" id="hPou">0.00€</div>
+                        <div class="hLbl">Total Poupado</div>
+                    </div>
+                </div>
+                <p id="hNum" style="margin-top:14px;font-size:11px;opacity:0.45;text-align:right;letter-spacing:1px"></p>
+            </div>
+            <span class="section-title">Promoções em Destaque</span>
+            <div id="listPromos"></div>
+        </div>
+    </div>
 
-<!-- HUD inferior -->
-<div id="hudBot">
-  <button class="navBtn" id="btnPrev" onclick="navTo(_idx - 1)">‹</button>
-  <div id="dots"></div>
-  <button class="navBtn" id="btnNext" onclick="navTo(_idx + 1)">›</button>
-</div>
+    <!-- FOLHETOS (Fullscreen Viewer) -->
+    <div class="ecra" id="ecraFolhetos">
+        <div class="vHud">
+            <div class="vCount" id="vCount">0 / 0</div>
+        </div>
+        <div class="vTrack" id="vTrack"></div>
+        <div class="vDots" id="vDots"></div>
+    </div>
 
-<!-- Ecrã vazio -->
-<div id="empty">
-  <div class="emptyIcon">📄</div>
-  <div class="emptyT">MARINHA</div>
-  <div class="emptyS">O folheto ainda não tem páginas.<br>Aceda ao painel de administração para adicionar imagens.</div>
+    <!-- CARTÃO QR -->
+    <div class="ecra" id="ecraQR">
+        <div class="s">
+            <div style="height:10px"></div>
+            <div class="qrHero">
+                <p style="font-size:11px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">O seu cartão digital</p>
+                <div style="background:#fff;padding:14px;display:inline-block;border-radius:16px;margin:16px 0">
+                    <svg id="qrSvg" width="160" height="160" viewBox="0 0 160 160"></svg>
+                </div>
+                <h3 id="qrNome" style="font-weight:800;font-size:18px;text-transform:uppercase;margin-bottom:4px"></h3>
+                <p id="qrNum" style="opacity:0.5;font-size:13px"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <button class="nBtn a" id="nInicio" onclick="ir('Inicio')">
+            <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Início
+        </button>
+        <button class="nBtn" id="nFolhetos" onclick="ir('Folhetos')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Folhetos
+        </button>
+        <button class="nBtn" id="nQR" onclick="ir('QR')">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7"/></svg>
+            Cartão
+        </button>
+        <button class="nBtn" onclick="sair()">
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sair
+        </button>
+    </nav>
 </div>
 
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════
-//  SUPABASE CONFIG
-// ══════════════════════════════════════════
-var SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
-var SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
+const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
+const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
+let USER = null;
+let _fIdx = 0, _fSlides = [], _fTx = 0;
 
-async function sbGet(t, q) {
-  try {
-    var r = await fetch(SB + '/rest/v1/' + t + '?select=*' + (q ? '&' + q : ''), {
-      headers: { 'apikey': SK, 'Authorization': 'Bearer ' + SK }
+function hd(){ return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json' }; }
+
+function toast(m, ms) {
+    var t = document.getElementById('toast');
+    t.textContent = m; t.classList.add('v');
+    clearTimeout(t._t); t._t = setTimeout(function(){ t.classList.remove('v'); }, ms || 2500);
+}
+
+function hoje(){ return new Date().toISOString().slice(0,10); }
+function fd(d){ return d ? new Date(d).toLocaleDateString('pt-PT',{day:'2-digit',month:'short'}) : ''; }
+
+async function api(table) {
+    try {
+        const r = await fetch(SB + '/rest/v1/' + table, { headers: hd() });
+        return r.ok ? await r.json() : [];
+    } catch(e) { return []; }
+}
+
+async function registar() {
+    try {
+        const n = document.getElementById('rNome').value.trim();
+        const t = document.getElementById('rTel').value.trim().replace(/\s/g,'');
+        const btn = document.getElementById('btnEntrar');
+        if(!n || t.length < 9) { toast('⚠️ Preencha nome e telemóvel'); return; }
+        btn.textContent = 'A carregar...'; btn.disabled = true;
+        let res = await api('clientes?tel=eq.' + t);
+        if(res && res.length > 0) {
+            USER = res[0];
+        } else {
+            const num = (Math.floor(10000 + Math.random() * 89999)).toString();
+            USER = { id: Date.now().toString(36), nome: n, tel: t, pts: 0, poupado: 0, num_cliente: num, visitas: 0, historico: [], desde: hoje() };
+            await fetch(SB + '/rest/v1/clientes', {
+                method: 'POST',
+                headers: Object.assign({}, hd(), { 'Prefer': 'return=representation' }),
+                body: JSON.stringify(USER)
+            });
+        }
+        localStorage.setItem('m_tel', t);
+        entrar();
+    } catch (err) {
+        toast('⚠️ Erro ao aceder.');
+        document.getElementById('btnEntrar').textContent = 'ACEDER AO CARTÃO';
+        document.getElementById('btnEntrar').disabled = false;
+    }
+}
+
+function entrar() {
+    document.getElementById('eReg').style.display = 'none';
+    document.getElementById('eApp').classList.add('v');
+    document.getElementById('eApp').style.display = 'flex';
+    ir('Inicio');
+}
+
+function ir(tab) {
+    document.querySelectorAll('.ecra').forEach(function(el){ el.classList.remove('a'); });
+    document.querySelectorAll('.nBtn').forEach(function(el){ el.classList.remove('a'); });
+    var ecra = document.getElementById('ecra' + tab);
+    var btn = document.getElementById('n' + tab);
+    if(ecra) ecra.classList.add('a');
+    if(btn) btn.classList.add('a');
+    if(tab === 'Inicio') renderInicio();
+    if(tab === 'Folhetos') renderFolhetos();
+    if(tab === 'QR') renderQR();
+    window.scrollTo(0, 0);
+}
+
+async function renderInicio() {
+    if(!USER) return;
+    document.getElementById('hNome').textContent = USER.nome;
+    document.getElementById('hNum').textContent = 'Nº ' + (USER.num_cliente || '—');
+    document.getElementById('hPts').textContent = USER.pts || 0;
+    document.getElementById('hPou').textContent = parseFloat(USER.poupado || 0).toFixed(2) + '€';
+    document.getElementById('cabNome').textContent = USER.nome.split(' ')[0];
+
+    const h = hoje();
+    const promos = await api('promos?order=id.desc');
+    const activas = promos.filter(function(p){
+        var ok1 = !p.data_ini || p.data_ini === '' || p.data_ini <= h;
+        var ok2 = !p.data_fim || p.data_fim === '' || p.data_fim >= h;
+        return ok1 && ok2;
     });
-    return r.ok ? r.json() : [];
-  } catch(e) { return []; }
-}
 
-// ══════════════════════════════════════════
-//  ESTADO
-// ══════════════════════════════════════════
-var _slides = [];   // array de { url, nome }
-var _idx = 0;
-var _hudVisible = true;
-var _hudTimer = null;
-var _touchX = 0, _touchY = 0;
-
-// ══════════════════════════════════════════
-//  INICIALIZAÇÃO
-// ══════════════════════════════════════════
-async function init() {
-  try {
-    // Carregar config (nome da loja)
-    var cfgs = await sbGet('config');
-    if (cfgs && cfgs.length) {
-      var nome = cfgs[0].nome_loja || 'MARINHA';
-      document.getElementById('hudLogo').textContent = nome;
-      document.title = nome + ' – Folheto';
+    const list = document.getElementById('listPromos');
+    if(!activas.length) {
+        list.innerHTML = '<p style="color:var(--mu);text-align:center;padding:20px">Nenhuma promoção ativa.</p>';
+        return;
     }
+    list.innerHTML = '<div class="pGrid2">' + activas.map(function(p) {
+        var po = parseFloat(p.preco_orig) || 0;
+        var pn = parseFloat(p.preco_novo) || 0;
+        var pct = (po > 0 && pn > 0) ? Math.round((1 - pn/po) * 100) : 0;
+        var fotoSrc = p.foto || '';
+        var imgHtml = fotoSrc
+            ? '<img src="' + fotoSrc + '" onerror="this.style.display=\'none\'">'
+            : '<div class="pEmoji">' + (p.emoji || '🛒') + '</div>';
+        var dataFimHtml = p.data_fim ? '<div class="pData">Válido até ' + fd(p.data_fim) + '</div>' : '';
+        return '<div class="pCard">' +
+            '<div class="pImgW">' +
+                imgHtml +
+                (pct > 0 ? '<div class="pBdg">-' + pct + '%</div>' : '') +
+            '</div>' +
+            '<div class="pBody">' +
+                '<div class="pNome">' + p.nome + '</div>' +
+                '<div class="precos">' +
+                    (pn > 0 ? '<span class="pNovo">' + pn.toFixed(2) + '€</span>' : '') +
+                    (po > 0 ? '<span class="pOrig">' + po.toFixed(2) + '€</span>' : '') +
+                '</div>' +
+                dataFimHtml +
+            '</div>' +
+        '</div>';
+    }).join('') + '</div>';
+}
 
-    // Carregar folheto do Supabase
-    var fols = await sbGet('folhetos', 'order=adicionado.asc');
-    if (!fols || !fols.length) {
-      esconderSplash();
-      document.getElementById('empty').classList.add('show');
-      return;
+async function renderFolhetos() {
+    const folhetos = await api('folhetos?order=adicionado.asc');
+    const track = document.getElementById('vTrack');
+    const dots = document.getElementById('vDots');
+    
+    if(!folhetos || !folhetos.length) {
+        track.innerHTML = '<div class="vSlide"><p style="color:#fff">Sem folhetos de momento.</p></div>';
+        return;
     }
+    
+    _fSlides = folhetos.map(f => f.url || f.data).filter(src => src);
+    _fIdx = 0;
+    
+    track.style.width = (_fSlides.length * 100) + 'vw';
+    track.innerHTML = _fSlides.map(src => `<div class="vSlide"><img src="${src}" loading="lazy"></div>`).join('');
+    
+    dots.innerHTML = _fSlides.map((_, i) => `<div class="vDot ${i===0?'a':''}" id="fDot${i}"></div>`).join('');
+    
+    updFolheto();
+    
+    track.ontouchstart = e => { _fTx = e.touches[0].clientX; };
+    track.ontouchend = e => {
+        let dx = e.changedTouches[0].clientX - _fTx;
+        if(Math.abs(dx) > 40) navFolheto(dx < 0 ? 1 : -1);
+    };
+}
 
-    // Aceitar tanto campo "url" (novo) como "data" (base64 antigo)
-    _slides = fols
-      .map(function(f) { return { url: f.url || f.data || '', nome: f.nome || '' }; })
-      .filter(function(s) { return s.url; });
+function navFolheto(d) {
+    _fIdx = Math.max(0, Math.min(_fSlides.length - 1, _fIdx + d));
+    updFolheto();
+}
 
-    if (!_slides.length) {
-      esconderSplash();
-      document.getElementById('empty').classList.add('show');
-      return;
+function updFolheto() {
+    document.getElementById('vTrack').style.transform = `translateX(-${_fIdx * 100}vw)`;
+    document.getElementById('vCount').textContent = `${_fIdx + 1} / ${_fSlides.length}`;
+    document.querySelectorAll('.vDot').forEach((d, i) => d.classList.toggle('a', i === _fIdx));
+}
+
+function renderQR() {
+    if(!USER) return;
+    document.getElementById('qrNome').textContent = USER.nome;
+    document.getElementById('qrNum').textContent = 'Nº CLIENTE: ' + (USER.num_cliente || '—');
+    var svg = document.getElementById('qrSvg');
+    svg.innerHTML = '';
+    var txt = 'MARINHA:' + (USER.id || USER.tel);
+    var size = 160; var cells = 21; var cell = size / cells;
+    var seed = 0; for(var i=0;i<txt.length;i++) seed = (seed*31 + txt.charCodeAt(i)) & 0xFFFFFF;
+    var rand = function(){ seed=(seed*1664525+1013904223)&0xFFFFFF; return seed/0xFFFFFF; };
+    var bg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    bg.setAttribute('width',size); bg.setAttribute('height',size); bg.setAttribute('fill','#fff');
+    svg.appendChild(bg);
+    for(var r=0;r<cells;r++) for(var c=0;c<cells;c++) {
+        var isFinder = (r<7&&c<7)||(r<7&&c>=cells-7)||(r>=cells-7&&c<7);
+        var isFinderBorder = (r===7||c===7||r===cells-8||c===cells-8) && !isFinder;
+        var filled = false;
+        if(isFinder){ var dr=r<7?r:r-(cells-7), dc=c<7?c:c-(cells-7); filled=(dr===0||dr===6||dc===0||dc===6||(dr>=2&&dr<=4&&dc>=2&&dc<=4)); }
+        else if(!isFinderBorder){ filled = rand() > 0.5; }
+        if(filled){ var rect=document.createElementNS('http://www.w3.org/2000/svg','rect'); rect.setAttribute('x',c*cell); rect.setAttribute('y',r*cell); rect.setAttribute('width',cell-0.5); rect.setAttribute('height',cell-0.5); rect.setAttribute('fill','#0a1628'); svg.appendChild(rect); }
     }
-
-    construirSlides();
-    navTo(0, true);
-    esconderSplash();
-    autoEsconderHud();
-  } catch(e) {
-    console.error(e);
-    esconderSplash();
-    document.getElementById('empty').classList.add('show');
-  }
 }
 
-function esconderSplash() {
-  var s = document.getElementById('splash');
-  s.classList.add('hide');
-  setTimeout(function() { s.style.display = 'none'; }, 450);
+function sair() {
+    if(!confirm('Sair da conta?')) return;
+    localStorage.clear();
+    location.reload();
 }
 
-// ══════════════════════════════════════════
-//  CONSTRUIR SLIDES
-// ══════════════════════════════════════════
-function construirSlides() {
-  var track = document.getElementById('track');
-  // Largura total do track = nº slides × 100vw
-  track.style.width = (_slides.length * 100) + 'vw';
-  track.innerHTML = _slides.map(function(s, i) {
-    return '<div class="slide" id="slide' + i + '">' +
-      '<img src="' + s.url + '" alt="Página ' + (i + 1) + '" loading="' + (i === 0 ? 'eager' : 'lazy') + '" draggable="false">' +
-      '</div>';
-  }).join('');
-
-  // Construir dots indicadores
-  var dotsEl = document.getElementById('dots');
-  // Mostrar no máximo 15 dots para não transbordar
-  var maxDots = Math.min(_slides.length, 15);
-  dotsEl.innerHTML = Array.from({ length: maxDots }, function(_, i) {
-    return '<div class="dot" id="dot' + i + '"></div>';
-  }).join('');
-}
-
-// ══════════════════════════════════════════
-//  NAVEGAÇÃO
-// ══════════════════════════════════════════
-function navTo(i, instant) {
-  if (!_slides.length) return;
-  _idx = Math.max(0, Math.min(_slides.length - 1, i));
-
-  var track = document.getElementById('track');
-  if (instant) {
-    track.style.transition = 'none';
-    track.style.transform = 'translateX(-' + (_idx * 100) + 'vw)';
-    // Forçar reflow para aplicar sem transição
-    track.offsetHeight;
-    track.style.transition = '';
-  } else {
-    track.style.transform = 'translateX(-' + (_idx * 100) + 'vw)';
-  }
-
-  // Atualizar contador
-  document.getElementById('hudCount').textContent = (_idx + 1) + ' / ' + _slides.length;
-
-  // Atualizar dots
-  var maxDots = Math.min(_slides.length, 15);
-  for (var d = 0; d < maxDots; d++) {
-    var dot = document.getElementById('dot' + d);
-    if (dot) dot.classList.toggle('a', d === _idx);
-  }
-
-  // Atualizar botões
-  document.getElementById('btnPrev').disabled = _idx === 0;
-  document.getElementById('btnNext').disabled = _idx === _slides.length - 1;
-
-  autoEsconderHud();
-}
-
-// ══════════════════════════════════════════
-//  HUD — mostrar/esconder automaticamente
-// ══════════════════════════════════════════
-function mostrarHud() {
-  document.getElementById('hud').classList.remove('hide');
-  document.getElementById('hudBot').classList.remove('hide');
-  _hudVisible = true;
-  autoEsconderHud();
-}
-
-function esconderHud() {
-  document.getElementById('hud').classList.add('hide');
-  document.getElementById('hudBot').classList.add('hide');
-  _hudVisible = false;
-}
-
-function toggleHud() {
-  if (_hudVisible) esconderHud();
-  else mostrarHud();
-}
-
-function autoEsconderHud() {
-  clearTimeout(_hudTimer);
-  _hudTimer = setTimeout(function() {
-    if (_slides.length > 1) esconderHud();
-  }, 4000);
-}
-
-// ══════════════════════════════════════════
-//  TOUCH / SWIPE
-// ══════════════════════════════════════════
-var viewer = document.getElementById('viewer');
-
-viewer.addEventListener('touchstart', function(e) {
-  _touchX = e.touches[0].clientX;
-  _touchY = e.touches[0].clientY;
-  mostrarHud();
-}, { passive: true });
-
-viewer.addEventListener('touchend', function(e) {
-  var dx = e.changedTouches[0].clientX - _touchX;
-  var dy = e.changedTouches[0].clientY - _touchY;
-  // Swipe horizontal (ignorar se for mais vertical)
-  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-    navTo(_idx + (dx < 0 ? 1 : -1));
-  }
-}, { passive: true });
-
-// Tap para mostrar HUD
-viewer.addEventListener('click', function() {
-  mostrarHud();
-});
-
-// ══════════════════════════════════════════
-//  TECLADO
-// ══════════════════════════════════════════
-document.addEventListener('keydown', function(e) {
-  mostrarHud();
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); navTo(_idx + 1); }
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); navTo(_idx - 1); }
-  if (e.key === 'Home') navTo(0);
-  if (e.key === 'End') navTo(_slides.length - 1);
-});
-
-// ══════════════════════════════════════════
-//  TOAST
-// ══════════════════════════════════════════
-var _toastT = null;
-function toast(msg, dur) {
-  var el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('v');
-  clearTimeout(_toastT);
-  _toastT = setTimeout(function() { el.classList.remove('v'); }, dur || 2500);
-}
-
-// ══════════════════════════════════════════
-//  ARRANCAR
-// ══════════════════════════════════════════
-init();
+window.onload = async function() {
+    const t = localStorage.getItem('m_tel');
+    if(t) {
+        let res = await api('clientes?tel=eq.' + t);
+        if(res && res[0]) { USER = res[0]; entrar(); return; }
+    }
+};
 </script>
 </body>
 </html>
