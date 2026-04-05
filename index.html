@@ -270,7 +270,19 @@ async function renderInicio() {
 async function renderFolhetos() {
     const folhetos = await api('folhetos?order=id.desc');
     const list = document.getElementById('listFolhetos');
-    const validos = folhetos.filter(function(f){ return f.data && f.data.length > 10; });
+    if(!folhetos || !folhetos.length) {
+        list.innerHTML = '<p style="color:var(--mu);text-align:center;padding:20px">Sem folhetos de momento.</p>';
+        return;
+    }
+    list.innerHTML = folhetos.map(function(f){
+        var src = f.data;
+        // Se data estiver vazio ou não for URL/base64, construir URL do Storage
+        if(!src || (!src.startsWith('http') && !src.startsWith('data:'))) {
+            src = SB + '/storage/v1/object/public/marinha/folhetos/' + f.id + '.jpg';
+        }
+        return '<img src="' + src + '" class="fImg" loading="lazy" onerror="this.style.display='none'">';
+    }).join('');
+});
     if(!validos.length) {
         list.innerHTML = '<p style="color:var(--mu);text-align:center;padding:20px">Sem folhetos de momento.</p>';
         return;
