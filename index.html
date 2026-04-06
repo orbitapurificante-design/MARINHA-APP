@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
     <title>MARINHA – Fidelização</title>
     
-    <!-- PWA & MOBILE CONFIG -->
+    <!-- PWA & MOBILE CONFIG (FORÇA BRUTA) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="MARINHA">
-    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#0a1628">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logoDM.jpg">
     
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -98,7 +100,7 @@
 <body>
 
 <div id="eReg">
-    <img src="data:image/jpeg;base64,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" style="width:120px;margin-bottom:10px">
+    <img src="logoDM.jpg" style="width:120px;margin-bottom:10px;border-radius:20px" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=MARINHA'">
     <div style="font-size:24px;font-weight:800;color:var(--n);letter-spacing:2px">MARINHA</div>
     <div style="font-size:12px;color:var(--mu);letter-spacing:1px;text-transform:uppercase">Fidelização & Ofertas</div>
     <div style="height:10px"></div>
@@ -414,16 +416,11 @@ function sair() {
 }
 
 window.onload = async () => {
+    // Service Worker
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => {
-                    console.log('SW registrado');
-                    reg.update();
-                })
-                .catch(err => console.log('Erro SW:', err));
-        });
+        navigator.serviceWorker.register('./sw.js').then(reg => reg.update()).catch(() => {});
     }
+    
     const t = localStorage.getItem('m_tel');
     if(t) {
         let res = await api('clientes?tel=eq.' + t);
