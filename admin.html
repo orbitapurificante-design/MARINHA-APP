@@ -903,10 +903,13 @@ async function addFolheto(e) {
       var path = 'promos/folheto_' + id + '.jpg'; // Usando pasta promos conforme pedido
       var url = await sbStorageUp(path, blob, 'image/jpeg');
       if (url) {
-        var obj = { id: id, nome: f.name, url: url, adicionado: hoje() };
-        DB.folhetos.push(obj);
-        await sbUp('folhetos', { id: id, nome: f.name, url: url, adicionado: hoje() });
-        done++;
+        // Enviar apenas a URL, o Supabase gera o ID (int4) automaticamente
+        var ok = await sbUp('folhetos', { url: url });
+        if (ok) {
+          // Recarregar para obter o ID real do Supabase
+          await sincronizar();
+          done++;
+        }
       }
     } catch(err) { console.error(err); }
   }
