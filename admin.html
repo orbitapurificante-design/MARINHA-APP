@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0a1628">
-<title>MARINHA – Painel (v4.1)</title>
+<title>MARINHA – Painel (v5.0)</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -110,6 +110,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 
 /* LOG PAINEL */
 #logPainel{background:#000;color:#0f0;font-family:monospace;font-size:10px;padding:10px;border-radius:8px;margin-top:10px;max-height:150px;overflow-y:auto;display:none;border:1px solid #333}
+
+/* TABELA HISTORICO */
+.hTable{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+.hTable th{text-align:left;padding:8px;color:var(--mu);border-bottom:1px solid #eee}
+.hTable td{padding:8px;border-bottom:1px solid #f9f9f9}
 </style>
 </head>
 <body>
@@ -157,10 +162,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
       <div class="stat">
         <div class="sItem"><div class="sVal" id="sDia">0</div><div class="sLbl">Hoje</div></div>
         <div class="sItem"><div class="sVal" id="sCli">0</div><div class="sLbl">Clientes</div></div>
-        <div class="sItem"><div class="sVal" id="sPro">0</div><div class="sLbl">Promoções</div></div>
+        <div class="sItem"><div class="sVal" id="sPro">0</div><div class="sLbl">Promos</div></div>
       </div>
       <div class="card">
-        <div class="ct">Clientes recentes</div>
+        <div class="ct">Clientes Recentes</div>
         <div id="dRecentes"></div>
       </div>
     </div>
@@ -169,68 +174,45 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
   <!-- CLIENTES -->
   <div class="ecra" id="ecraClientes">
     <div class="s">
-      <div style="height:10px"></div>
-      <input class="inp" type="search" placeholder="🔍 Pesquisar..." oninput="filtrarCli(this.value)" id="iPesq">
-      <div style="font-size:12px;color:var(--mu);margin-bottom:10px" id="cCont">0 clientes</div>
-      <button class="bP" style="margin-bottom:14px" onclick="abrirNovoCli()">+ Novo Cliente</button>
+      <div class="card">
+        <input type="text" class="inp" placeholder="Pesquisar nome ou telemóvel..." oninput="filtrarCli(this.value)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+          <span id="cCont" style="font-size:12px;color:var(--mu)">0 clientes</span>
+          <button class="bP" style="width:auto;padding:8px 16px;font-size:13px" onclick="abrirNovoCli()">+ NOVO CLIENTE</button>
+        </div>
+      </div>
       <div id="listaCli"></div>
     </div>
   </div>
 
-  <!-- FOLHETO / PROMOS -->
+  <!-- FOLHETO & PROMOS -->
   <div class="ecra" id="ecraFolheto">
     <div class="s">
-      <div style="height:10px"></div>
-
-      <!-- PROMOÇÕES -->
       <div class="card">
-        <div class="ct">Promoções</div>
-        <button class="bP" style="margin-bottom:12px" onclick="abrirNovaPromo()">+ Nova Promoção</button>
-        <div id="listaPromos"></div>
-      </div>
-
-      <!-- FOLHETO -->
-      <div class="card">
-        <div class="ct">Folheto (páginas)</div>
-        <label class="bS" style="text-align:center;cursor:pointer;display:block;margin-bottom:4px">
-          📁 Adicionar imagens ao folheto
-          <input type="file" accept="image/*" multiple onchange="uploadFolhetoV4(event)" style="display:none" id="inputFolheto">
-        </label>
-        <div class="upBar" id="upBarFolheto"><div class="upBarFill" id="upBarFolhetoFill" style="width:0%"></div></div>
-        <div style="font-size:11px;color:var(--mu);margin-bottom:10px" id="folhetoStatus"></div>
+        <div class="ct">Folheto Digital</div>
+        <div class="strip" id="stripFol"></div>
+        <button class="bS" onclick="document.getElementById('fInp').click()">+ ADICIONAR PÁGINAS</button>
+        <input type="file" id="fInp" hidden multiple accept="image/*" onchange="addFolheto(event)">
         <div id="logPainel"></div>
-        <div class="strip" id="stripFol" style="margin-top:4px"></div>
       </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0">
+        <span class="ct" style="margin:0">Promoções Ativas</span>
+        <button class="bP" style="width:auto;padding:8px 16px;font-size:13px" onclick="abrirNovaPromo()">+ NOVA PROMO</button>
+      </div>
+      <div id="listaPromos"></div>
     </div>
   </div>
 
   <!-- SCANNER -->
-  <div class="ecra" id="ecraScan">
+  <div class="ecra" id="ecraScanner">
     <div class="s">
-      <div style="height:10px"></div>
       <div class="scan-box">
-        <div style="color:rgba(255,255,255,.5);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Scanner QR</div>
-        <div class="cWrap" id="cWrap">
-          <video id="qrVid" autoplay muted playsinline></video>
-          <div style="color:rgba(255,255,255,.6);font-size:12px;text-align:center;padding:6px" id="sCamStatus"></div>
-        </div>
+        <div class="cWrap" id="cWrap"><video id="qrVid" playsinline></video></div>
         <div id="sPrincipal">
-          <button class="bP" style="margin-bottom:8px" onclick="iniciarCam()">📷 Abrir câmara</button>
-          <label class="bS" style="text-align:center;cursor:pointer;display:block">
-            🖼️ Ler QR de foto
-            <input type="file" accept="image/*" onchange="lerQRFoto(this)" style="display:none">
-          </label>
-        </div>
-        <input class="scan-inp" type="text" placeholder="🔍 Ou pesquisar cliente..." oninput="pesqScan(this.value)" id="iScan">
-        <div id="resScan"></div>
-        <div class="qrRes" id="qrRes">
-          <div style="color:#fff;font-size:16px;font-weight:700" id="qrResTit"></div>
-          <div style="color:rgba(255,255,255,.7);font-size:14px;margin:4px 0" id="qrResNome"></div>
-          <div style="color:var(--g);font-size:13px;margin-bottom:12px" id="qrResSub"></div>
-          <div class="row">
-            <button class="bP" id="qrBtnCompra">💳 Registar compra</button>
-            <button class="bS" onclick="fecharQR()">Fechar</button>
-          </div>
+          <button class="bP" onclick="iniciarCam()">LIGAR CÂMARA</button>
+          <div style="margin:15px 0;text-align:center;color:rgba(255,255,255,.4);font-size:12px">OU PESQUISAR MANUALMENTE</div>
+          <input type="text" class="scan-inp" placeholder="Nome ou Telemóvel..." oninput="buscarCliScan(this.value)">
+          <div id="sRes" class="qrRes"></div>
         </div>
       </div>
     </div>
@@ -239,179 +221,153 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
   <!-- CONFIG -->
   <div class="ecra" id="ecraConfig">
     <div class="s">
-      <div style="height:10px"></div>
       <div class="card">
-        <div class="ct">Diagnóstico</div>
-        <button class="bP" style="margin-bottom:8px" onclick="testarSincronizacao()">🔍 Verificar sincronização</button>
-        <button class="bS" onclick="location.reload(true)">🔄 Forçar Atualização (Limpar Cache)</button>
-        <div id="corrigirLog" style="font-size:12px;color:var(--mu);line-height:1.8;margin-top:8px"></div>
+        <div class="ct">Definições da Loja</div>
+        <label class="lbl">Nome da Loja</label>
+        <input type="text" class="inp" id="cfgNome" placeholder="Ex: MARINHA">
+        <label class="lbl">PIN de Acesso</label>
+        <input type="text" class="inp" id="cfgPin" placeholder="Ex: 1234">
+        <button class="bP" onclick="guardarCfg()">GUARDAR CONFIGURAÇÕES</button>
       </div>
+      
       <div class="card">
-        <div class="ct">Configuração</div>
-        <label class="lbl">Nome da loja</label>
-        <input class="inp" id="cfgNome" type="text" placeholder="Nome da loja">
-        <label class="lbl">Pontos por € gasto</label>
-        <input class="inp" id="cfgPtsEuro" type="number" value="10">
-        <label class="lbl">Pontos para 1€ desconto</label>
-        <input class="inp" id="cfgPtsDesc" type="number" value="100">
-        <button class="bP" onclick="guardarCfg()">✅ Guardar</button>
+        <div class="ct">Fidelização & Pontos</div>
+        <label class="lbl">€ Gastos para 1 Ponto</label>
+        <input type="number" class="inp" id="cfgEuroPonto" placeholder="Ex: 1.00">
+        <label class="lbl">Pontos para 1€ Desconto</label>
+        <input type="number" class="inp" id="cfgPontoEuro" placeholder="Ex: 20">
+        <button class="bP" onclick="guardarCfgFid()">GUARDAR FIDELIZAÇÃO</button>
       </div>
+
       <div class="card">
-        <div class="ct">Link App Cliente</div>
-        <div style="font-size:12px;word-break:break-all;color:var(--s);margin-bottom:10px" id="cfgLink"></div>
-        <div class="row">
-          <button class="bS" onclick="copiarLink()">📋 Copiar link</button>
-          <button class="bS" onclick="imprimirQR()">🖨️ Imprimir QR</button>
-        </div>
-        <div style="margin-top:12px;text-align:center">
-          <svg id="qrCfg" width="150" height="150" viewBox="0 0 150 150"></svg>
-        </div>
-      </div>
-      <div class="card">
-        <div class="ct">Dados</div>
-        <button class="bS" onclick="exportar()">📤 Exportar backup</button>
+        <div class="ct">Manutenção</div>
+        <button class="bS" onclick="location.reload()">RECARREGAR PAINEL</button>
+        <button class="bS" style="background:#eef2f7;color:var(--s)" onclick="localStorage.clear();location.reload()">LIMPAR CACHE TOTAL</button>
       </div>
     </div>
   </div>
 
   <nav class="nav">
     <button class="nBtn a" id="nDash" onclick="irTab('Dash')">
-      <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+      Início
     </button>
     <button class="nBtn" id="nClientes" onclick="irTab('Clientes')">
-      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      Clientes
     </button>
     <button class="nBtn" id="nFolheto" onclick="irTab('Folheto')">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Promos
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+      Folheto
     </button>
-    <button class="nBtn" id="nScan" onclick="irTab('Scan')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7"/></svg>Scanner
+    <button class="nBtn" id="nScanner" onclick="irTab('Scanner')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="7" y1="7" x2="17" y2="7"></line><line x1="7" y1="12" x2="17" y2="12"></line><line x1="7" y1="17" x2="17" y2="17"></line></svg>
+      Scanner
     </button>
     <button class="nBtn" id="nConfig" onclick="irTab('Config')">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config
-    </button>
-  </nav>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      Config
+    </nav>
 </div>
 
 <!-- MODAL CLIENTE -->
 <div class="modal" id="mCli">
   <div class="mBox">
-    <div class="mTit" id="mCliTit">Novo Cliente</div>
+    <div class="mTit" id="mCliTit">Cliente</div>
     <input type="hidden" id="mCliId">
-    <label class="lbl">Nome *</label>
-    <input class="inp" id="mCliNome" type="text" placeholder="Nome completo">
-    <label class="lbl">Telemóvel *</label>
-    <input class="inp" id="mCliTel" type="tel" placeholder="912 345 678">
+    <label class="lbl">Nome Completo</label>
+    <input type="text" class="inp" id="mCliNome">
+    <label class="lbl">Telemóvel</label>
+    <input type="tel" class="inp" id="mCliTel">
     <label class="lbl">Email</label>
-    <input class="inp" id="mCliEmail" type="email" placeholder="cliente@email.com">
-    <div id="wApagarCli" style="display:none;margin-bottom:12px">
-      <button class="bD" onclick="apagarCli()">🗑️ Apagar Cliente</button>
+    <input type="email" class="inp" id="mCliEmail">
+    
+    <div id="wFid" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0">
+        <div class="sItem" style="background:#f4f7fa">
+          <div class="sVal" id="mCliPts">0</div>
+          <div class="sLbl">Pontos Atuais</div>
+        </div>
+        <div class="sItem" style="background:#f4f7fa">
+          <div class="sVal" id="mCliPou">0.00€</div>
+          <div class="sLbl">Total Gasto</div>
+        </div>
+      </div>
+      
+      <div class="ct">Registar Nova Compra</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="lbl">Tipo Doc.</label>
+          <select class="inp" id="mDocTipo">
+            <option value="FS">FS (Fatura Simp.)</option>
+            <option value="FT">FT (Fatura)</option>
+            <option value="NC">NC (Nota Crédito)</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl">Valor s/ IVA</label>
+          <input type="number" class="inp" id="mDocValor" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <button class="bS" style="background:var(--n);color:#fff" onclick="registarCompra()">+ REGISTAR DOCUMENTO</button>
+      
+      <div class="ct" style="margin-top:15px">Histórico Recente</div>
+      <div style="max-height:150px;overflow-y:auto">
+        <table class="hTable" id="mCliHist"></table>
+      </div>
     </div>
-    <div class="row">
-      <button class="bS" onclick="fecharModal('mCli')">Cancelar</button>
-      <button class="bP" onclick="guardarCli()">✅ Guardar</button>
+
+    <div class="row" style="margin-top:20px">
+      <button class="bS" onclick="fecharModal('mCli')">CANCELAR</button>
+      <button class="bP" onclick="guardarCli()">GUARDAR DADOS</button>
+    </div>
+    <div id="wApagarCli" style="margin-top:10px">
+      <button class="bD" onclick="apagarCli()">APAGAR CLIENTE</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL DETALHES CLIENTE -->
-<div class="modal" id="mDet">
-  <div class="mBox">
-    <div id="mDetCont"></div>
-    <div style="height:10px"></div>
-    <button class="bS" style="width:100%" onclick="fecharModal('mDet')">Fechar</button>
-  </div>
-</div>
-
-<!-- MODAL COMPRA -->
-<div class="modal" id="mCompra">
-  <div class="mBox">
-    <div class="mTit">Registar Compra</div>
-    <label class="lbl">Cliente</label>
-    <select class="inp" id="mCompraCli" onchange="updCompra()"></select>
-    <div id="mCompraDesc"></div>
-    <label class="lbl">Valor da Compra (€)</label>
-    <input class="inp" id="mCompraVal" type="number" step="0.01" placeholder="0.00" oninput="calcCompra()">
-    <div id="mCompraPrev" style="font-size:13px;color:var(--g);font-weight:700;margin-bottom:12px;display:none"></div>
-    <div class="row">
-      <button class="bS" onclick="fecharModal('mCompra')">Cancelar</button>
-      <button class="bP" onclick="confirmarCompra()">✅ Confirmar</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL RECIBO -->
-<div class="modal" id="mRecibo">
-  <div class="mBox" style="text-align:center">
-    <div style="font-size:48px;margin-bottom:10px">🎉</div>
-    <div class="mTit" id="rNome">Cliente</div>
-    <div style="font-size:20px;font-weight:800;color:var(--gr);margin-bottom:4px" id="rPts">+0 pontos</div>
-    <div style="font-size:14px;color:var(--mu);margin-bottom:10px" id="rTotal">Total: 0 pontos</div>
-    <div id="rDesc" style="font-weight:700;color:var(--r);margin-bottom:16px"></div>
-    <div style="background:#fff;padding:15px;display:inline-block;border-radius:16px;border:1px solid #eee;margin-bottom:20px">
-      <svg id="rQR" width="160" height="160" viewBox="0 0 160 160"></svg>
-    </div>
-    <button class="bP" onclick="fecharModal('mRecibo')">Concluído</button>
-  </div>
-</div>
-
-<!-- MODAL PROMOÇÃO -->
+<!-- MODAL PROMO -->
 <div class="modal" id="mPromo">
   <div class="mBox">
-    <div class="mTit" id="mPromoTit">Nova Promoção</div>
+    <div class="mTit" id="mPromoTit">Promoção</div>
     <input type="hidden" id="mPromoId">
-    
-    <label class="lbl">Foto do Produto</label>
-    <div class="fotoPrevWrap" onclick="document.getElementById('mPromoFotoInp').click()">
+    <div class="fotoPrevWrap">
       <img id="mPromoFotoImg" style="display:none">
-      <div id="mPromoFotoEmoji">🖼️</div>
+      <div id="mPromoFotoEmoji">🛒</div>
     </div>
-    <input type="file" id="mPromoFotoInp" accept="image/*" style="display:none" onchange="prevFotoPromo(event)">
-    <div class="upBar" id="upBarPromo"><div class="upBarFill" id="upBarPromoFill" style="width:0%"></div></div>
+    <div class="upBar" id="upBarPromo"><div class="upBarFill" id="upBarPromoFill"></div></div>
+    <button class="bS" onclick="document.getElementById('fPromo').click()">CARREGAR FOTO</button>
+    <input type="file" id="fPromo" hidden accept="image/*" onchange="prevFotoPromo(event)">
     
-    <label class="lbl">Nome do Produto *</label>
-    <input class="inp" id="mPromoNome" type="text" placeholder="Ex: Detergente Skip">
-    
+    <label class="lbl">Nome do Produto</label>
+    <input type="text" class="inp" id="mPromoNome">
     <div class="row">
-      <div style="flex:1">
-        <label class="lbl">Preço Original (€)</label>
-        <input class="inp" id="mPromoOrig" type="number" step="0.01" placeholder="0.00">
-      </div>
-      <div style="flex:1">
-        <label class="lbl">Preço Promo (€)</label>
-        <input class="inp" id="mPromoNovo" type="number" step="0.01" placeholder="0.00">
-      </div>
+      <div><label class="lbl">Preço Original</label><input type="number" class="inp" id="mPromoOrig" step="0.01"></div>
+      <div><label class="lbl">Preço Promo</label><input type="number" class="inp" id="mPromoNovo" step="0.01"></div>
     </div>
-
     <div class="row">
-      <div style="flex:1">
-        <label class="lbl">Início</label>
-        <input class="inp" id="mPromoIni" type="date">
-      </div>
-      <div style="flex:1">
-        <label class="lbl">Fim</label>
-        <input class="inp" id="mPromoFim" type="date">
-      </div>
+      <div><label class="lbl">Início</label><input type="date" class="inp" id="mPromoIni"></div>
+      <div><label class="lbl">Fim (Validade)</label><input type="date" class="inp" id="mPromoFim"></div>
     </div>
-
     <label class="lbl">Emoji (se não houver foto)</label>
-    <input class="inp" id="mPromoEmoji" type="text" placeholder="🛒">
-
-    <div id="wApagarPromo" style="display:none;margin-bottom:12px">
-      <button class="bD" onclick="apagarPromo()">🗑️ Apagar Promoção</button>
+    <input type="text" class="inp" id="mPromoEmoji" value="🛒">
+    
+    <div class="row" style="margin-top:10px">
+      <button class="bS" onclick="fecharModal('mPromo')">CANCELAR</button>
+      <button class="bP" onclick="guardarPromo()">GUARDAR PROMOÇÃO</button>
     </div>
-    <div class="row">
-      <button class="bS" onclick="fecharModal('mPromo')">Cancelar</button>
-      <button class="bP" onclick="guardarPromo()">✅ Guardar</button>
+    <div id="wApagarPromo" style="margin-top:10px">
+      <button class="bD" onclick="apagarPromo()">APAGAR PROMOÇÃO</button>
     </div>
   </div>
 </div>
 
-<!-- VIEWER FULLSCREEN -->
+<!-- VIEWER -->
 <div class="viewer" id="viewer">
   <div class="vTop">
-    <div id="vCount" style="color:#fff;font-weight:700;flex:1">1 / 1</div>
-    <button class="vBtn" onclick="fecharViewer()">Fechar</button>
+    <div style="color:#fff;flex:1;font-weight:700" id="vCount">0 / 0</div>
+    <button class="vBtn" onclick="fecharViewer()">FECHAR</button>
   </div>
   <div class="vTrack" id="vTrack"></div>
 </div>
@@ -420,84 +376,77 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
-// ── CONFIG SUPABASE ──
 const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
 const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
 const BUCKET = 'marinha';
 
+let DB = { clientes: [], promos: [], folhetos: [], cfg: { nomeLoja: 'MARINHA', pin: '1234', euroPonto: 1, pontoEuro: 20 } };
+
 function hd() { return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json' }; }
-
-// ── LOGS ──
-function log(m, color = '#0f0') {
-  var p = document.getElementById('logPainel');
-  if(!p) return;
-  p.style.display = 'block';
-  p.innerHTML += `<div style="color:${color}">> ${m}</div>`;
-  p.scrollTop = p.scrollHeight;
+function log(m, c) { 
+    var p = document.getElementById('logPainel'); 
+    p.style.display = 'block'; 
+    p.innerHTML += `<div style="color:${c}">> ${m}</div>`; 
+    p.scrollTop = p.scrollHeight; 
 }
-
-// ── DB LOCAL ──
-var DB = { clientes: [], promos: [], folhetos: [], cfg: { nomeLoja: 'MARINHA', ptsEuro: 10, ptsDesc: 100 } };
 
 async function sincronizar() {
   try {
-    var [clis, pros, fols, cfgs] = await Promise.all([
-      fetch(SB + '/rest/v1/clientes?select=*', { headers: hd() }).then(r => r.json()),
-      fetch(SB + '/rest/v1/promos?select=*', { headers: hd() }).then(r => r.json()),
-      fetch(SB + '/rest/v1/folhetos?select=*', { headers: hd() }).then(r => r.json()),
-      fetch(SB + '/rest/v1/config?select=*', { headers: hd() }).then(r => r.json())
+    const [c, p, f, g] = await Promise.all([
+      fetch(SB + '/rest/v1/clientes?order=nome.asc', { headers: hd() }).then(r => r.json()),
+      fetch(SB + '/rest/v1/promos?order=id.desc', { headers: hd() }).then(r => r.json()),
+      fetch(SB + '/rest/v1/folhetos?order=id.asc', { headers: hd() }).then(r => r.json()),
+      fetch(SB + '/rest/v1/config?id=eq.1', { headers: hd() }).then(r => r.json())
     ]);
-    DB.clientes = clis || [];
-    DB.promos = pros || [];
-    DB.folhetos = fols || [];
-    if (cfgs && cfgs.length) {
-      var c = cfgs[0];
-      DB.cfg = { nomeLoja: c.nome_loja || 'MARINHA', ptsEuro: c.pts_euro || 10, ptsDesc: c.pts_desc || 100 };
-    }
-  } catch(e) { console.error('Erro sincronizar:', e); }
+    DB.clientes = c || [];
+    DB.promos = p || [];
+    DB.folhetos = f || [];
+    if (g && g[0]) DB.cfg = Object.assign(DB.cfg, g[0]);
+  } catch(e) { toast('Erro ao sincronizar'); }
 }
 
-// ── UPLOAD FOLHETO (V4.1 - INTEGRADO) ──
-async function uploadFolhetoV4(e) {
-  var files = Array.from(e.target.files);
+// ── UPLOAD FOLHETO (v4.1) ──
+async function addFolheto(e) {
+  var files = e.target.files;
   if (!files.length) return;
+  log('INICIANDO UPLOAD (v4.1)...', '#fff');
   
-  log('INICIANDO UPLOAD...', '#fff');
-  var bar = document.getElementById('upBarFolheto');
-  var fill = document.getElementById('upBarFolhetoFill');
-  bar.style.display = 'block';
-  fill.style.width = '0%';
-
-  let done = 0;
-  for (let i = 0; i < files.length; i++) {
-    let f = files[i];
-    log('Processando: ' + f.name);
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    log('Processando: ' + f.name, '#fff');
+    
     try {
-      let blob = await comprimirParaBlob(f, 1800, 0.85);
-      let path = 'promos/folheto_' + Date.now() + '_' + i + '.jpg';
-      
-      log('Enviando para Storage...');
-      let up = await fetch(SB + '/storage/v1/object/' + BUCKET + '/' + path, {
+      var path = 'promos/f_' + Date.now() + '_' + i + '.jpg';
+      var up = await fetch(SB + '/storage/v1/object/' + BUCKET + '/' + path, {
         method: 'POST',
         headers: { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'x-upsert': 'true' },
-        body: blob
+        body: f
       });
 
       if (up.ok) {
-        let url = SB + '/storage/v1/object/public/' + BUCKET + '/' + path;
-        log('Storage OK! Gravando na tabela...');
-        let db = await fetch(SB + '/rest/v1/folhetos', {
+        var url = SB + '/storage/v1/object/public/' + BUCKET + '/' + path;
+        log('STORAGE OK! Gravando na tabela...', '#gr');
+        
+        var res = await fetch(SB + '/rest/v1/folhetos', {
           method: 'POST',
           headers: hd(),
           body: JSON.stringify({ url: url })
         });
-        if (db.ok) { log('TABELA OK!', '#0f0'); done++; }
+
+        if (res.ok) {
+          log('SUCESSO: Página adicionada!', '#0f0');
+        } else {
+          var err = await res.text();
+          log('ERRO TABELA: ' + err, '#f00');
+        }
+      } else {
+        log('ERRO STORAGE: ' + up.status, '#f00');
       }
-    } catch(err) { log('ERRO: ' + err.message, '#f00'); }
-    fill.style.width = Math.round(((i + 1) / files.length) * 100) + '%';
+    } catch(err) {
+      log('ERRO CRÍTICO: ' + err.message, '#f00');
+    }
   }
-  if (done > 0) { await sincronizar(); renderFolheto(); log('CONCLUÍDO!', '#0f0'); }
-  setTimeout(() => { bar.style.display = 'none'; }, 3000);
+  await sincronizar(); renderFolheto();
 }
 
 // ── UPLOAD FOTO PROMO ──
@@ -529,7 +478,6 @@ async function prevFotoPromo(e) {
   setTimeout(() => { bar.style.display = 'none'; }, 1000);
 }
 
-// ── COMPRESSÃO ──
 function comprimirParaBlob(file, maxDim, qualidade) {
   return new Promise((resolve) => {
     var reader = new FileReader();
@@ -560,11 +508,11 @@ function pd(d) {
   for (var i = 0; i < 4; i++) document.getElementById('d' + i).classList.toggle('on', i < _pin.length);
   if (_pin.length === 4) {
     setTimeout(() => {
-      if (_pin === _pinOk) {
+      if (_pin === (DB.cfg.pin || '1234')) {
         document.getElementById('ePin').style.display = 'none';
         document.getElementById('eApp').classList.add('v');
         irTab('Dash');
-      } else { _pin = ''; for (var i = 0; i < 4; i++) document.getElementById('d' + i).classList.remove('on'); }
+      } else { _pin = ''; for (var i = 0; i < 4; i++) document.getElementById('d' + i).classList.remove('on'); toast('PIN Incorreto'); }
     }, 200);
   }
 }
@@ -579,6 +527,7 @@ function irTab(tab) {
   if (tab === 'Dash') renderDash();
   if (tab === 'Clientes') renderCli('');
   if (tab === 'Folheto') { renderPromos(); renderFolheto(); }
+  if (tab === 'Config') renderConfig();
 }
 
 // ── RENDERS ──
@@ -614,15 +563,75 @@ function renderCli(f) {
   document.getElementById('listaCli').innerHTML = lista.map(c => `<div class="cRow" onclick="verCli('${c.id}')"><div class="avatar">${c.nome[0]}</div><div style="flex:1"><b>${c.nome}</b><br><small>${c.tel}</small></div><div style="text-align:right"><div class="cPts">${c.pts}</div><div class="cPtsL">PONTOS</div></div></div>`).join('');
 }
 function filtrarCli(v) { renderCli(v); }
+
 function abrirNovoCli() {
   document.getElementById('mCliTit').textContent = 'Novo Cliente';
   document.getElementById('mCliId').value = '';
   document.getElementById('mCliNome').value = '';
   document.getElementById('mCliTel').value = '';
   document.getElementById('mCliEmail').value = '';
+  document.getElementById('wFid').style.display = 'none';
   document.getElementById('wApagarCli').style.display = 'none';
   document.getElementById('mCli').classList.add('a');
 }
+
+function verCli(id) {
+  var c = DB.clientes.find(x => x.id === id);
+  document.getElementById('mCliTit').textContent = 'Editar Cliente';
+  document.getElementById('mCliId').value = c.id;
+  document.getElementById('mCliNome').value = c.nome;
+  document.getElementById('mCliTel').value = c.tel;
+  document.getElementById('mCliEmail').value = c.email || '';
+  document.getElementById('mCliPts').textContent = c.pts || 0;
+  document.getElementById('mCliPou').textContent = parseFloat(c.poupado || 0).toFixed(2) + '€';
+  
+  var hist = c.historico || [];
+  document.getElementById('mCliHist').innerHTML = '<tr><th>Data</th><th>Doc</th><th>Valor</th><th>Pts</th></tr>' + 
+    hist.slice(-10).reverse().map(h => `<tr><td>${fd(h.data)}</td><td>${h.tipo||'—'}</td><td>${h.valor.toFixed(2)}€</td><td>${h.pts > 0 ? '+'+h.pts : h.pts}</td></tr>`).join('');
+  
+  document.getElementById('wFid').style.display = 'block';
+  document.getElementById('wApagarCli').style.display = 'block';
+  document.getElementById('mCli').classList.add('a');
+}
+
+async function registarCompra() {
+  var id = document.getElementById('mCliId').value;
+  var tipo = document.getElementById('mDocTipo').value;
+  var valor = parseFloat(document.getElementById('mDocValor').value) || 0;
+  if (valor <= 0) return alert('Insira um valor válido');
+  
+  var c = DB.clientes.find(x => x.id === id);
+  var cfg = DB.cfg;
+  
+  // Cálculo de pontos
+  var ptsGanhos = Math.floor(valor / (cfg.euroPonto || 1));
+  if (tipo === 'NC') {
+    ptsGanhos = -ptsGanhos;
+    valor = -valor;
+  }
+  
+  var novoHist = { data: new Date().toISOString(), tipo: tipo, valor: valor, pts: ptsGanhos };
+  var historico = c.historico || [];
+  historico.push(novoHist);
+  
+  var d = {
+    pts: (c.pts || 0) + ptsGanhos,
+    poupado: (parseFloat(c.poupado) || 0) + valor,
+    historico: historico
+  };
+  
+  await fetch(SB + '/rest/v1/clientes?id=eq.' + id, { 
+    method: 'PATCH', 
+    headers: hd(), 
+    body: JSON.stringify(d) 
+  });
+  
+  document.getElementById('mDocValor').value = '';
+  await sincronizar();
+  verCli(id);
+  toast('✅ Compra registada');
+}
+
 async function guardarCli() {
   var id = document.getElementById('mCliId').value;
   var d = {
@@ -631,12 +640,26 @@ async function guardarCli() {
     email: document.getElementById('mCliEmail').value
   };
   if (!d.nome || !d.tel) return alert('Nome e Telemóvel obrigatórios');
-  if (!id) { d.id = uid(); d.num_cliente = (DB.clientes.length + 1001); d.pts = 0; d.historico = []; }
   
-  var headers = hd();
-  if (id) headers['Prefer'] = 'resolution=merge-duplicates';
-  await fetch(SB + '/rest/v1/clientes', { method: 'POST', headers: headers, body: JSON.stringify(id ? Object.assign(d, {id:id}) : d) });
+  if (!id) { 
+    d.id = uid(); 
+    d.num_cliente = (DB.clientes.length + 1001).toString(); 
+    d.pts = 0; 
+    d.poupado = 0;
+    d.historico = []; 
+    await fetch(SB + '/rest/v1/clientes', { method: 'POST', headers: hd(), body: JSON.stringify(d) });
+  } else {
+    await fetch(SB + '/rest/v1/clientes?id=eq.' + id, { method: 'PATCH', headers: hd(), body: JSON.stringify(d) });
+  }
+  
   fecharModal('mCli'); await sincronizar(); renderCli(''); toast('✅ Guardado');
+}
+
+async function apagarCli() {
+  if (!confirm('Apagar este cliente permanentemente?')) return;
+  var id = document.getElementById('mCliId').value;
+  await fetch(SB + '/rest/v1/clientes?id=eq.' + id, { method: 'DELETE', headers: hd() });
+  fecharModal('mCli'); await sincronizar(); renderCli(''); toast('🗑️ Apagado');
 }
 
 // ── PROMOS ──
@@ -653,6 +676,7 @@ function abrirNovaPromo() {
   document.getElementById('wApagarPromo').style.display = 'none';
   document.getElementById('mPromo').classList.add('a');
 }
+
 function editarPromo(id) {
   var p = DB.promos.find(x => x.id === id);
   document.getElementById('mPromoTit').textContent = 'Editar Promoção';
@@ -661,6 +685,8 @@ function editarPromo(id) {
   document.getElementById('mPromoOrig').value = p.preco_orig;
   document.getElementById('mPromoNovo').value = p.preco_novo;
   document.getElementById('mPromoEmoji').value = p.emoji || '🛒';
+  document.getElementById('mPromoIni').value = p.data_ini || '';
+  document.getElementById('mPromoFim').value = p.data_fim || '';
   if (p.foto) {
     document.getElementById('mPromoFotoImg').src = p.foto;
     document.getElementById('mPromoFotoImg').style.display = 'block';
@@ -672,6 +698,7 @@ function editarPromo(id) {
   document.getElementById('wApagarPromo').style.display = 'block';
   document.getElementById('mPromo').classList.add('a');
 }
+
 async function guardarPromo() {
   var id = document.getElementById('mPromoId').value;
   var d = {
@@ -683,44 +710,45 @@ async function guardarPromo() {
     data_ini: document.getElementById('mPromoIni').value || null,
     data_fim: document.getElementById('mPromoFim').value || null
   };
-  
   if (!d.nome) return alert('Nome obrigatório');
   
-  log('A gravar promoção: ' + d.nome + '...', '#fff');
-  
-  try {
-    var headers = hd();
-    // Se a tabela usar ID manual (texto), enviamos o ID. 
-    // Se for automático, o Supabase ignora ou dá erro se enviarmos.
-    // Na sua tabela 'promos', o ID parece ser texto (UUID manual).
-    if (!id) {
-        id = uid();
-        d.id = id;
-    } else {
-        d.id = id;
-        headers['Prefer'] = 'resolution=merge-duplicates';
-    }
-
-    var r = await fetch(SB + '/rest/v1/promos', { 
-      method: 'POST', 
-      headers: headers, 
-      body: JSON.stringify(d) 
-    });
-
-    if (r.ok) {
-      log('PROMOÇÃO OK! Gravada com sucesso.', '#0f0');
-      fecharModal('mPromo'); 
-      await sincronizar(); 
-      renderPromos(); 
-      toast('✅ Promoção guardada');
-    } else {
-      var txt = await r.text();
-      log('ERRO PROMOÇÃO: ' + r.status + ' - ' + txt, '#f00');
-      alert('Erro ao gravar promoção: ' + txt);
-    }
-  } catch (err) {
-    log('ERRO CRÍTICO PROMO: ' + err.message, '#f00');
+  if (!id) {
+    d.id = uid();
+    await fetch(SB + '/rest/v1/promos', { method: 'POST', headers: hd(), body: JSON.stringify(d) });
+  } else {
+    await fetch(SB + '/rest/v1/promos?id=eq.' + id, { method: 'PATCH', headers: hd(), body: JSON.stringify(d) });
   }
+  fecharModal('mPromo'); await sincronizar(); renderPromos(); toast('✅ Promoção guardada');
+}
+
+async function apagarPromo() {
+  if (!confirm('Apagar esta promoção?')) return;
+  var id = document.getElementById('mPromoId').value;
+  await fetch(SB + '/rest/v1/promos?id=eq.' + id, { method: 'DELETE', headers: hd() });
+  fecharModal('mPromo'); await sincronizar(); renderPromos(); toast('🗑️ Apagada');
+}
+
+// ── CONFIG ──
+function renderConfig() {
+  document.getElementById('cfgNome').value = DB.cfg.nomeLoja || '';
+  document.getElementById('cfgPin').value = DB.cfg.pin || '';
+  document.getElementById('cfgEuroPonto').value = DB.cfg.euroPonto || 1;
+  document.getElementById('cfgPontoEuro').value = DB.cfg.pontoEuro || 20;
+}
+
+async function guardarCfg() {
+  var d = { nomeLoja: document.getElementById('cfgNome').value, pin: document.getElementById('cfgPin').value };
+  await fetch(SB + '/rest/v1/config?id=eq.1', { method: 'PATCH', headers: hd(), body: JSON.stringify(d) });
+  await sincronizar(); toast('✅ Configurações guardadas');
+}
+
+async function guardarCfgFid() {
+  var d = { 
+    euroPonto: parseFloat(document.getElementById('cfgEuroPonto').value) || 1,
+    pontoEuro: parseInt(document.getElementById('cfgPontoEuro').value) || 20
+  };
+  await fetch(SB + '/rest/v1/config?id=eq.1', { method: 'PATCH', headers: hd(), body: JSON.stringify(d) });
+  await sincronizar(); toast('✅ Fidelização guardada');
 }
 
 // ── SCANNER ──
@@ -752,10 +780,18 @@ function processarQR(data) {
   var c = DB.clientes.find(x => x.id === data);
   if (c) verCli(c.id); else toast('❌ QR Inválido');
 }
+function buscarCliScan(v) {
+  var res = document.getElementById('sRes');
+  if (v.length < 2) { res.classList.remove('a'); return; }
+  var lista = DB.clientes.filter(c => c.nome.toLowerCase().includes(v.toLowerCase()) || c.tel.includes(v));
+  res.innerHTML = lista.map(c => `<div class="sResItem" onclick="verCli('${c.id}')"><div class="sAvatar">${c.nome[0]}</div><div><b>${c.nome}</b><br><small>${c.tel}</small></div></div>`).join('');
+  res.classList.add('a');
+}
 
 // ── UTILS ──
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 function hoje() { return new Date().toISOString().slice(0, 10); }
+function fd(d) { return d ? new Date(d).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' }) : ''; }
 function fecharModal(id) { document.getElementById(id).classList.remove('a'); }
 function toast(msg) { var el = document.getElementById('toast'); el.textContent = msg; el.classList.add('v'); setTimeout(() => el.classList.remove('v'), 2500); }
 
@@ -771,9 +807,7 @@ function updViewer() {
   document.getElementById('vCount').textContent = (_vIdx + 1) + ' / ' + DB.folhetos.length;
 }
 
-// Inicialização
 window.onload = () => {
-  log('SISTEMA INICIADO (v4.1)', '#fff');
   sincronizar().then(() => { renderDash(); });
 };
 </script>
