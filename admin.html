@@ -3,197 +3,748 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MARINHA – Painel (v4.0)</title>
+<meta name="theme-color" content="#0a1628">
+<title>MARINHA – Painel (v4.1)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  body { font-family: sans-serif; background: #f4f1ec; padding: 20px; color: #0a1628; }
-  .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-  h2 { margin-top: 0; font-size: 18px; color: #1a4a8a; }
-  .btn { background: #c9a84c; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; }
-  .btn-del { background: #e74c3c; font-size: 12px; padding: 5px 10px; }
-  #log { background: #000; color: #0f0; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px; height: 200px; overflow-y: auto; margin-top: 20px; border: 2px solid #333; }
-  .strip { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; }
-  .thumb { width: 80px; height: 110px; background: #eee; border-radius: 6px; overflow: hidden; position: relative; flex-shrink: 0; border: 1px solid #ddd; }
-  .thumb img { width: 100%; height: 100%; object-fit: cover; }
-  .thumb .del { position: absolute; top: 2px; right: 2px; background: red; color: #fff; border-radius: 50%; width: 18px; height: 18px; text-align: center; line-height: 18px; cursor: pointer; font-size: 12px; }
-  .progress { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin: 10px 0; display: none; }
-  .progress-fill { height: 100%; background: #27ae60; width: 0%; transition: width 0.3s; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#f4f1ec;--mu:#7a8a9a;--gr:#27ae60;--r:#e74c3c;--cr:#f5f0e8}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh}
+
+/* ── PIN ── */
+#ePin{position:fixed;inset:0;z-index:1000;background:linear-gradient(160deg,var(--n),var(--s));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:32px}
+.pT{font-family:'Playfair Display',serif;font-size:36px;color:var(--cr);letter-spacing:6px}
+.pS{color:var(--g);font-size:11px;letter-spacing:3px;text-transform:uppercase}
+.pDots{display:flex;gap:14px;margin:8px 0}
+.pDot{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:transparent;transition:.15s}
+.pDot.on{background:var(--g);border-color:var(--g)}
+.pGrid{display:grid;grid-template-columns:repeat(3,72px);gap:12px}
+.pBtn{height:72px;border:none;border-radius:18px;background:rgba(255,255,255,.1);color:#fff;font-size:24px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:transform .1s,background .1s}
+.pBtn:active{transform:scale(.92);background:rgba(255,255,255,.2)}
+.pErr{color:#ff6b6b;font-size:13px;font-weight:600;min-height:20px;text-align:center}
+
+/* ── APP ── */
+#eApp{display:none;flex-direction:column;min-height:100vh}
+#eApp.v{display:flex}
+.cab{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;background:linear-gradient(135deg,var(--n),var(--s));display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:0 3px 16px rgba(0,0,0,.25)}
+.cabT{color:#fff;font-size:17px;font-weight:700;flex:1}
+.cabS{color:rgba(255,255,255,.45);font-size:10px;letter-spacing:2px;text-transform:uppercase}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#fff;border-top:1px solid rgba(0,0,0,.07);display:flex;height:68px}
+.nBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);font-family:'DM Sans',sans-serif}
+.nBtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+.nBtn.a{color:var(--n)}.nBtn.a svg{stroke:var(--g)}
+.ecra{display:none;padding:72px 0 80px;min-height:100vh}.ecra.a{display:block}
+.s{padding:0 16px}
+.card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(10,22,40,.06);margin-bottom:14px}
+.ct{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+.inp{width:100%;padding:12px 14px;background:#eef2f7;border:1.5px solid rgba(26,74,138,.14);border-radius:12px;font-size:15px;color:var(--n);outline:none;margin-bottom:10px;font-family:'DM Sans',sans-serif;-webkit-appearance:none}
+.inp:focus{border-color:var(--s)}
+.lbl{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:block}
+.bP{width:100%;padding:15px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.bS{width:100%;padding:13px;background:#eef2f7;color:var(--s);border:1.5px solid rgba(26,74,138,.18);border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px}
+.bD{width:100%;padding:13px;background:rgba(231,76,60,.07);color:var(--r);border:1.5px solid rgba(231,76,60,.2);border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.row{display:flex;gap:10px}
+.row>.bS,.row>.bP{flex:1}
+.stat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.sItem{background:#fff;border-radius:14px;padding:14px 8px;text-align:center;box-shadow:0 2px 8px rgba(10,22,40,.06)}
+.sVal{font-size:24px;font-weight:800;color:var(--n)}
+.sLbl{font-size:10px;color:var(--mu);margin-top:2px}
+.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cRow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.06);cursor:pointer}
+.cPts{font-size:18px;font-weight:800;color:var(--n)}.cPtsL{font-size:10px;color:var(--mu);text-align:center}
+
+/* Folheto thumbnails */
+.fThumb{flex-shrink:0;width:90px;height:130px;border-radius:10px;overflow:hidden;cursor:pointer;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative}
+.fThumb img{width:100%;height:100%;object-fit:contain;background:#eef2f7}
+.fThumb .fDel{position:absolute;top:3px;right:3px;width:20px;height:20px;background:rgba(231,76,60,.85);border-radius:50%;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;line-height:1}
+.strip{display:flex;gap:10px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}.strip::-webkit-scrollbar{display:none}
+
+/* Promoções grid */
+.pGrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pCard{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(10,22,40,.07);cursor:pointer}
+.pImg{width:100%;aspect-ratio:3/4;background:#eef2f7;position:relative;overflow:hidden}
+.pImg img{width:100%;height:100%;object-fit:contain;display:block;background:#eef2f7}
+.pImgEmoji{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px}
+.pBdg{position:absolute;top:6px;left:6px;background:var(--r);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px}
+.pBody{padding:10px}.pNome{font-size:13px;font-weight:700;margin-bottom:3px}
+.precos{display:flex;align-items:center;gap:6px}
+.pOrig{font-size:11px;color:var(--mu);text-decoration:line-through}
+.pNovo{font-size:15px;font-weight:800;color:var(--r)}
+
+/* Modais */
+.modal{display:none;position:fixed;inset:0;z-index:500;align-items:flex-end;background:rgba(0,0,0,.45)}
+.modal.a{display:flex}
+.mBox{background:#fff;border-radius:20px 20px 0 0;width:100%;padding:20px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
+.mTit{font-size:18px;font-weight:800;margin-bottom:16px}
+
+/* Preview foto promoção */
+.fotoPrevWrap{width:100%;aspect-ratio:3/4;max-height:200px;border-radius:12px;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:8px;overflow:hidden;position:relative}
+.fotoPrevWrap img{width:100%;height:100%;object-fit:contain;display:block;background:#eef2f7}
+
+/* Upload progress */
+.upBar{height:4px;background:#eef2f7;border-radius:4px;margin-bottom:8px;overflow:hidden;display:none}
+.upBarFill{height:100%;background:var(--g);border-radius:4px;transition:width .3s}
+
+/* Viewer fullscreen */
+.viewer{display:none;position:fixed;inset:0;z-index:800;background:#000;flex-direction:column}
+.viewer.a{display:flex}
+.vTrack{display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1);height:100%;will-change:transform}
+.vSlide{flex-shrink:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.vSlide img{width:100vw;height:100vh;object-fit:contain;display:block;touch-action:pan-y pinch-zoom}
+.vTop{position:absolute;top:0;left:0;right:0;padding:14px;background:linear-gradient(rgba(0,0,0,.6),transparent);display:flex;align-items:center;gap:10px;z-index:10}
+.vBtn{padding:8px 14px;background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px}
+
+/* Scanner */
+.scan-box{background:linear-gradient(160deg,var(--n),var(--s));border-radius:18px;padding:20px;margin-bottom:14px}
+.cWrap{display:none;border-radius:16px;overflow:hidden;margin-bottom:12px}.cWrap.a{display:block}
+#qrVid{width:100%;display:block;max-height:260px;object-fit:cover}
+.qrRes{background:rgba(255,255,255,.1);border-radius:14px;padding:14px;margin-top:10px;display:none}.qrRes.a{display:block}
+.scan-inp{width:100%;padding:12px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;font-size:15px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:8px}
+.scan-inp::placeholder{color:rgba(255,255,255,.4)}
+.sResItem{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;background:rgba(255,255,255,.08);margin-bottom:6px}
+.sAvatar{width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.3);color:var(--g);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* Toast */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--n);color:#fff;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:.2s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+#toast.v{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* LOG PAINEL */
+#logPainel{background:#000;color:#0f0;font-family:monospace;font-size:10px;padding:10px;border-radius:8px;margin-top:10px;max-height:150px;overflow-y:auto;display:none;border:1px solid #333}
 </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>📁 Upload de Folheto (v4.0)</h2>
-  <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Selecione uma ou mais imagens para adicionar ao folheto.</p>
-  
-  <input type="file" id="fileInp" accept="image/*" multiple style="display:none" onchange="iniciarUpload(event)">
-  <button class="btn" onclick="document.getElementById('fileInp').click()">+ ADICIONAR IMAGENS</button>
-  
-  <div class="progress" id="prog"><div class="progress-fill" id="fill"></div></div>
-  <div id="status" style="font-size: 12px; font-weight: bold; text-align: center;"></div>
+<!-- PIN -->
+<div id="ePin">
+  <div class="pT">MARINHA</div>
+  <div class="pS">Painel da Loja</div>
+  <div class="pDots">
+    <div class="pDot" id="d0"></div>
+    <div class="pDot" id="d1"></div>
+    <div class="pDot" id="d2"></div>
+    <div class="pDot" id="d3"></div>
+  </div>
+  <div class="pErr" id="pErr"></div>
+  <div class="pGrid">
+    <button class="pBtn" onclick="pd('1')">1</button>
+    <button class="pBtn" onclick="pd('2')">2</button>
+    <button class="pBtn" onclick="pd('3')">3</button>
+    <button class="pBtn" onclick="pd('4')">4</button>
+    <button class="pBtn" onclick="pd('5')">5</button>
+    <button class="pBtn" onclick="pd('6')">6</button>
+    <button class="pBtn" onclick="pd('7')">7</button>
+    <button class="pBtn" onclick="pd('8')">8</button>
+    <button class="pBtn" onclick="pd('9')">9</button>
+    <button class="pBtn" style="opacity:.3" onclick="pd('')"></button>
+    <button class="pBtn" onclick="pd('0')">0</button>
+    <button class="pBtn" onclick="pa()">⌫</button>
+  </div>
 </div>
 
-<div class="card">
-  <h2>🖼️ Páginas Atuais</h2>
-  <div class="strip" id="listaFolheto">Carregando...</div>
+<!-- APP -->
+<div id="eApp">
+  <div class="cab">
+    <div>
+      <div class="cabT" id="cabNome">MARINHA</div>
+      <div class="cabS">Painel da Loja</div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="ecra a" id="ecraDash">
+    <div class="s">
+      <div style="height:10px"></div>
+      <div class="stat">
+        <div class="sItem"><div class="sVal" id="sDia">0</div><div class="sLbl">Hoje</div></div>
+        <div class="sItem"><div class="sVal" id="sCli">0</div><div class="sLbl">Clientes</div></div>
+        <div class="sItem"><div class="sVal" id="sPro">0</div><div class="sLbl">Promoções</div></div>
+      </div>
+      <div class="card">
+        <div class="ct">Clientes recentes</div>
+        <div id="dRecentes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENTES -->
+  <div class="ecra" id="ecraClientes">
+    <div class="s">
+      <div style="height:10px"></div>
+      <input class="inp" type="search" placeholder="🔍 Pesquisar..." oninput="filtrarCli(this.value)" id="iPesq">
+      <div style="font-size:12px;color:var(--mu);margin-bottom:10px" id="cCont">0 clientes</div>
+      <button class="bP" style="margin-bottom:14px" onclick="abrirNovoCli()">+ Novo Cliente</button>
+      <div id="listaCli"></div>
+    </div>
+  </div>
+
+  <!-- FOLHETO / PROMOS -->
+  <div class="ecra" id="ecraFolheto">
+    <div class="s">
+      <div style="height:10px"></div>
+
+      <!-- PROMOÇÕES -->
+      <div class="card">
+        <div class="ct">Promoções</div>
+        <button class="bP" style="margin-bottom:12px" onclick="abrirNovaPromo()">+ Nova Promoção</button>
+        <div id="listaPromos"></div>
+      </div>
+
+      <!-- FOLHETO -->
+      <div class="card">
+        <div class="ct">Folheto (páginas)</div>
+        <label class="bS" style="text-align:center;cursor:pointer;display:block;margin-bottom:4px">
+          📁 Adicionar imagens ao folheto
+          <input type="file" accept="image/*" multiple onchange="uploadFolhetoV4(event)" style="display:none" id="inputFolheto">
+        </label>
+        <div class="upBar" id="upBarFolheto"><div class="upBarFill" id="upBarFolhetoFill" style="width:0%"></div></div>
+        <div style="font-size:11px;color:var(--mu);margin-bottom:10px" id="folhetoStatus"></div>
+        <div id="logPainel"></div>
+        <div class="strip" id="stripFol" style="margin-top:4px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCANNER -->
+  <div class="ecra" id="ecraScan">
+    <div class="s">
+      <div style="height:10px"></div>
+      <div class="scan-box">
+        <div style="color:rgba(255,255,255,.5);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">Scanner QR</div>
+        <div class="cWrap" id="cWrap">
+          <video id="qrVid" autoplay muted playsinline></video>
+          <div style="color:rgba(255,255,255,.6);font-size:12px;text-align:center;padding:6px" id="sCamStatus"></div>
+        </div>
+        <div id="sPrincipal">
+          <button class="bP" style="margin-bottom:8px" onclick="iniciarCam()">📷 Abrir câmara</button>
+          <label class="bS" style="text-align:center;cursor:pointer;display:block">
+            🖼️ Ler QR de foto
+            <input type="file" accept="image/*" onchange="lerQRFoto(this)" style="display:none">
+          </label>
+        </div>
+        <input class="scan-inp" type="text" placeholder="🔍 Ou pesquisar cliente..." oninput="pesqScan(this.value)" id="iScan">
+        <div id="resScan"></div>
+        <div class="qrRes" id="qrRes">
+          <div style="color:#fff;font-size:16px;font-weight:700" id="qrResTit"></div>
+          <div style="color:rgba(255,255,255,.7);font-size:14px;margin:4px 0" id="qrResNome"></div>
+          <div style="color:var(--g);font-size:13px;margin-bottom:12px" id="qrResSub"></div>
+          <div class="row">
+            <button class="bP" id="qrBtnCompra">💳 Registar compra</button>
+            <button class="bS" onclick="fecharQR()">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="ecra" id="ecraConfig">
+    <div class="s">
+      <div style="height:10px"></div>
+      <div class="card">
+        <div class="ct">Diagnóstico</div>
+        <button class="bP" style="margin-bottom:8px" onclick="testarSincronizacao()">🔍 Verificar sincronização</button>
+        <button class="bS" onclick="location.reload(true)">🔄 Forçar Atualização (Limpar Cache)</button>
+        <div id="corrigirLog" style="font-size:12px;color:var(--mu);line-height:1.8;margin-top:8px"></div>
+      </div>
+      <div class="card">
+        <div class="ct">Configuração</div>
+        <label class="lbl">Nome da loja</label>
+        <input class="inp" id="cfgNome" type="text" placeholder="Nome da loja">
+        <label class="lbl">Pontos por € gasto</label>
+        <input class="inp" id="cfgPtsEuro" type="number" value="10">
+        <label class="lbl">Pontos para 1€ desconto</label>
+        <input class="inp" id="cfgPtsDesc" type="number" value="100">
+        <button class="bP" onclick="guardarCfg()">✅ Guardar</button>
+      </div>
+      <div class="card">
+        <div class="ct">Link App Cliente</div>
+        <div style="font-size:12px;word-break:break-all;color:var(--s);margin-bottom:10px" id="cfgLink"></div>
+        <div class="row">
+          <button class="bS" onclick="copiarLink()">📋 Copiar link</button>
+          <button class="bS" onclick="imprimirQR()">🖨️ Imprimir QR</button>
+        </div>
+        <div style="margin-top:12px;text-align:center">
+          <svg id="qrCfg" width="150" height="150" viewBox="0 0 150 150"></svg>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Dados</div>
+        <button class="bS" onclick="exportar()">📤 Exportar backup</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="nBtn a" id="nDash" onclick="irTab('Dash')">
+      <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio
+    </button>
+    <button class="nBtn" id="nClientes" onclick="irTab('Clientes')">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clientes
+    </button>
+    <button class="nBtn" id="nFolheto" onclick="irTab('Folheto')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Promos
+    </button>
+    <button class="nBtn" id="nScan" onclick="irTab('Scan')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7"/></svg>Scanner
+    </button>
+    <button class="nBtn" id="nConfig" onclick="irTab('Config')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config
+    </button>
+  </nav>
 </div>
 
-<div id="log">
-  <div style="color: #fff; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 5px;">> CONSOLA DE DIAGNÓSTICO (v4.0)</div>
+<!-- MODAL CLIENTE -->
+<div class="modal" id="mCli">
+  <div class="mBox">
+    <div class="mTit" id="mCliTit">Novo Cliente</div>
+    <input type="hidden" id="mCliId">
+    <label class="lbl">Nome *</label>
+    <input class="inp" id="mCliNome" type="text" placeholder="Nome completo">
+    <label class="lbl">Telemóvel *</label>
+    <input class="inp" id="mCliTel" type="tel" placeholder="912 345 678">
+    <label class="lbl">Email</label>
+    <input class="inp" id="mCliEmail" type="email" placeholder="cliente@email.com">
+    <div id="wApagarCli" style="display:none;margin-bottom:12px">
+      <button class="bD" onclick="apagarCli()">🗑️ Apagar Cliente</button>
+    </div>
+    <div class="row">
+      <button class="bS" onclick="fecharModal('mCli')">Cancelar</button>
+      <button class="bP" onclick="guardarCli()">✅ Guardar</button>
+    </div>
+  </div>
 </div>
 
+<!-- MODAL DETALHES CLIENTE -->
+<div class="modal" id="mDet">
+  <div class="mBox">
+    <div id="mDetCont"></div>
+    <div style="height:10px"></div>
+    <button class="bS" style="width:100%" onclick="fecharModal('mDet')">Fechar</button>
+  </div>
+</div>
+
+<!-- MODAL COMPRA -->
+<div class="modal" id="mCompra">
+  <div class="mBox">
+    <div class="mTit">Registar Compra</div>
+    <label class="lbl">Cliente</label>
+    <select class="inp" id="mCompraCli" onchange="updCompra()"></select>
+    <div id="mCompraDesc"></div>
+    <label class="lbl">Valor da Compra (€)</label>
+    <input class="inp" id="mCompraVal" type="number" step="0.01" placeholder="0.00" oninput="calcCompra()">
+    <div id="mCompraPrev" style="font-size:13px;color:var(--g);font-weight:700;margin-bottom:12px;display:none"></div>
+    <div class="row">
+      <button class="bS" onclick="fecharModal('mCompra')">Cancelar</button>
+      <button class="bP" onclick="confirmarCompra()">✅ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RECIBO -->
+<div class="modal" id="mRecibo">
+  <div class="mBox" style="text-align:center">
+    <div style="font-size:48px;margin-bottom:10px">🎉</div>
+    <div class="mTit" id="rNome">Cliente</div>
+    <div style="font-size:20px;font-weight:800;color:var(--gr);margin-bottom:4px" id="rPts">+0 pontos</div>
+    <div style="font-size:14px;color:var(--mu);margin-bottom:10px" id="rTotal">Total: 0 pontos</div>
+    <div id="rDesc" style="font-weight:700;color:var(--r);margin-bottom:16px"></div>
+    <div style="background:#fff;padding:15px;display:inline-block;border-radius:16px;border:1px solid #eee;margin-bottom:20px">
+      <svg id="rQR" width="160" height="160" viewBox="0 0 160 160"></svg>
+    </div>
+    <button class="bP" onclick="fecharModal('mRecibo')">Concluído</button>
+  </div>
+</div>
+
+<!-- MODAL PROMOÇÃO -->
+<div class="modal" id="mPromo">
+  <div class="mBox">
+    <div class="mTit" id="mPromoTit">Nova Promoção</div>
+    <input type="hidden" id="mPromoId">
+    
+    <label class="lbl">Foto do Produto</label>
+    <div class="fotoPrevWrap" onclick="document.getElementById('mPromoFotoInp').click()">
+      <img id="mPromoFotoImg" style="display:none">
+      <div id="mPromoFotoEmoji">🖼️</div>
+    </div>
+    <input type="file" id="mPromoFotoInp" accept="image/*" style="display:none" onchange="prevFotoPromo(event)">
+    <div class="upBar" id="upBarPromo"><div class="upBarFill" id="upBarPromoFill" style="width:0%"></div></div>
+    
+    <label class="lbl">Nome do Produto *</label>
+    <input class="inp" id="mPromoNome" type="text" placeholder="Ex: Detergente Skip">
+    
+    <div class="row">
+      <div style="flex:1">
+        <label class="lbl">Preço Original (€)</label>
+        <input class="inp" id="mPromoOrig" type="number" step="0.01" placeholder="0.00">
+      </div>
+      <div style="flex:1">
+        <label class="lbl">Preço Promo (€)</label>
+        <input class="inp" id="mPromoNovo" type="number" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+
+    <div class="row">
+      <div style="flex:1">
+        <label class="lbl">Início</label>
+        <input class="inp" id="mPromoIni" type="date">
+      </div>
+      <div style="flex:1">
+        <label class="lbl">Fim</label>
+        <input class="inp" id="mPromoFim" type="date">
+      </div>
+    </div>
+
+    <label class="lbl">Emoji (se não houver foto)</label>
+    <input class="inp" id="mPromoEmoji" type="text" placeholder="🛒">
+
+    <div id="wApagarPromo" style="display:none;margin-bottom:12px">
+      <button class="bD" onclick="apagarPromo()">🗑️ Apagar Promoção</button>
+    </div>
+    <div class="row">
+      <button class="bS" onclick="fecharModal('mPromo')">Cancelar</button>
+      <button class="bP" onclick="guardarPromo()">✅ Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEWER FULLSCREEN -->
+<div class="viewer" id="viewer">
+  <div class="vTop">
+    <div id="vCount" style="color:#fff;font-weight:700;flex:1">1 / 1</div>
+    <button class="vBtn" onclick="fecharViewer()">Fechar</button>
+  </div>
+  <div class="vTrack" id="vTrack"></div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
-// --- CONFIGURAÇÃO ---
-const SB_URL = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
-const SB_KEY = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
+// ── CONFIG SUPABASE ──
+const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
+const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
 const BUCKET = 'marinha';
 
-function getHeaders() {
-  return {
-    'apikey': SB_KEY,
-    'Authorization': 'Bearer ' + SB_KEY,
-    'Content-Type': 'application/json'
-  };
+function hd() { return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json' }; }
+
+// ── LOGS ──
+function log(m, color = '#0f0') {
+  var p = document.getElementById('logPainel');
+  if(!p) return;
+  p.style.display = 'block';
+  p.innerHTML += `<div style="color:${color}">> ${m}</div>`;
+  p.scrollTop = p.scrollHeight;
 }
 
-// --- LOGS ---
-function log(msg, color = '#0f0') {
-  const l = document.getElementById('log');
-  const d = new Date().toLocaleTimeString();
-  l.innerHTML += `<div style="color:${color}">[${d}] > ${msg}</div>`;
-  l.scrollTop = l.scrollHeight;
-  console.log(msg);
-}
+// ── DB LOCAL ──
+var DB = { clientes: [], promos: [], folhetos: [], cfg: { nomeLoja: 'MARINHA', ptsEuro: 10, ptsDesc: 100 } };
 
-// --- INICIALIZAÇÃO ---
-window.onload = () => {
-  log('Sistema iniciado. Versão 4.0 ativa.', '#fff');
-  carregarFolheto();
-};
-
-async function carregarFolheto() {
-  log('Buscando páginas do folheto...');
+async function sincronizar() {
   try {
-    const r = await fetch(`${SB_URL}/rest/v1/folhetos?select=*`, { headers: getHeaders() });
-    const data = await r.json();
-    log(`Encontradas ${data.length} páginas.`);
-    renderFolheto(data);
-  } catch (e) {
-    log('Erro ao carregar: ' + e.message, '#f00');
-  }
-}
-
-function renderFolheto(lista) {
-  const el = document.getElementById('listaFolheto');
-  if (lista.length === 0) {
-    el.innerHTML = '<span style="color:#999">Nenhuma página encontrada.</span>';
-    return;
-  }
-  el.innerHTML = lista.map(f => `
-    <div class="thumb">
-      <img src="${f.url}">
-      <div class="del" onclick="apagarPagina(${f.id})">×</div>
-    </div>
-  `).join('');
-}
-
-async function apagarPagina(id) {
-  if (!confirm('Apagar esta página?')) return;
-  log(`Apagando página ID: ${id}...`);
-  try {
-    const r = await fetch(`${SB_URL}/rest/v1/folhetos?id=eq.${id}`, {
-      method: 'DELETE',
-      headers: getHeaders()
-    });
-    if (r.ok) {
-      log('Página apagada com sucesso.');
-      carregarFolheto();
-    } else {
-      log('Erro ao apagar: ' + r.status, '#f00');
+    var [clis, pros, fols, cfgs] = await Promise.all([
+      fetch(SB + '/rest/v1/clientes?select=*', { headers: hd() }).then(r => r.json()),
+      fetch(SB + '/rest/v1/promos?select=*', { headers: hd() }).then(r => r.json()),
+      fetch(SB + '/rest/v1/folhetos?select=*', { headers: hd() }).then(r => r.json()),
+      fetch(SB + '/rest/v1/config?select=*', { headers: hd() }).then(r => r.json())
+    ]);
+    DB.clientes = clis || [];
+    DB.promos = pros || [];
+    DB.folhetos = fols || [];
+    if (cfgs && cfgs.length) {
+      var c = cfgs[0];
+      DB.cfg = { nomeLoja: c.nome_loja || 'MARINHA', ptsEuro: c.pts_euro || 10, ptsDesc: c.pts_desc || 100 };
     }
-  } catch (e) {
-    log('Erro: ' + e.message, '#f00');
-  }
+  } catch(e) { console.error('Erro sincronizar:', e); }
 }
 
-// --- UPLOAD ---
-async function iniciarUpload(e) {
-  const files = Array.from(e.target.files);
-  if (files.length === 0) return;
-
-  log(`Iniciando upload de ${files.length} ficheiro(s)...`, '#fff');
-  document.getElementById('prog').style.display = 'block';
+// ── UPLOAD FOLHETO (V4.1 - INTEGRADO) ──
+async function uploadFolhetoV4(e) {
+  var files = Array.from(e.target.files);
+  if (!files.length) return;
   
-  let sucessos = 0;
+  log('INICIANDO UPLOAD...', '#fff');
+  var bar = document.getElementById('upBarFolheto');
+  var fill = document.getElementById('upBarFolhetoFill');
+  bar.style.display = 'block';
+  fill.style.width = '0%';
+
+  let done = 0;
   for (let i = 0; i < files.length; i++) {
-    const f = files[i];
-    const pct = Math.round(((i) / files.length) * 100);
-    document.getElementById('fill').style.width = pct + '%';
-    document.getElementById('status').textContent = `Enviando ${i+1} de ${files.length}...`;
-
-    log(`Processando: ${f.name}`);
-    
+    let f = files[i];
+    log('Processando: ' + f.name);
     try {
-      // 1. Upload para Storage
-      const ext = f.name.split('.').pop();
-      const fileName = `folheto_${Date.now()}_${i}.${ext}`;
-      const path = `promos/${fileName}`;
+      let blob = await comprimirParaBlob(f, 1800, 0.85);
+      let path = 'promos/folheto_' + Date.now() + '_' + i + '.jpg';
       
-      log(`Enviando para Storage: ${path}...`);
-      const upReq = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
+      log('Enviando para Storage...');
+      let up = await fetch(SB + '/storage/v1/object/' + BUCKET + '/' + path, {
         method: 'POST',
-        headers: {
-          'apikey': SB_KEY,
-          'Authorization': 'Bearer ' + SB_KEY,
-          'x-upsert': 'true'
-        },
-        body: f
+        headers: { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'x-upsert': 'true' },
+        body: blob
       });
 
-      if (!upReq.ok) {
-        const errTxt = await upReq.text();
-        log(`ERRO STORAGE: ${upReq.status} - ${errTxt}`, '#f00');
-        continue;
+      if (up.ok) {
+        let url = SB + '/storage/v1/object/public/' + BUCKET + '/' + path;
+        log('Storage OK! Gravando na tabela...');
+        let db = await fetch(SB + '/rest/v1/folhetos', {
+          method: 'POST',
+          headers: hd(),
+          body: JSON.stringify({ url: url })
+        });
+        if (db.ok) { log('TABELA OK!', '#0f0'); done++; }
       }
-
-      const publicUrl = `${SB_URL}/storage/v1/object/public/${BUCKET}/${path}`;
-      log(`STORAGE OK! URL: ${publicUrl.substring(0, 30)}...`);
-
-      // 2. Gravar na Tabela
-      log('Gravando na tabela folhetos...');
-      const dbReq = await fetch(`${SB_URL}/rest/v1/folhetos`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ url: publicUrl })
-      });
-
-      if (dbReq.ok) {
-        log('TABELA OK! Sucesso.', '#0f0');
-        sucessos++;
-      } else {
-        const dbErr = await dbReq.text();
-        log(`ERRO TABELA: ${dbReq.status} - ${dbErr}`, '#f00');
-        alert('Erro na tabela: ' + dbErr);
-      }
-
-    } catch (err) {
-      log('ERRO CRÍTICO: ' + err.message, '#f00');
-    }
+    } catch(err) { log('ERRO: ' + err.message, '#f00'); }
+    fill.style.width = Math.round(((i + 1) / files.length) * 100) + '%';
   }
-
-  document.getElementById('fill').style.width = '100%';
-  document.getElementById('status').textContent = 'Concluído!';
-  log(`Fim do processo. Sucessos: ${sucessos}`, '#fff');
-  
-  if (sucessos > 0) carregarFolheto();
-  
-  setTimeout(() => {
-    document.getElementById('prog').style.display = 'none';
-    document.getElementById('status').textContent = '';
-  }, 3000);
-  
-  e.target.value = '';
+  if (done > 0) { await sincronizar(); renderFolheto(); log('CONCLUÍDO!', '#0f0'); }
+  setTimeout(() => { bar.style.display = 'none'; }, 3000);
 }
-</script>
 
+// ── UPLOAD FOTO PROMO ──
+async function prevFotoPromo(e) {
+  var f = e.target.files[0];
+  if (!f) return;
+  var bar = document.getElementById('upBarPromo');
+  var fill = document.getElementById('upBarPromoFill');
+  bar.style.display = 'block'; fill.style.width = '30%';
+  
+  try {
+    var blob = await comprimirParaBlob(f, 1200, 0.8);
+    fill.style.width = '60%';
+    var path = 'promos/p_' + Date.now() + '.jpg';
+    var up = await fetch(SB + '/storage/v1/object/' + BUCKET + '/' + path, {
+      method: 'POST',
+      headers: { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'x-upsert': 'true' },
+      body: blob
+    });
+    if (up.ok) {
+      var url = SB + '/storage/v1/object/public/' + BUCKET + '/' + path;
+      document.getElementById('mPromoFotoImg').src = url;
+      document.getElementById('mPromoFotoImg').style.display = 'block';
+      document.getElementById('mPromoFotoEmoji').style.display = 'none';
+      fill.style.width = '100%';
+      toast('✅ Foto carregada');
+    }
+  } catch(err) { toast('❌ Erro no upload'); }
+  setTimeout(() => { bar.style.display = 'none'; }, 1000);
+}
+
+// ── COMPRESSÃO ──
+function comprimirParaBlob(file, maxDim, qualidade) {
+  return new Promise((resolve) => {
+    var reader = new FileReader();
+    reader.onload = (ev) => {
+      var img = new Image();
+      img.onload = () => {
+        var w = img.width, h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+          else { w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        var cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        cv.toBlob((blob) => resolve(blob), 'image/jpeg', qualidade);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── PIN ──
+var _pin = '', _pinOk = '1234';
+function pd(d) {
+  if (!d || _pin.length >= 4) return;
+  _pin += d;
+  for (var i = 0; i < 4; i++) document.getElementById('d' + i).classList.toggle('on', i < _pin.length);
+  if (_pin.length === 4) {
+    setTimeout(() => {
+      if (_pin === _pinOk) {
+        document.getElementById('ePin').style.display = 'none';
+        document.getElementById('eApp').classList.add('v');
+        irTab('Dash');
+      } else { _pin = ''; for (var i = 0; i < 4; i++) document.getElementById('d' + i).classList.remove('on'); }
+    }, 200);
+  }
+}
+function pa() { _pin = _pin.slice(0, -1); for (var i = 0; i < 4; i++) document.getElementById('d' + i).classList.toggle('on', i < _pin.length); }
+
+// ── NAVEGAÇÃO ──
+function irTab(tab) {
+  document.querySelectorAll('.ecra').forEach(e => e.classList.remove('a'));
+  document.querySelectorAll('.nBtn').forEach(e => e.classList.remove('a'));
+  document.getElementById('ecra' + tab).classList.add('a');
+  document.getElementById('n' + tab).classList.add('a');
+  if (tab === 'Dash') renderDash();
+  if (tab === 'Clientes') renderCli('');
+  if (tab === 'Folheto') { renderPromos(); renderFolheto(); }
+}
+
+// ── RENDERS ──
+function renderDash() {
+  document.getElementById('cabNome').textContent = DB.cfg.nomeLoja;
+  document.getElementById('sDia').textContent = DB.clientes.filter(c => (c.historico || []).some(x => x.data.slice(0,10) === hoje())).length;
+  document.getElementById('sCli').textContent = DB.clientes.length;
+  document.getElementById('sPro').textContent = DB.promos.length;
+  var rec = DB.clientes.slice(-6).reverse();
+  document.getElementById('dRecentes').innerHTML = rec.map(c => `<div class="cRow" onclick="verCli('${c.id}')"><div class="avatar">${c.nome[0]}</div><div style="flex:1"><b>${c.nome}</b><br><small>Nº ${c.num_cliente}</small></div><div>${c.pts} pts</div></div>`).join('');
+}
+
+function renderFolheto() {
+  var el = document.getElementById('stripFol');
+  el.innerHTML = DB.folhetos.map((f, i) => `<div class="fThumb" onclick="abrirViewer(${i})"><img src="${f.url}"><div class="fDel" onclick="event.stopPropagation();apagarFolheto(${f.id})">×</div></div>`).join('');
+}
+
+async function apagarFolheto(id) {
+  if (!confirm('Remover página?')) return;
+  await fetch(SB + '/rest/v1/folhetos?id=eq.' + id, { method: 'DELETE', headers: hd() });
+  await sincronizar(); renderFolheto();
+}
+
+function renderPromos() {
+  var el = document.getElementById('listaPromos');
+  el.innerHTML = '<div class="pGrid2">' + DB.promos.map(p => `<div class="pCard" onclick="editarPromo('${p.id}')"><div class="pImg">${p.foto ? `<img src="${p.foto}">` : `<div class="pImgEmoji">${p.emoji||'🛒'}</div>`}</div><div class="pBody"><b>${p.nome}</b><br><span class="pNovo">${p.preco_novo}€</span></div></div>`).join('') + '</div>';
+}
+
+// ── CLIENTES ──
+function renderCli(f) {
+  var lista = DB.clientes.filter(c => c.nome.toLowerCase().includes(f.toLowerCase()) || c.tel.includes(f));
+  document.getElementById('cCont').textContent = lista.length + ' clientes';
+  document.getElementById('listaCli').innerHTML = lista.map(c => `<div class="cRow" onclick="verCli('${c.id}')"><div class="avatar">${c.nome[0]}</div><div style="flex:1"><b>${c.nome}</b><br><small>${c.tel}</small></div><div style="text-align:right"><div class="cPts">${c.pts}</div><div class="cPtsL">PONTOS</div></div></div>`).join('');
+}
+function filtrarCli(v) { renderCli(v); }
+function abrirNovoCli() {
+  document.getElementById('mCliTit').textContent = 'Novo Cliente';
+  document.getElementById('mCliId').value = '';
+  document.getElementById('mCliNome').value = '';
+  document.getElementById('mCliTel').value = '';
+  document.getElementById('mCliEmail').value = '';
+  document.getElementById('wApagarCli').style.display = 'none';
+  document.getElementById('mCli').classList.add('a');
+}
+async function guardarCli() {
+  var id = document.getElementById('mCliId').value;
+  var d = {
+    nome: document.getElementById('mCliNome').value,
+    tel: document.getElementById('mCliTel').value,
+    email: document.getElementById('mCliEmail').value
+  };
+  if (!d.nome || !d.tel) return alert('Nome e Telemóvel obrigatórios');
+  if (!id) { d.id = uid(); d.num_cliente = (DB.clientes.length + 1001); d.pts = 0; d.historico = []; }
+  
+  var headers = hd();
+  if (id) headers['Prefer'] = 'resolution=merge-duplicates';
+  await fetch(SB + '/rest/v1/clientes', { method: 'POST', headers: headers, body: JSON.stringify(id ? Object.assign(d, {id:id}) : d) });
+  fecharModal('mCli'); await sincronizar(); renderCli(''); toast('✅ Guardado');
+}
+
+// ── PROMOS ──
+function abrirNovaPromo() {
+  document.getElementById('mPromoTit').textContent = 'Nova Promoção';
+  document.getElementById('mPromoId').value = '';
+  document.getElementById('mPromoNome').value = '';
+  document.getElementById('mPromoOrig').value = '';
+  document.getElementById('mPromoNovo').value = '';
+  document.getElementById('mPromoEmoji').value = '🛒';
+  document.getElementById('mPromoFotoImg').src = '';
+  document.getElementById('mPromoFotoImg').style.display = 'none';
+  document.getElementById('mPromoFotoEmoji').style.display = 'block';
+  document.getElementById('wApagarPromo').style.display = 'none';
+  document.getElementById('mPromo').classList.add('a');
+}
+function editarPromo(id) {
+  var p = DB.promos.find(x => x.id === id);
+  document.getElementById('mPromoTit').textContent = 'Editar Promoção';
+  document.getElementById('mPromoId').value = p.id;
+  document.getElementById('mPromoNome').value = p.nome;
+  document.getElementById('mPromoOrig').value = p.preco_orig;
+  document.getElementById('mPromoNovo').value = p.preco_novo;
+  document.getElementById('mPromoEmoji').value = p.emoji || '🛒';
+  if (p.foto) {
+    document.getElementById('mPromoFotoImg').src = p.foto;
+    document.getElementById('mPromoFotoImg').style.display = 'block';
+    document.getElementById('mPromoFotoEmoji').style.display = 'none';
+  } else {
+    document.getElementById('mPromoFotoImg').style.display = 'none';
+    document.getElementById('mPromoFotoEmoji').style.display = 'block';
+  }
+  document.getElementById('wApagarPromo').style.display = 'block';
+  document.getElementById('mPromo').classList.add('a');
+}
+async function guardarPromo() {
+  var id = document.getElementById('mPromoId').value;
+  var d = {
+    nome: document.getElementById('mPromoNome').value,
+    preco_orig: parseFloat(document.getElementById('mPromoOrig').value),
+    preco_novo: parseFloat(document.getElementById('mPromoNovo').value),
+    emoji: document.getElementById('mPromoEmoji').value,
+    foto: document.getElementById('mPromoFotoImg').src || null,
+    data_inicio: document.getElementById('mPromoIni').value,
+    data_fim: document.getElementById('mPromoFim').value
+  };
+  if (!d.nome) return alert('Nome obrigatório');
+  if (!id) d.id = uid();
+  
+  var headers = hd();
+  if (id) headers['Prefer'] = 'resolution=merge-duplicates';
+  await fetch(SB + '/rest/v1/promos', { method: 'POST', headers: headers, body: JSON.stringify(id ? Object.assign(d, {id:id}) : d) });
+  fecharModal('mPromo'); await sincronizar(); renderPromos(); toast('✅ Promoção guardada');
+}
+
+// ── SCANNER ──
+var _stream = null;
+async function iniciarCam() {
+  try {
+    _stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    document.getElementById('qrVid').srcObject = _stream;
+    document.getElementById('cWrap').classList.add('a');
+    document.getElementById('sPrincipal').style.display = 'none';
+    requestAnimationFrame(scanLoop);
+  } catch(e) { alert('Erro ao abrir câmara'); }
+}
+function scanLoop() {
+  var v = document.getElementById('qrVid');
+  if (v.readyState === v.HAVE_ENOUGH_DATA) {
+    var cv = document.createElement('canvas');
+    cv.width = v.videoWidth; cv.height = v.videoHeight;
+    var ctx = cv.getContext('2d');
+    ctx.drawImage(v, 0, 0, cv.width, cv.height);
+    var img = ctx.getImageData(0, 0, cv.width, cv.height);
+    var code = jsQR(img.data, img.width, img.height);
+    if (code) { pararCam(); processarQR(code.data); return; }
+  }
+  if (_stream) requestAnimationFrame(scanLoop);
+}
+function pararCam() { if(_stream) _stream.getTracks().forEach(t => t.stop()); _stream = null; document.getElementById('cWrap').classList.remove('a'); document.getElementById('sPrincipal').style.display = 'block'; }
+function processarQR(data) {
+  var c = DB.clientes.find(x => x.id === data);
+  if (c) verCli(c.id); else toast('❌ QR Inválido');
+}
+
+// ── UTILS ──
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function hoje() { return new Date().toISOString().slice(0, 10); }
+function fecharModal(id) { document.getElementById(id).classList.remove('a'); }
+function toast(msg) { var el = document.getElementById('toast'); el.textContent = msg; el.classList.add('v'); setTimeout(() => el.classList.remove('v'), 2500); }
+
+// Viewer
+var _vIdx = 0;
+function abrirViewer(i) { _vIdx = i; updViewer(); document.getElementById('viewer').classList.add('a'); }
+function fecharViewer() { document.getElementById('viewer').classList.remove('a'); }
+function updViewer() {
+  var tr = document.getElementById('vTrack');
+  tr.style.width = (DB.folhetos.length * 100) + 'vw';
+  tr.innerHTML = DB.folhetos.map(f => `<div class="vSlide"><img src="${f.url}"></div>`).join('');
+  tr.style.transform = `translateX(-${_vIdx * 100}vw)`;
+  document.getElementById('vCount').textContent = (_vIdx + 1) + ' / ' + DB.folhetos.length;
+}
+
+// Inicialização
+window.onload = () => {
+  log('SISTEMA INICIADO (v4.1)', '#fff');
+  sincronizar().then(() => { renderDash(); });
+};
+</script>
 </body>
 </html>
