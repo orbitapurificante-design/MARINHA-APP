@@ -909,23 +909,36 @@ async function addFolheto(e) {
     fill.style.width = Math.round((i / total) * 100) + '%';
 
     try {
+      console.log('1. Comprimindo imagem...');
       var blob = await comprimirParaBlob(f, 1800, 0.85);
       var fuid = uid();
       var path = 'promos/folheto_' + fuid + '.jpg';
+      
+      console.log('2. Enviando para Storage (pasta promos)...');
       var url = await sbStorageUp(path, blob, 'image/jpeg');
+      
       if (url) {
+        console.log('3. Storage OK! URL: ' + url);
+        alert('Passo 1 OK: Imagem guardada no Storage.\nAgora vou tentar gravar na tabela "folhetos"...');
+        
         // Enviar apenas a URL. O Supabase gera o ID (int4) automaticamente.
-        // Importante: Não enviamos NOME nem ADICIONADO se a tabela não tiver essas colunas.
+        console.log('4. Enviando para tabela folhetos...');
         var ok = await sbUp('folhetos', { url: url });
+        
         if (ok) {
+          console.log('5. Tabela OK!');
+          alert('Passo 2 OK: Gravado na tabela "folhetos" com sucesso!');
           done++;
         } else {
-          alert('O upload da imagem para o Storage funcionou, mas a gravação na tabela "folhetos" falhou.\n\nURL da imagem: ' + url);
+          console.error('Falha ao inserir na tabela folhetos');
+          alert('ERRO: A imagem foi para o Storage, mas a tabela "folhetos" REJEITOU os dados.\nVerifique se a tabela tem a coluna "url" (texto).');
         }
+      } else {
+        alert('ERRO: Falha ao enviar imagem para o Storage.');
       }
     } catch(err) { 
-      console.error('Erro no processo de upload do folheto:', err);
-      alert('Erro no upload: ' + err.message);
+      console.error('Erro geral:', err);
+      alert('ERRO GERAL: ' + err.message);
     }
   }
 
