@@ -44,7 +44,7 @@
         .section-title{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;display:block}
         .pGrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
         .pCard{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(10,22,40,.07)}
-        .pImgW{width:100%;aspect-ratio:3/4;background:#eef2f7;position:relative;overflow:hidden}
+        .pImgW{width:100%;aspect-ratio:3/4;background:#eef2f7;position:relative;overflow:hidden;cursor:pointer}
         .pImgW img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;display:block;background:#eef2f7}
         .pImgW .pEmoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px}
         .pBdg{position:absolute;top:6px;left:6px;background:var(--r);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;z-index:1}
@@ -55,18 +55,25 @@
         .pNovo{font-size:15px;font-weight:800;color:var(--r)}
         .pData{font-size:10px;color:var(--mu);margin-top:3px}
 
-        /* FOLHETOS FULLSCREEN VIEWER */
-        #ecraFolhetos{padding:0;background:#000;overflow:hidden}
+        /* FULLSCREEN VIEWER (Folhetos e Promos) */
+        .viewer{display:none;position:fixed;inset:0;z-index:1000;background:#000;flex-direction:column}
+        .viewer.a{display:flex}
         .vTrack{display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1);height:100vh;will-change:transform}
-        .vSlide{flex-shrink:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+        .vSlide{flex-shrink:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
         .vSlide img{width:100vw;height:100vh;object-fit:contain;display:block;touch-action:pan-y pinch-zoom}
-        .vHud{position:fixed;top:72px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;z-index:110;pointer-events:none}
+        .vHud{position:fixed;top:72px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;z-index:1100;pointer-events:none}
         .vCount{background:rgba(0,0,0,0.5);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;backdrop-filter:blur(4px)}
-        .vDots{position:fixed;bottom:84px;left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:110;pointer-events:none}
+        .vClose{background:rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;backdrop-filter:blur(4px);pointer-events:auto;cursor:pointer;border:none}
+        .vDots{position:fixed;bottom:84px;left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:1100;pointer-events:none}
         .vDot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);transition:0.2s}
         .vDot.a{background:var(--g);transform:scale(1.3)}
+        
+        /* Legenda na Promoção Fullscreen */
+        .vLegenda{position:absolute;bottom:120px;left:20px;right:20px;background:rgba(0,0,0,0.6);color:#fff;padding:16px;border-radius:16px;backdrop-filter:blur(8px);z-index:1100}
+        .vLegenda .pNome{font-size:16px;margin-bottom:6px}
+        .vLegenda .pNovo{font-size:20px}
 
-        /* QR */
+        /* CARTÃO QR */
         .qrHero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:32px 20px;color:#fff;text-align:center}
 
         /* TOAST */
@@ -113,13 +120,9 @@
         </div>
     </div>
 
-    <!-- FOLHETOS (Fullscreen Viewer) -->
+    <!-- FOLHETOS -->
     <div class="ecra" id="ecraFolhetos">
-        <div class="vHud">
-            <div class="vCount" id="vCount">0 / 0</div>
-        </div>
-        <div class="vTrack" id="vTrack"></div>
-        <div class="vDots" id="vDots"></div>
+        <!-- O conteúdo será gerado dinamicamente no viewer -->
     </div>
 
     <!-- CARTÃO QR -->
@@ -158,13 +161,27 @@
     </nav>
 </div>
 
+<!-- VIEWER FULLSCREEN (Único para Folhetos e Promos) -->
+<div class="viewer" id="viewer">
+    <div class="vHud">
+        <div class="vCount" id="vCount">0 / 0</div>
+        <button class="vClose" onclick="fecharViewer()">Fechar</button>
+    </div>
+    <div class="vTrack" id="vTrack"></div>
+    <div class="vDots" id="vDots"></div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
 const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
 let USER = null;
-let _fIdx = 0, _fSlides = [], _fTx = 0;
+let PROMOS_ATIVAS = [];
+let FOLHETOS_LISTA = [];
+
+// Estado do Viewer
+let _vIdx = 0, _vSlides = [], _vTx = 0, _vTipo = ''; // 'folheto' ou 'promo'
 
 function hd(){ return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json' }; }
 
@@ -226,8 +243,9 @@ function ir(tab) {
     var btn = document.getElementById('n' + tab);
     if(ecra) ecra.classList.add('a');
     if(btn) btn.classList.add('a');
+    
     if(tab === 'Inicio') renderInicio();
-    if(tab === 'Folhetos') renderFolhetos();
+    if(tab === 'Folhetos') abrirFolhetosFullscreen();
     if(tab === 'QR') renderQR();
     window.scrollTo(0, 0);
 }
@@ -242,18 +260,18 @@ async function renderInicio() {
 
     const h = hoje();
     const promos = await api('promos?order=id.desc');
-    const activas = promos.filter(function(p){
+    PROMOS_ATIVAS = promos.filter(function(p){
         var ok1 = !p.data_ini || p.data_ini === '' || p.data_ini <= h;
         var ok2 = !p.data_fim || p.data_fim === '' || p.data_fim >= h;
         return ok1 && ok2;
     });
 
     const list = document.getElementById('listPromos');
-    if(!activas.length) {
+    if(!PROMOS_ATIVAS.length) {
         list.innerHTML = '<p style="color:var(--mu);text-align:center;padding:20px">Nenhuma promoção ativa.</p>';
         return;
     }
-    list.innerHTML = '<div class="pGrid2">' + activas.map(function(p) {
+    list.innerHTML = '<div class="pGrid2">' + PROMOS_ATIVAS.map(function(p, idx) {
         var po = parseFloat(p.preco_orig) || 0;
         var pn = parseFloat(p.preco_novo) || 0;
         var pct = (po > 0 && pn > 0) ? Math.round((1 - pn/po) * 100) : 0;
@@ -263,7 +281,7 @@ async function renderInicio() {
             : '<div class="pEmoji">' + (p.emoji || '🛒') + '</div>';
         var dataFimHtml = p.data_fim ? '<div class="pData">Válido até ' + fd(p.data_fim) + '</div>' : '';
         return '<div class="pCard">' +
-            '<div class="pImgW">' +
+            '<div class="pImgW" onclick="abrirPromosFullscreen(' + idx + ')">' +
                 imgHtml +
                 (pct > 0 ? '<div class="pBdg">-' + pct + '%</div>' : '') +
             '</div>' +
@@ -279,42 +297,84 @@ async function renderInicio() {
     }).join('') + '</div>';
 }
 
-async function renderFolhetos() {
+// --- VIEWER LOGIC ---
+
+async function abrirFolhetosFullscreen() {
     const folhetos = await api('folhetos?order=adicionado.asc');
-    const track = document.getElementById('vTrack');
-    const dots = document.getElementById('vDots');
-    
     if(!folhetos || !folhetos.length) {
-        track.innerHTML = '<div class="vSlide"><p style="color:#fff">Sem folhetos de momento.</p></div>';
+        toast('Sem folhetos disponíveis');
+        ir('Inicio');
         return;
     }
+    _vSlides = folhetos.map(f => ({ src: f.url || f.data }));
+    _vTipo = 'folheto';
+    _vIdx = 0;
+    mostrarViewer();
+}
+
+function abrirPromosFullscreen(idx) {
+    if(!PROMOS_ATIVAS.length) return;
+    _vSlides = PROMOS_ATIVAS.map(p => ({
+        src: p.foto,
+        emoji: p.emoji,
+        nome: p.nome,
+        preco: p.preco_novo,
+        orig: p.preco_orig
+    }));
+    _vTipo = 'promo';
+    _vIdx = idx;
+    mostrarViewer();
+}
+
+function mostrarViewer() {
+    const track = document.getElementById('vTrack');
+    const dots = document.getElementById('vDots');
+    const viewer = document.getElementById('viewer');
     
-    _fSlides = folhetos.map(f => f.url || f.data).filter(src => src);
-    _fIdx = 0;
+    track.style.width = (_vSlides.length * 100) + 'vw';
+    track.innerHTML = _vSlides.map(s => {
+        let content = s.src 
+            ? `<img src="${s.src}" loading="lazy">` 
+            : `<div style="font-size:80px">${s.emoji || '🛒'}</div>`;
+        
+        let legenda = (_vTipo === 'promo') ? `
+            <div class="vLegenda">
+                <div class="pNome">${s.nome}</div>
+                <div class="precos">
+                    <span class="pNovo">${parseFloat(s.preco).toFixed(2)}€</span>
+                    ${s.orig ? `<span class="pOrig" style="color:rgba(255,255,255,0.5)">${parseFloat(s.orig).toFixed(2)}€</span>` : ''}
+                </div>
+            </div>` : '';
+            
+        return `<div class="vSlide">${content}${legenda}</div>`;
+    }).join('');
     
-    track.style.width = (_fSlides.length * 100) + 'vw';
-    track.innerHTML = _fSlides.map(src => `<div class="vSlide"><img src="${src}" loading="lazy"></div>`).join('');
+    dots.innerHTML = _vSlides.map((_, i) => `<div class="vDot ${i===_vIdx?'a':''}" id="vDot${i}"></div>`).join('');
     
-    dots.innerHTML = _fSlides.map((_, i) => `<div class="vDot ${i===0?'a':''}" id="fDot${i}"></div>`).join('');
+    updViewer();
+    viewer.classList.add('a');
     
-    updFolheto();
-    
-    track.ontouchstart = e => { _fTx = e.touches[0].clientX; };
+    track.ontouchstart = e => { _vTx = e.touches[0].clientX; };
     track.ontouchend = e => {
-        let dx = e.changedTouches[0].clientX - _fTx;
-        if(Math.abs(dx) > 40) navFolheto(dx < 0 ? 1 : -1);
+        let dx = e.changedTouches[0].clientX - _vTx;
+        if(Math.abs(dx) > 40) navViewer(dx < 0 ? 1 : -1);
     };
 }
 
-function navFolheto(d) {
-    _fIdx = Math.max(0, Math.min(_fSlides.length - 1, _fIdx + d));
-    updFolheto();
+function navViewer(d) {
+    _vIdx = Math.max(0, Math.min(_vSlides.length - 1, _vIdx + d));
+    updViewer();
 }
 
-function updFolheto() {
-    document.getElementById('vTrack').style.transform = `translateX(-${_fIdx * 100}vw)`;
-    document.getElementById('vCount').textContent = `${_fIdx + 1} / ${_fSlides.length}`;
-    document.querySelectorAll('.vDot').forEach((d, i) => d.classList.toggle('a', i === _fIdx));
+function updViewer() {
+    document.getElementById('vTrack').style.transform = `translateX(-${_vIdx * 100}vw)`;
+    document.getElementById('vCount').textContent = `${_vIdx + 1} / ${_vSlides.length}`;
+    document.querySelectorAll('.vDot').forEach((d, i) => d.classList.toggle('a', i === _vIdx));
+}
+
+function fecharViewer() {
+    document.getElementById('viewer').classList.remove('a');
+    if(_vTipo === 'folheto') ir('Inicio');
 }
 
 function renderQR() {
