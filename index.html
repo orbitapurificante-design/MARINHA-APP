@@ -48,19 +48,19 @@
         .pImgW img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;display:block;background:#eef2f7}
         .pImgW .pEmoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px}
         .pBdg{position:absolute;top:8px;left:8px;background:var(--r);color:#fff;font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;z-index:1;box-shadow:0 2px 6px rgba(0,0,0,0.2)}
+        .pValidade{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;z-index:1;backdrop-filter:blur(4px)}
         .pBody{padding:12px}
         .pNome{font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.2;color:var(--n)}
         .precos{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
         .pOrig{font-size:12px;color:var(--mu);text-decoration:line-through}
         .pNovo{font-size:16px;font-weight:800;color:var(--r)}
-        .pData{font-size:10px;color:var(--mu);margin-top:4px}
 
         /* FULLSCREEN VIEWER */
         .viewer{display:none;position:fixed;inset:0;z-index:1000;background:#000;flex-direction:column}
         .viewer.a{display:flex}
         .vTrack{display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1);height:100vh;will-change:transform}
         .vSlide{flex-shrink:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
-        .vSlide img{width:100vw;height:100vh;object-fit:contain;display:block;touch-action:pan-y pinch-zoom;margin-top:-40px} /* Sobe a foto para tirar espaço morto */
+        .vSlide img{width:100vw;height:100vh;object-fit:contain;display:block;touch-action:pan-y pinch-zoom;margin-top:-40px}
         .vHud{position:fixed;top:40px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;z-index:1100;pointer-events:none}
         .vCount{background:rgba(0,0,0,0.5);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;backdrop-filter:blur(4px)}
         .vClose{background:rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;backdrop-filter:blur(4px);pointer-events:auto;cursor:pointer;border:none}
@@ -69,13 +69,15 @@
         .vDot.a{background:var(--g);transform:scale(1.3)}
         
         /* Legenda na Promoção Fullscreen */
-        .vLegenda{position:absolute;bottom:110px;left:16px;right:16px;background:rgba(0,0,0,0.75);color:#fff;padding:18px;border-radius:20px;backdrop-filter:blur(10px);z-index:1100;border:1px solid rgba(255,255,255,0.1)}
+        .vLegenda{position:absolute;bottom:110px;left:16px;right:16px;background:rgba(0,0,0,0.45);color:#fff;padding:16px;border-radius:20px;backdrop-filter:blur(10px);z-index:1100;border:1px solid rgba(255,255,255,0.1)}
         .vLegenda .pNome{font-size:18px;font-weight:800;margin-bottom:8px;color:#fff}
-        .vLegenda .precos{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+        .vLegenda .precos{display:flex;align-items:center;gap:12px;margin-bottom:0}
         .vLegenda .pNovo{font-size:24px;font-weight:800;color:#fff}
         .vLegenda .pOrig{font-size:16px;text-decoration:line-through;opacity:0.5}
-        .vLegenda .pBdg{position:static;background:var(--r);color:#fff;font-size:13px;font-weight:800;padding:4px 10px;border-radius:8px;box-shadow:none}
-        .vLegenda .pData{font-size:12px;opacity:0.7;margin-top:8px;display:block}
+        
+        /* Badges no Fullscreen */
+        .vBdg{position:absolute;top:100px;left:16px;background:var(--r);color:#fff;font-size:13px;font-weight:800;padding:4px 10px;border-radius:8px;z-index:1100;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+        .vValidade{position:absolute;top:100px;right:16px;background:rgba(0,0,0,0.5);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;z-index:1100;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.1)}
 
         /* CARTÃO QR */
         .qrHero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:32px 20px;color:#fff;text-align:center}
@@ -127,7 +129,7 @@
         </div>
     </div>
 
-    <!-- FOLHETOS (Vazio, pois abre fullscreen) -->
+    <!-- FOLHETOS -->
     <div class="ecra" id="ecraFolhetos"></div>
 
     <!-- QR -->
@@ -280,11 +282,12 @@ async function renderInicio() {
         var imgHtml = fotoSrc
             ? '<img src="' + fotoSrc + '" onerror="this.style.display=\'none\'">'
             : '<div class="pEmoji">' + (p.emoji || '🛒') + '</div>';
-        var dataFimHtml = p.data_fim ? '<div class="pData">Válido até ' + fd(p.data_fim) + '</div>' : '';
+        var valHtml = p.data_fim ? '<div class="pValidade">Até ' + fd(p.data_fim) + '</div>' : '';
         return '<div class="pCard">' +
             '<div class="pImgW" onclick="abrirPromosFullscreen(' + idx + ')">' +
                 imgHtml +
                 (pct > 0 ? '<div class="pBdg">-' + pct + '%</div>' : '') +
+                valHtml +
             '</div>' +
             '<div class="pBody">' +
                 '<div class="pNome">' + p.nome + '</div>' +
@@ -292,7 +295,6 @@ async function renderInicio() {
                     (pn > 0 ? '<span class="pNovo">' + pn.toFixed(2) + '€</span>' : '') +
                     (po > 0 ? '<span class="pOrig">' + po.toFixed(2) + '€</span>' : '') +
                 '</div>' +
-                dataFimHtml +
             '</div>' +
         '</div>';
     }).join('') + '</div>';
@@ -345,21 +347,21 @@ function mostrarViewer() {
             ? `<img src="${s.src}" loading="lazy">` 
             : `<div style="font-size:80px">${s.emoji || '🛒'}</div>`;
         
-        let legenda = '';
+        let overlays = '';
         if (_vTipo === 'promo') {
-            legenda = `
+            overlays = `
+                ${s.pct > 0 ? `<div class="vBdg">-${s.pct}%</div>` : ''}
+                ${s.fim ? `<div class="vValidade">📅 Válido até ${fd(s.fim)}</div>` : ''}
                 <div class="vLegenda">
                     <div class="pNome">${s.nome}</div>
                     <div class="precos">
                         <span class="pNovo">${s.preco.toFixed(2)}€</span>
                         ${s.orig > 0 ? `<span class="pOrig">${s.orig.toFixed(2)}€</span>` : ''}
-                        ${s.pct > 0 ? `<span class="pBdg">-${s.pct}%</span>` : ''}
                     </div>
-                    ${s.fim ? `<span class="pData">📅 Válido até ${fd(s.fim)}</span>` : ''}
                 </div>
             `;
         }
-        return `<div class="vSlide">${content}${legenda}</div>`;
+        return `<div class="vSlide">${content}${overlays}</div>`;
     }).join('');
 
     dots.innerHTML = _vSlides.map((_, i) => `<div class="vDot ${i===_vIdx?'a':''}"></div>`).join('');
