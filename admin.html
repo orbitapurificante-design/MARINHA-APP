@@ -909,41 +909,40 @@ async function addFolheto(e) {
     fill.style.width = Math.round((i / total) * 100) + '%';
 
     try {
-      console.log('1. Comprimindo imagem...');
+      // 1. Comprimir
       var blob = await comprimirParaBlob(f, 1800, 0.85);
       var fuid = uid();
       var path = 'promos/folheto_' + fuid + '.jpg';
       
-      console.log('2. Enviando para Storage (pasta promos)...');
+      // 2. Storage
       var url = await sbStorageUp(path, blob, 'image/jpeg');
       
       if (url) {
-        console.log('3. Storage OK! URL: ' + url);
-        alert('Passo 1 OK: Imagem guardada no Storage.\nAgora vou tentar gravar na tabela "folhetos"...');
-        
-        // Enviar apenas a URL. O Supabase gera o ID (int4) automaticamente.
-        console.log('4. Enviando para tabela folhetos...');
-        var ok = await sbUp('folhetos', { url: url });
-        
-        if (ok) {
-          console.log('5. Tabela OK!');
-          alert('Passo 2 OK: Gravado na tabela "folhetos" com sucesso!');
+        // 3. Tabela
+        // Usamos fetch direto para evitar qualquer lógica da sbUp que possa estar a falhar
+        var body = JSON.stringify({ url: url });
+        var r = await fetch(SB + '/rest/v1/folhetos', {
+          method: 'POST',
+          headers: hd(),
+          body: body
+        });
+
+        if (r.ok) {
+          alert('SUCESSO: Imagem ' + (i+1) + ' gravada na tabela folhetos!');
           done++;
         } else {
-          console.error('Falha ao inserir na tabela folhetos');
-          alert('ERRO: A imagem foi para o Storage, mas a tabela "folhetos" REJEITOU os dados.\nVerifique se a tabela tem a coluna "url" (texto).');
+          var txt = await r.text();
+          alert('ERRO NA TABELA (Status ' + r.status + '):\n' + txt + '\n\nURL tentada: ' + url);
         }
       } else {
-        alert('ERRO: Falha ao enviar imagem para o Storage.');
+        alert('ERRO NO STORAGE: A imagem não foi carregada.');
       }
     } catch(err) { 
-      console.error('Erro geral:', err);
       alert('ERRO GERAL: ' + err.message);
     }
   }
 
   if (done > 0) await sincronizar();
-
   fill.style.width = '100%';
   setTimeout(function() { bar.style.display = 'none'; }, 800);
   renderFolheto();
