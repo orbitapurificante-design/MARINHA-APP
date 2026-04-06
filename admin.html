@@ -443,7 +443,9 @@ async function sbUp(t, d) {
     if (!r.ok) {
       var txt = await r.text();
       console.error('sbUp ERRO', t, r.status, txt);
-      toast('⚠️ Supabase erro (' + r.status + '): ' + txt.slice(0, 80), 5000);
+      // Mostrar erro detalhado no ecrã para diagnóstico
+      alert('ERRO SUPABASE (' + t + '):\nStatus: ' + r.status + '\nResposta: ' + txt);
+      toast('⚠️ Erro ao gravar no Supabase', 5000);
       return false;
     }
     return true;
@@ -909,11 +911,17 @@ async function addFolheto(e) {
       var url = await sbStorageUp(path, blob, 'image/jpeg');
       if (url) {
         // Enviar apenas a URL. O Supabase gera o ID (int4) automaticamente.
-        // NÃO enviamos ID aqui para evitar erro de tipo (string vs int4)
+        // Importante: Não enviamos NOME nem ADICIONADO se a tabela não tiver essas colunas.
         var ok = await sbUp('folhetos', { url: url });
         if (ok) done++;
+        else {
+           console.error('Falha ao inserir na tabela folhetos para a URL:', url);
+        }
       }
-    } catch(err) { console.error(err); }
+    } catch(err) { 
+      console.error('Erro no processo de upload do folheto:', err);
+      alert('Erro no upload: ' + err.message);
+    }
   }
 
   if (done > 0) await sincronizar();
