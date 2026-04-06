@@ -676,20 +676,51 @@ async function guardarPromo() {
   var id = document.getElementById('mPromoId').value;
   var d = {
     nome: document.getElementById('mPromoNome').value,
-    preco_orig: parseFloat(document.getElementById('mPromoOrig').value),
-    preco_novo: parseFloat(document.getElementById('mPromoNovo').value),
-    emoji: document.getElementById('mPromoEmoji').value,
+    preco_orig: parseFloat(document.getElementById('mPromoOrig').value) || 0,
+    preco_novo: parseFloat(document.getElementById('mPromoNovo').value) || 0,
+    emoji: document.getElementById('mPromoEmoji').value || '🛒',
     foto: document.getElementById('mPromoFotoImg').src || null,
-    data_inicio: document.getElementById('mPromoIni').value,
-    data_fim: document.getElementById('mPromoFim').value
+    data_ini: document.getElementById('mPromoIni').value || null,
+    data_fim: document.getElementById('mPromoFim').value || null
   };
-  if (!d.nome) return alert('Nome obrigatório');
-  if (!id) d.id = uid();
   
-  var headers = hd();
-  if (id) headers['Prefer'] = 'resolution=merge-duplicates';
-  await fetch(SB + '/rest/v1/promos', { method: 'POST', headers: headers, body: JSON.stringify(id ? Object.assign(d, {id:id}) : d) });
-  fecharModal('mPromo'); await sincronizar(); renderPromos(); toast('✅ Promoção guardada');
+  if (!d.nome) return alert('Nome obrigatório');
+  
+  log('A gravar promoção: ' + d.nome + '...', '#fff');
+  
+  try {
+    var headers = hd();
+    // Se a tabela usar ID manual (texto), enviamos o ID. 
+    // Se for automático, o Supabase ignora ou dá erro se enviarmos.
+    // Na sua tabela 'promos', o ID parece ser texto (UUID manual).
+    if (!id) {
+        id = uid();
+        d.id = id;
+    } else {
+        d.id = id;
+        headers['Prefer'] = 'resolution=merge-duplicates';
+    }
+
+    var r = await fetch(SB + '/rest/v1/promos', { 
+      method: 'POST', 
+      headers: headers, 
+      body: JSON.stringify(d) 
+    });
+
+    if (r.ok) {
+      log('PROMOÇÃO OK! Gravada com sucesso.', '#0f0');
+      fecharModal('mPromo'); 
+      await sincronizar(); 
+      renderPromos(); 
+      toast('✅ Promoção guardada');
+    } else {
+      var txt = await r.text();
+      log('ERRO PROMOÇÃO: ' + r.status + ' - ' + txt, '#f00');
+      alert('Erro ao gravar promoção: ' + txt);
+    }
+  } catch (err) {
+    log('ERRO CRÍTICO PROMO: ' + err.message, '#f00');
+  }
 }
 
 // ── SCANNER ──
