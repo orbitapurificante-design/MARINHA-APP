@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0a1628">
-<title>MARINHA – Painel (v2.1)</title>
+<title>MARINHA – Painel (v3.0)</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -109,7 +109,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 #toast.v{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* LOG PAINEL */
-#logPainel{background:#000;color:#0f0;font-family:monospace;font-size:10px;padding:10px;border-radius:8px;margin-top:10px;max-height:150px;overflow-y:auto;display:none;border:1px solid #333}
+#logPainel{background:#000;color:#0f0;font-family:monospace;font-size:10px;padding:10px;border-radius:8px;margin-top:10px;max-height:150px;overflow-y:auto;display:block;border:1px solid #333}
 </style>
 </head>
 <body>
@@ -194,7 +194,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
         <div class="ct">Folheto (páginas)</div>
         <label class="bS" style="text-align:center;cursor:pointer;display:block;margin-bottom:4px">
           📁 Adicionar imagens ao folheto
-          <input type="file" accept="image/*" multiple onchange="uploadFolhetoFinal(event)" style="display:none" id="inputFolheto">
+          <input type="file" accept="image/*" multiple onchange="uploadFolhetoV3(event)" style="display:none" id="inputFolheto">
         </label>
         <div class="upBar" id="upBarFolheto"><div class="upBarFill" id="upBarFolhetoFill" style="width:0%"></div></div>
         <div style="font-size:11px;color:var(--mu);margin-bottom:10px" id="folhetoStatus"></div>
@@ -419,12 +419,83 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 <div id="toast"></div>
 
 <script>
+// ── LOGS (V3.0) ──
+function addLog(m, color) {
+  var p = document.getElementById('logPainel');
+  if(!p) return;
+  p.style.display = 'block';
+  var c = color || '#0f0';
+  p.innerHTML += '<div style="color:'+c+'">> ' + m + '</div>';
+  p.scrollTop = p.scrollHeight;
+}
+
 // ── CONFIG SUPABASE ──
 const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
 const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
 const BUCKET = 'marinha';
 
 function hd() { return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json' }; }
+
+// ── UPLOAD FOLHETO (V3.0 - BLINDADO) ──
+async function uploadFolhetoV3(e) {
+  var files = Array.prototype.slice.call(e.target.files);
+  if (!files.length) return;
+  
+  addLog('INICIANDO UPLOAD V3.0...', '#fff');
+  
+  var bar = document.getElementById('upBarFolheto');
+  var fill = document.getElementById('upBarFolhetoFill');
+  bar.style.display = 'block';
+  fill.style.width = '0%';
+
+  var done = 0;
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    addLog('Ficheiro: ' + f.name);
+    
+    try {
+      // 1. Upload Direto (Sem compressão para teste)
+      var fuid = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+      var path = 'promos/folheto_' + fuid + '.jpg';
+      
+      addLog('Enviando para Storage...');
+      var url = await sbStorageUp(path, f, f.type);
+      
+      if (url) {
+        addLog('Storage OK! Gravando na tabela folhetos...');
+        
+        var r = await fetch(SB + '/rest/v1/folhetos', {
+          method: 'POST',
+          headers: hd(),
+          body: JSON.stringify({ url: url })
+        });
+
+        if (r.ok) {
+          addLog('SUCESSO: Imagem gravada!', '#0f0');
+          done++;
+        } else {
+          var txt = await r.text();
+          addLog('ERRO TABELA: ' + r.status + ' - ' + txt, '#f00');
+          alert('Erro Supabase: ' + txt);
+        }
+      } else {
+        addLog('ERRO STORAGE: Falha no upload.', '#f00');
+      }
+    } catch(err) { 
+      addLog('ERRO GERAL: ' + err.message, '#f00');
+    }
+    fill.style.width = Math.round(((i + 1) / files.length) * 100) + '%';
+  }
+
+  if (done > 0) {
+    addLog('Sincronizando...', '#fff');
+    await sincronizar();
+    renderFolheto();
+    addLog('PROCESSO CONCLUÍDO!', '#0f0');
+  }
+  setTimeout(function() { bar.style.display = 'none'; }, 3000);
+  try { e.target.value = ''; } catch(x) {}
+}
 
 // ── API HELPERS ──
 async function sbGet(t, q) {
@@ -491,76 +562,6 @@ function toast(msg) {
 
 function fecharModal(id) { document.getElementById(id).classList.remove('a'); }
 
-// ── LOGS VISÍVEIS ──
-function addLog(m) {
-  var p = document.getElementById('logPainel');
-  p.style.display = 'block';
-  p.innerHTML += '<div>> ' + m + '</div>';
-  p.scrollTop = p.scrollHeight;
-}
-
-// ── UPLOAD FOLHETO (VERSÃO FINAL CACHE-BUSTING) ──
-async function uploadFolhetoFinal(e) {
-  var files = Array.prototype.slice.call(e.target.files);
-  if (!files.length) return;
-  
-  document.getElementById('logPainel').innerHTML = '';
-  addLog('INICIANDO UPLOAD (v2.1)...');
-
-  var bar = document.getElementById('upBarFolheto');
-  var fill = document.getElementById('upBarFolhetoFill');
-  bar.style.display = 'block';
-  fill.style.width = '0%';
-
-  var done = 0;
-  for (var i = 0; i < files.length; i++) {
-    var f = files[i];
-    addLog('Ficheiro: ' + f.name);
-    
-    try {
-      addLog('Comprimindo...');
-      var blob = await comprimirParaBlob(f, 1800, 0.85);
-      var fuid = uid();
-      var path = 'promos/folheto_' + fuid + '.jpg';
-      
-      addLog('Enviando para Storage...');
-      var url = await sbStorageUp(path, blob, 'image/jpeg');
-      
-      if (url) {
-        addLog('Storage OK! Gravando na tabela...');
-        
-        var r = await fetch(SB + '/rest/v1/folhetos', {
-          method: 'POST',
-          headers: hd(),
-          body: JSON.stringify({ url: url })
-        });
-
-        if (r.ok) {
-          addLog('SUCESSO: Gravado na tabela!');
-          done++;
-        } else {
-          var txt = await r.text();
-          addLog('ERRO TABELA: ' + r.status + ' - ' + txt);
-          alert('Erro Supabase: ' + txt);
-        }
-      } else {
-        addLog('ERRO STORAGE: Falha no upload.');
-      }
-    } catch(err) { 
-      addLog('ERRO GERAL: ' + err.message);
-    }
-    fill.style.width = Math.round(((i + 1) / files.length) * 100) + '%';
-  }
-
-  if (done > 0) {
-    addLog('Sincronizando...');
-    await sincronizar();
-    renderFolheto();
-    addLog('CONCLUÍDO!');
-  }
-  setTimeout(function() { bar.style.display = 'none'; }, 3000);
-}
-
 // ── COMPRESSÃO ──
 function comprimirParaBlob(file, maxDim, qualidade) {
   return new Promise(function(resolve, reject) {
@@ -584,7 +585,7 @@ function comprimirParaBlob(file, maxDim, qualidade) {
   });
 }
 
-// ── RESTO DAS FUNÇÕES (PIN, NAV, RENDER) ──
+// ── PIN ──
 var _pin = '', _pinOk = '1234';
 function pd(d) {
   if (!d || _pin.length >= 4) return;
@@ -643,7 +644,7 @@ function renderPromos() {
   el.innerHTML = '<div class="pGrid2">' + DB.promos.map(p => `<div class="pCard" onclick="editarPromo('${p.id}')"><div class="pImg">${p.foto ? `<img src="${p.foto}">` : `<div class="pImgEmoji">${p.emoji||'🛒'}</div>`}</div><div class="pBody"><b>${p.nome}</b><br><span class="pNovo">${p.preco_novo}€</span></div></div>`).join('') + '</div>';
 }
 
-// Funções de Promoção, Cliente, Compra, etc. (Simplificadas para o exemplo)
+// Funções de Promoção, Cliente, Compra, etc. (Simplificadas)
 function abrirNovaPromo() { fecharModal('mPromo'); document.getElementById('mPromo').classList.add('a'); }
 function editarPromo(id) { /* ... */ }
 async function guardarPromo() { /* ... */ fecharModal('mPromo'); await sincronizar(); renderPromos(); }
@@ -652,6 +653,12 @@ async function guardarCli() { /* ... */ fecharModal('mCli'); await sincronizar()
 function verCli(id) { /* ... */ document.getElementById('mDet').classList.add('a'); }
 function filtrarCli(v) { renderCli(v); }
 function renderCli(f) { /* ... */ }
+function renderCfg() { /* ... */ }
+function guardarCfg() { /* ... */ }
+function copiarLink() { /* ... */ }
+function imprimirQR() { /* ... */ }
+function exportar() { /* ... */ }
+function testarSincronizacao() { /* ... */ }
 
 // Viewer
 var _vIdx = 0;
@@ -666,7 +673,10 @@ function updViewer() {
 }
 
 // Inicialização
-window.onload = () => { sincronizar().then(() => { if(DB.clientes.length) renderDash(); }); };
+window.onload = () => { 
+  addLog('SISTEMA DE LOGS ATIVO (v3.0)', '#0f0');
+  sincronizar().then(() => { if(DB.clientes.length) renderDash(); }); 
+};
 </script>
 </body>
 </html>
