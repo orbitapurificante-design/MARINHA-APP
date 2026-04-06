@@ -304,12 +304,14 @@ async function renderInicio() {
 // --- VIEWER LOGIC ---
 
 async function abrirFolhetosFullscreen() {
-    const folhetos = await api('folhetos?order=adicionado.asc');
+    // Tenta buscar por 'id' já que 'adicionado' pode não existir na nova tabela
+    const folhetos = await api('folhetos?order=id.asc');
     if(!folhetos || !folhetos.length) {
         toast('Sem folhetos disponíveis');
         ir('Inicio');
         return;
     }
+    // Suporta 'url' (novo) e 'data' (antigo)
     _vSlides = folhetos.map(f => ({ src: f.url || f.data }));
     _vTipo = 'folheto';
     _vIdx = 0;
