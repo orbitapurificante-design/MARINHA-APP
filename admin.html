@@ -430,9 +430,14 @@ async function sbGet(t, q) {
 async function sbUp(t, d) {
   try {
     var body = JSON.stringify(Array.isArray(d) ? d : [d]);
+    var headers = Object.assign({}, hd());
+    // Se o objeto tem ID, usamos upsert (merge-duplicates). Se não tem ID (como no Folheto), é um INSERT simples.
+    if (Array.isArray(d) ? d[0].id : d.id) {
+      headers['Prefer'] = 'resolution=merge-duplicates';
+    }
     var r = await fetch(SB + '/rest/v1/' + t, {
       method: 'POST',
-      headers: Object.assign({}, hd(), { 'Prefer': 'resolution=merge-duplicates' }),
+      headers: headers,
       body: body
     });
     if (!r.ok) {
@@ -899,20 +904,19 @@ async function addFolheto(e) {
 
     try {
       var blob = await comprimirParaBlob(f, 1800, 0.85);
-      var id = uid();
-      var path = 'promos/folheto_' + id + '.jpg'; // Usando pasta promos conforme pedido
+      var fuid = uid();
+      var path = 'promos/folheto_' + fuid + '.jpg';
       var url = await sbStorageUp(path, blob, 'image/jpeg');
       if (url) {
-        // Enviar apenas a URL, o Supabase gera o ID (int4) automaticamente
+        // Enviar apenas a URL. O Supabase gera o ID (int4) automaticamente.
+        // NÃO enviamos ID aqui para evitar erro de tipo (string vs int4)
         var ok = await sbUp('folhetos', { url: url });
-        if (ok) {
-          // Recarregar para obter o ID real do Supabase
-          await sincronizar();
-          done++;
-        }
+        if (ok) done++;
       }
     } catch(err) { console.error(err); }
   }
+
+  if (done > 0) await sincronizar();
 
   fill.style.width = '100%';
   setTimeout(function() { bar.style.display = 'none'; }, 800);
