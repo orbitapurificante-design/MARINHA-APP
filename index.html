@@ -57,7 +57,7 @@
         .pImgW{width:100%;aspect-ratio:3/4;background:#eef2f7;position:relative;overflow:hidden;cursor:pointer}
         .pImgW img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;display:block;background:#eef2f7}
         .pImgW .pEmoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px}
-        .pBdg{position:absolute;top:8px;left:8px;background:var(--r);color:#fff;font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;z-index:1;box-shadow:0 2px 6px rgba(0,0,0,0.2)}
+        .pBdg{background:var(--r);color:#fff;font-size:11px;font-weight:800;padding:2px 6px;border-radius:6px;display:inline-block;margin-right:6px}
         .pValidade{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;z-index:1;backdrop-filter:blur(4px)}
         .pBody{padding:12px}
         .pNome{font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.2;color:var(--n)}
@@ -86,7 +86,7 @@
         .vLegenda .pOrig{font-size:16px;text-decoration:line-through;opacity:0.5}
         
         /* Badges no Fullscreen */
-        .vBdg{position:absolute;top:calc(100px + env(safe-area-inset-top));left:16px;background:var(--r);color:#fff;font-size:13px;font-weight:800;padding:4px 10px;border-radius:8px;z-index:1100;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+        .vBdg{background:var(--r);color:#fff;font-size:13px;font-weight:800;padding:3px 8px;border-radius:6px;display:inline-block;margin-right:8px}
         .vValidade{position:absolute;top:calc(100px + env(safe-area-inset-top));right:16px;background:rgba(0,0,0,0.5);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;z-index:1100;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.1)}
 
         /* CARTÃO QR */
@@ -296,7 +296,6 @@ async function renderInicio() {
         return '<div class="pCard">' +
             '<div class="pImgW" onclick="abrirPromosFullscreen(' + idx + ')">' +
                 imgHtml +
-                (pct > 0 ? '<div class="pBdg">-' + pct + '%</div>' : '') +
                 valHtml +
             '</div>' +
             '<div class="pBody">' +
@@ -304,6 +303,7 @@ async function renderInicio() {
                 '<div class="precos">' +
                     (pn > 0 ? '<span class="pNovo">' + pn.toFixed(2) + '€</span>' : '') +
                     (po > 0 ? '<span class="pOrig">' + po.toFixed(2) + '€</span>' : '') +
+                    (pct > 0 ? '<div class="pBdg">-' + pct + '%</div>' : '') +
                 '</div>' +
             '</div>' +
         '</div>';
@@ -360,13 +360,13 @@ function mostrarViewer() {
         let overlays = '';
         if (_vTipo === 'promo') {
             overlays = `
-                ${s.pct > 0 ? `<div class="vBdg">-${s.pct}%</div>` : ''}
                 ${s.fim ? `<div class="vValidade">📅 Válido até ${fd(s.fim)}</div>` : ''}
                 <div class="vLegenda">
                     <div class="pNome">${s.nome}</div>
                     <div class="precos">
                         <span class="pNovo">${s.preco.toFixed(2)}€</span>
                         ${s.orig > 0 ? `<span class="pOrig">${s.orig.toFixed(2)}€</span>` : ''}
+                        ${s.pct > 0 ? `<div class="vBdg">-${s.pct}%</div>` : ''}
                     </div>
                 </div>
             `;
