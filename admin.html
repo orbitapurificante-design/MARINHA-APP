@@ -603,20 +603,25 @@ async function registarCompra() {
   var c = DB.clientes.find(x => x.id === id);
   var cfg = DB.cfg;
   
-  // Cálculo de pontos
-  var ptsGanhos = Math.floor(valor / (cfg.euroPonto || 1));
+  // Cálculo de pontos (usa euro_ponto da config)
+  var r_euroPonto = cfg.euro_ponto || cfg.euroPonto || 1;
+  var ptsGanhos = Math.floor(valor / r_euroPonto);
+  
+  // Se for Nota de Crédito, os valores são negativos para abater no total
+  var valorRegisto = valor;
+  var ptsRegisto = ptsGanhos;
   if (tipo === 'NC') {
-    ptsGanhos = -ptsGanhos;
-    valor = -valor;
+    ptsRegisto = -ptsGanhos;
+    valorRegisto = -valor;
   }
   
-  var novoHist = { data: new Date().toISOString(), tipo: tipo, valor: valor, pts: ptsGanhos };
+  var novoHist = { data: new Date().toISOString(), tipo: tipo, valor: valorRegisto, pts: ptsRegisto };
   var historico = c.historico || [];
   historico.push(novoHist);
   
   var d = {
-    pts: (c.pts || 0) + ptsGanhos,
-    poupado: (parseFloat(c.poupado) || 0) + valor,
+    pts: Math.max(0, (c.pts || 0) + ptsRegisto),
+    poupado: (parseFloat(c.poupado) || 0) + valorRegisto,
     historico: historico
   };
   
@@ -730,24 +735,47 @@ async function apagarPromo() {
 
 // ── CONFIG ──
 function renderConfig() {
-  document.getElementById('cfgNome').value = DB.cfg.nomeLoja || '';
+  document.getElementById('cfgNome').value = DB.cfg.nome_loja || DB.cfg.nomeLoja || '';
   document.getElementById('cfgPin').value = DB.cfg.pin || '';
-  document.getElementById('cfgEuroPonto').value = DB.cfg.euroPonto || 1;
-  document.getElementById('cfgPontoEuro').value = DB.cfg.pontoEuro || 20;
+  document.getElementById('cfgEuroPonto').value = DB.cfg.euro_ponto || DB.cfg.euroPonto || 1;
+  document.getElementById('cfgPontoEuro').value = DB.cfg.ponto_euro || DB.cfg.pontoEuro || 20;
 }
 
 async function guardarCfg() {
-  var d = { nomeLoja: document.getElementById('cfgNome').value, pin: document.getElementById('cfgPin').value };
-  await fetch(SB + '/rest/v1/config?id=eq.1', { method: 'PATCH', headers: hd(), body: JSON.stringify(d) });
+  var d = { nome_loja: document.getElementById('cfgNome').value, pin: document.getElementById('cfgPin').value };
+  var r = await fetch(SB + '/rest/v1/config?id=eq.1', { 
+    method: 'PATCH', 
+    headers: Object.assign(hd(), { 'Prefer': 'return=minimal' }), 
+    body: JSON.stringify(d) 
+  });
+  if (!r.ok) {
+    // Se falhar o PATCH (ex: id 1 não existe), tenta POST
+    await fetch(SB + '/rest/v1/config', { 
+      method: 'POST', 
+      headers: hd(), 
+      body: JSON.stringify(Object.assign(d, { id: 1 })) 
+    });
+  }
   await sincronizar(); toast('✅ Configurações guardadas');
 }
 
 async function guardarCfgFid() {
   var d = { 
-    euroPonto: parseFloat(document.getElementById('cfgEuroPonto').value) || 1,
-    pontoEuro: parseInt(document.getElementById('cfgPontoEuro').value) || 20
+    euro_ponto: parseFloat(document.getElementById('cfgEuroPonto').value) || 1,
+    ponto_euro: parseInt(document.getElementById('cfgPontoEuro').value) || 20
   };
-  await fetch(SB + '/rest/v1/config?id=eq.1', { method: 'PATCH', headers: hd(), body: JSON.stringify(d) });
+  var r = await fetch(SB + '/rest/v1/config?id=eq.1', { 
+    method: 'PATCH', 
+    headers: Object.assign(hd(), { 'Prefer': 'return=minimal' }), 
+    body: JSON.stringify(d) 
+  });
+  if (!r.ok) {
+    await fetch(SB + '/rest/v1/config', { 
+      method: 'POST', 
+      headers: hd(), 
+      body: JSON.stringify(Object.assign(d, { id: 1 })) 
+    });
+  }
   await sincronizar(); toast('✅ Fidelização guardada');
 }
 
