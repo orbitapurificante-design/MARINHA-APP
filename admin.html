@@ -766,23 +766,34 @@ function renderConfig() {
 
 async function guardarCfg() {
   var d = { nome_loja: document.getElementById('cfgNome').value, pin: document.getElementById('cfgPin').value };
-  var r = await fetch(SB + '/rest/v1/config?id=eq.1', { 
-    method: 'PATCH', 
-    headers: Object.assign(hd(), { 'Prefer': 'return=minimal' }), 
-    body: JSON.stringify(d) 
-  });
-  if (r.status === 404 || r.status === 204 || r.status === 200) {
-    // Verifica se realmente atualizou algo
+  try {
+    var r = await fetch(SB + '/rest/v1/config?id=eq.1', { 
+      method: 'PATCH', 
+      headers: Object.assign(hd(), { 'Prefer': 'return=minimal' }), 
+      body: JSON.stringify(d) 
+    });
+    
     let check = await api('config?id=eq.1');
     if (!check.length) {
-      await fetch(SB + '/rest/v1/config', { 
+      let r2 = await fetch(SB + '/rest/v1/config', { 
         method: 'POST', 
         headers: hd(), 
         body: JSON.stringify(Object.assign(d, { id: 1 })) 
       });
+      if (!r2.ok) {
+        let err = await r2.json();
+        alert('Erro ao criar config: ' + (err.message || r2.statusText));
+        return;
+      }
+    } else if (!r.ok) {
+      let err = await r.json();
+      alert('Erro ao atualizar config: ' + (err.message || r.statusText));
+      return;
     }
+    await sincronizar(); toast('✅ Configurações guardadas');
+  } catch(e) {
+    alert('Erro de ligação: ' + e.message);
   }
-  await sincronizar(); toast('✅ Configurações guardadas');
 }
 
 async function guardarCfgFid() {
@@ -790,22 +801,34 @@ async function guardarCfgFid() {
     euro_ponto: parseFloat(document.getElementById('cfgEuroPonto').value) || 1,
     ponto_euro: parseInt(document.getElementById('cfgPontoEuro').value) || 20
   };
-  await fetch(SB + '/rest/v1/config?id=eq.1', { 
-    method: 'PATCH', 
-    headers: hd(), 
-    body: JSON.stringify(d) 
-  });
-  
-  let check = await api('config?id=eq.1');
-  if (!check.length) {
-    await fetch(SB + '/rest/v1/config', { 
-      method: 'POST', 
-      headers: hd(), 
-      body: JSON.stringify(Object.assign(d, { id: 1 })) 
+  try {
+    var r = await fetch(SB + '/rest/v1/config?id=eq.1', { 
+      method: 'PATCH', 
+      headers: Object.assign(hd(), { 'Prefer': 'return=minimal' }), 
+      body: JSON.stringify(d) 
     });
+    
+    let check = await api('config?id=eq.1');
+    if (!check.length) {
+      let r2 = await fetch(SB + '/rest/v1/config', { 
+        method: 'POST', 
+        headers: hd(), 
+        body: JSON.stringify(Object.assign(d, { id: 1 })) 
+      });
+      if (!r2.ok) {
+        let err = await r2.json();
+        alert('Erro ao criar fidelização: ' + (err.message || r2.statusText));
+        return;
+      }
+    } else if (!r.ok) {
+      let err = await r.json();
+      alert('Erro ao atualizar fidelização: ' + (err.message || r.statusText));
+      return;
+    }
+    await sincronizar(); toast('✅ Fidelização guardada');
+  } catch(e) {
+    alert('Erro de ligação: ' + e.message);
   }
-  
-  await sincronizar(); toast('✅ Fidelização guardada');
 }
 
 // ── SCANNER ──
