@@ -574,7 +574,6 @@ function abrirNovoCli() {
   document.getElementById('wApagarCli').style.display = 'none';
   document.getElementById('mCli').classList.add('a');
 }
-
 function verCli(id) {
   var c = DB.clientes.find(x => x.id === id);
   document.getElementById('mCliTit').textContent = 'Editar Cliente';
@@ -585,13 +584,37 @@ function verCli(id) {
   document.getElementById('mCliPts').textContent = c.pts || 0;
   document.getElementById('mCliPou').textContent = parseFloat(c.poupado || 0).toFixed(2) + '€';
   
-  var hist = c.historico || [];
-  document.getElementById('mCliHist').innerHTML = '<tr><th>Data</th><th>Doc</th><th>Valor</th><th>Pts</th></tr>' + 
-    hist.slice(-10).reverse().map(h => `<tr><td>${fd(h.data)}</td><td>${h.tipo||'—'}</td><td>${h.valor.toFixed(2)}€</td><td>${h.pts > 0 ? '+'+h.pts : h.pts}</td></tr>`).join('');
+  var h = c.historico || [];
+  var html = '<tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Pts</th><th></th></tr>';
+  html += h.map((x, idx) => `<tr>
+    <td>${fd(x.data)}</td>
+    <td>${x.tipo}</td>
+    <td>${parseFloat(x.valor).toFixed(2)}€</td>
+    <td>${x.pts}</td>
+    <td><button onclick="delDoc('${c.id}', ${idx})" style="border:none;background:none;color:var(--r);font-size:14px;cursor:pointer">🗑️</button></td>
+  </tr>`).reverse().slice(0, 10).join('');
+  document.getElementById('mCliHist').innerHTML = html;
   
   document.getElementById('wFid').style.display = 'block';
   document.getElementById('wApagarCli').style.display = 'block';
   document.getElementById('mCli').classList.add('a');
+}
+
+async function delDoc(cliId, idx) {
+  if (!confirm('Eliminar este documento? Os pontos e valores serão ajustados.')) return;
+  var c = DB.clientes.find(x => x.id === cliId);
+  var doc = c.historico[idx];
+  
+  // Reverter valores
+  c.pts = Math.max(0, (c.pts || 0) - (doc.pts || 0));
+  c.poupado = (parseFloat(c.poupado) || 0) - (parseFloat(doc.valor) || 0);
+  c.historico.splice(idx, 1);
+  
+  var d = { pts: c.pts, poupado: c.poupado, historico: c.historico };
+  await fetch(SB + '/rest/v1/clientes?id=eq.' + cliId, { method: 'PATCH', headers: hd(), body: JSON.stringify(d) });
+  await sincronizar();
+  verCli(cliId);
+  toast('🗑️ Documento eliminado');
 }
 
 async function registarCompra() {
@@ -748,13 +771,16 @@ async function guardarCfg() {
     headers: Object.assign(hd(), { 'Prefer': 'return=minimal' }), 
     body: JSON.stringify(d) 
   });
-  if (!r.ok) {
-    // Se falhar o PATCH (ex: id 1 não existe), tenta POST
-    await fetch(SB + '/rest/v1/config', { 
-      method: 'POST', 
-      headers: hd(), 
-      body: JSON.stringify(Object.assign(d, { id: 1 })) 
-    });
+  if (r.status === 404 || r.status === 204 || r.status === 200) {
+    // Verifica se realmente atualizou algo
+    let check = await api('config?id=eq.1');
+    if (!check.length) {
+      await fetch(SB + '/rest/v1/config', { 
+        method: 'POST', 
+        headers: hd(), 
+        body: JSON.stringify(Object.assign(d, { id: 1 })) 
+      });
+    }
   }
   await sincronizar(); toast('✅ Configurações guardadas');
 }
@@ -764,18 +790,21 @@ async function guardarCfgFid() {
     euro_ponto: parseFloat(document.getElementById('cfgEuroPonto').value) || 1,
     ponto_euro: parseInt(document.getElementById('cfgPontoEuro').value) || 20
   };
-  var r = await fetch(SB + '/rest/v1/config?id=eq.1', { 
+  await fetch(SB + '/rest/v1/config?id=eq.1', { 
     method: 'PATCH', 
-    headers: Object.assign(hd(), { 'Prefer': 'return=minimal' }), 
+    headers: hd(), 
     body: JSON.stringify(d) 
   });
-  if (!r.ok) {
+  
+  let check = await api('config?id=eq.1');
+  if (!check.length) {
     await fetch(SB + '/rest/v1/config', { 
       method: 'POST', 
       headers: hd(), 
       body: JSON.stringify(Object.assign(d, { id: 1 })) 
     });
   }
+  
   await sincronizar(); toast('✅ Fidelização guardada');
 }
 
