@@ -305,6 +305,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
           </select>
         </div>
         <div>
+          <label class="lbl">Data</label>
+          <input type="date" class="inp" id="mDocData">
+        </div>
+        <div>
           <label class="lbl">Valor s/ IVA</label>
           <input type="number" class="inp" id="mDocValor" step="0.01" placeholder="0.00">
         </div>
@@ -581,8 +585,9 @@ function verCli(id) {
   document.getElementById('mCliNome').value = c.nome;
   document.getElementById('mCliTel').value = c.tel;
   document.getElementById('mCliEmail').value = c.email || '';
+  document.getElementById('mDocData').value = hoje();
   document.getElementById('mCliPts').textContent = c.pts || 0;
-  document.getElementById('mCliPou').textContent = parseFloat(c.poupado || 0).toFixed(2) + '€';
+  document.getElementById('mCliPou').textContent = parseFloat(c.total_gasto || 0).toFixed(2) + '€';
   
   var h = c.historico || [];
   var html = '<tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Pts</th><th></th></tr>';
@@ -638,13 +643,14 @@ async function registarCompra() {
     valorRegisto = -valor;
   }
   
-  var novoHist = { data: new Date().toISOString(), tipo: tipo, valor: valorRegisto, pts: ptsRegisto };
+  var dataDoc = document.getElementById('mDocData').value || hoje();
+  var novoHist = { data: dataDoc, tipo: tipo, valor: valorRegisto, pts: ptsRegisto };
   var historico = c.historico || [];
   historico.push(novoHist);
   
   var d = {
     pts: Math.max(0, (c.pts || 0) + ptsRegisto),
-    poupado: (parseFloat(c.poupado) || 0) + valorRegisto,
+    total_gasto: (parseFloat(c.total_gasto) || 0) + valorRegisto,
     historico: historico
   };
   
@@ -773,8 +779,7 @@ async function guardarCfg() {
       body: JSON.stringify(d) 
     });
     
-    let check = await api('config?id=eq.1');
-    if (!check.length) {
+    if (!r.ok) {
       let r2 = await fetch(SB + '/rest/v1/config', { 
         method: 'POST', 
         headers: hd(), 
@@ -782,13 +787,9 @@ async function guardarCfg() {
       });
       if (!r2.ok) {
         let err = await r2.json();
-        alert('Erro ao criar config: ' + (err.message || r2.statusText));
+        alert('Erro ao guardar config: ' + (err.message || r2.statusText));
         return;
       }
-    } else if (!r.ok) {
-      let err = await r.json();
-      alert('Erro ao atualizar config: ' + (err.message || r.statusText));
-      return;
     }
     await sincronizar(); toast('✅ Configurações guardadas');
   } catch(e) {
@@ -808,22 +809,17 @@ async function guardarCfgFid() {
       body: JSON.stringify(d) 
     });
     
-    let check = await api('config?id=eq.1');
-    if (!check.length) {
+    if (!r.ok) {
       let r2 = await fetch(SB + '/rest/v1/config', { 
         method: 'POST', 
         headers: hd(), 
-        body: JSON.stringify(Object.assign(d, { id: 1 })) 
+        body: JSON.stringify(d, { id: 1 }) 
       });
       if (!r2.ok) {
         let err = await r2.json();
-        alert('Erro ao criar fidelização: ' + (err.message || r2.statusText));
+        alert('Erro ao guardar fidelização: ' + (err.message || r2.statusText));
         return;
       }
-    } else if (!r.ok) {
-      let err = await r.json();
-      alert('Erro ao atualizar fidelização: ' + (err.message || r.statusText));
-      return;
     }
     await sincronizar(); toast('✅ Fidelização guardada');
   } catch(e) {
