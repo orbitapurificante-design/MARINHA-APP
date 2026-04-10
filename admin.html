@@ -650,7 +650,12 @@ async function registarCompra() {
   
   log('Iniciando registo de documento...', '#fff');
   
-  var c = DB.clientes.find(x => x.id === id);
+  // Procurar o cliente pelo ID (pode ser o ID do Supabase ou o ID gerado pelo código)
+  var c = DB.clientes.find(x => x.id == id);
+  if (!c) {
+    log('ERRO: Cliente não encontrado no banco de dados local.', '#f00');
+    return alert('Erro: Cliente não encontrado. Tente recarregar a página.');
+  }
   var cfg = DB.cfg;
   
   // Cálculo de pontos (usa euro_ponto da config)
@@ -687,7 +692,8 @@ async function registarCompra() {
   log('A gravar no Supabase...', '#fff');
   
   try {
-    var res = await fetch(SB + '/rest/v1/clientes?id=eq.' + id, { 
+    // Usar o ID exato do cliente para garantir que o Supabase o encontra
+    var res = await fetch(SB + '/rest/v1/clientes?id=eq.' + c.id, { 
       method: 'PATCH', 
       headers: hd(), 
       body: JSON.stringify(d) 
