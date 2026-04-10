@@ -610,16 +610,36 @@ async function delDoc(cliId, idx) {
   var c = DB.clientes.find(x => x.id === cliId);
   var doc = c.historico[idx];
   
-  // Reverter valores
-  c.pts = Math.max(0, (c.pts || 0) - (doc.pts || 0));
-  c.poupado = (parseFloat(c.poupado) || 0) - (parseFloat(doc.valor) || 0);
-  c.historico.splice(idx, 1);
+  log('Eliminando documento e ajustando valores...', '#fff');
   
-  var d = { pts: c.pts, poupado: c.poupado, historico: c.historico };
-  await fetch(SB + '/rest/v1/clientes?id=eq.' + cliId, { method: 'PATCH', headers: hd(), body: JSON.stringify(d) });
-  await sincronizar();
-  verCli(cliId);
-  toast('🗑️ Documento eliminado');
+  // Reverter valores (se o doc tinha valor positivo, subtrai; se era NC negativo, soma)
+  var novosPts = Math.max(0, (parseInt(c.pts) || 0) - (parseInt(doc.pts) || 0));
+  var novoTotal = (parseFloat(c.total_gasto) || 0) - (parseFloat(doc.valor) || 0);
+  
+  var historico = JSON.parse(JSON.stringify(c.historico || []));
+  historico.splice(idx, 1);
+  
+  var d = { pts: novosPts, total_gasto: novoTotal, historico: historico };
+  
+  try {
+    var res = await fetch(SB + '/rest/v1/clientes?id=eq.' + cliId, { 
+      method: 'PATCH', 
+      headers: hd(), 
+      body: JSON.stringify(d) 
+    });
+    
+    if (res.ok) {
+      log('SUCESSO: Documento eliminado!', '#0f0');
+      await sincronizar();
+      verCli(cliId);
+      toast('🗑️ Documento eliminado');
+    } else {
+      var err = await res.text();
+      log('ERRO AO ELIMINAR: ' + err, '#f00');
+    }
+  } catch(e) {
+    log('ERRO DE LIGAÇÃO: ' + e.message, '#f00');
+  }
 }
 
 async function registarCompra() {
@@ -628,12 +648,16 @@ async function registarCompra() {
   var valor = parseFloat(document.getElementById('mDocValor').value) || 0;
   if (valor <= 0) return alert('Insira um valor válido');
   
+  log('Iniciando registo de documento...', '#fff');
+  
   var c = DB.clientes.find(x => x.id === id);
   var cfg = DB.cfg;
   
   // Cálculo de pontos (usa euro_ponto da config)
-  var r_euroPonto = cfg.euro_ponto || cfg.euroPonto || 1;
+  var r_euroPonto = parseFloat(cfg.euro_ponto || cfg.euroPonto || 1);
   var ptsGanhos = Math.floor(valor / r_euroPonto);
+  
+  log(`Cálculo: ${valor}€ / ${r_euroPonto} = ${ptsGanhos} pts`, '#fff');
   
   // Se for Nota de Crédito, os valores são negativos para abater no total
   var valorRegisto = valor;
@@ -641,29 +665,49 @@ async function registarCompra() {
   if (tipo === 'NC') {
     ptsRegisto = -ptsGanhos;
     valorRegisto = -valor;
+    log('Nota de Crédito: Valores negativos aplicados', '#ff0');
   }
   
   var dataDoc = document.getElementById('mDocData').value || hoje();
   var novoHist = { data: dataDoc, tipo: tipo, valor: valorRegisto, pts: ptsRegisto };
-  var historico = c.historico || [];
+  
+  // Criar cópia do histórico para evitar problemas de referência
+  var historico = JSON.parse(JSON.stringify(c.historico || []));
   historico.push(novoHist);
   
+  var novosPts = Math.max(0, (parseInt(c.pts) || 0) + ptsRegisto);
+  var novoTotal = (parseFloat(c.total_gasto) || 0) + valorRegisto;
+  
   var d = {
-    pts: Math.max(0, (c.pts || 0) + ptsRegisto),
-    total_gasto: (parseFloat(c.total_gasto) || 0) + valorRegisto,
+    pts: novosPts,
+    total_gasto: novoTotal,
     historico: historico
   };
   
-  await fetch(SB + '/rest/v1/clientes?id=eq.' + id, { 
-    method: 'PATCH', 
-    headers: hd(), 
-    body: JSON.stringify(d) 
-  });
+  log('A gravar no Supabase...', '#fff');
   
-  document.getElementById('mDocValor').value = '';
-  await sincronizar();
-  verCli(id);
-  toast('✅ Compra registada');
+  try {
+    var res = await fetch(SB + '/rest/v1/clientes?id=eq.' + id, { 
+      method: 'PATCH', 
+      headers: hd(), 
+      body: JSON.stringify(d) 
+    });
+    
+    if (res.ok) {
+      log('SUCESSO: Documento registado!', '#0f0');
+      document.getElementById('mDocValor').value = '';
+      await sincronizar();
+      verCli(id);
+      toast('✅ Compra registada');
+    } else {
+      var err = await res.text();
+      log('ERRO AO GRAVAR: ' + err, '#f00');
+      alert('Erro ao registar: ' + err);
+    }
+  } catch(e) {
+    log('ERRO DE LIGAÇÃO: ' + e.message, '#f00');
+    alert('Erro de ligação: ' + e.message);
+  }
 }
 
 async function guardarCli() {
