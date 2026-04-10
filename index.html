@@ -73,7 +73,7 @@
         .vSlide img{width:100vw;height:100vh;object-fit:contain;display:block;touch-action:pan-y pinch-zoom;margin-top:0}
         .vHud{position:fixed;top:calc(20px + env(safe-area-inset-top));left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;z-index:1100;pointer-events:none}
         .vCount{background:rgba(0,0,0,0.4);color:#fff;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;backdrop-filter:blur(4px);position:fixed;top:calc(20px + env(safe-area-inset-top));left:50%;transform:translateX(-50%)}
-        .vClose{background:rgba(255,255,255,0.15);color:#fff;padding:8px 16px;border-radius:12px;font-size:13px;font-weight:800;backdrop-filter:blur(8px);pointer-events:auto;cursor:pointer;border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:1px}
+        .vClose{background:rgba(231,76,60,0.4);color:#fff;padding:8px 16px;border-radius:12px;font-size:13px;font-weight:800;backdrop-filter:blur(8px);pointer-events:auto;cursor:pointer;border:1px solid rgba(231,76,60,0.3);display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:1px}
         .vDots{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:1100;pointer-events:none}
         .vDot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);transition:0.2s}
         .vDot.a{background:var(--g);transform:scale(1.3)}
@@ -81,13 +81,13 @@
         /* Legenda na Promoção Fullscreen */
         .vLegenda{position:absolute;bottom:calc(110px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:500px;background:rgba(0,0,0,0.35);color:#fff;padding:16px;border-radius:20px;backdrop-filter:blur(12px);z-index:1100;border:1px solid rgba(255,255,255,0.1)}
         .vLegenda .pNome{font-size:18px;font-weight:800;margin-bottom:8px;color:#fff}
-        .vLegenda .precos{display:flex;align-items:center;gap:12px;margin-bottom:0}
+        .vLegenda .precos{display:flex;align-items:center;gap:12px;margin-bottom:0;flex-wrap:wrap}
         .vLegenda .pNovo{font-size:24px;font-weight:800;color:#fff}
         .vLegenda .pOrig{font-size:16px;text-decoration:line-through;color:#c9a84c;font-weight:700}
         
         /* Badges no Fullscreen */
         .vBdg{background:var(--r);color:#fff;font-size:13px;font-weight:800;padding:3px 8px;border-radius:6px;display:inline-block;margin-right:8px}
-        .vValidade{position:fixed;top:calc(20px + env(safe-area-inset-top));right:16px;background:rgba(0,0,0,0.4);color:#fff;padding:8px 14px;border-radius:12px;font-size:11px;font-weight:700;z-index:1100;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;gap:4px}
+        .vValidade{background:rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;display:inline-block;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.1)}
 
         /* CARTÃO QR */
         .qrHero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:32px 20px;color:#fff;text-align:center}
@@ -368,13 +368,14 @@ function mostrarViewer() {
         let overlays = '';
         if (_vTipo === 'promo') {
             overlays = `
-                ${s.fim ? `<div class="vValidade">📅 Válido até ${fd(s.fim)}</div>` : ''}
                 <div class="vLegenda">
                     <div class="pNome">${s.nome}</div>
                     <div class="precos">
+                        ${s.pct > 0 ? `<div class="vBdg">-${s.pct}%</div>` : ''}
+                        ${s.fim ? `<div class="vValidade">📅 Até ${fd(s.fim)}</div>` : ''}
+                        <div style="width:100%;height:4px"></div>
                         <span class="pNovo">${s.preco.toFixed(2)}€</span>
                         ${s.orig > 0 ? `<span class="pOrig">${s.orig.toFixed(2)}€</span>` : ''}
-                        ${s.pct > 0 ? `<div class="vBdg">-${s.pct}%</div>` : ''}
                     </div>
                 </div>
             `;
