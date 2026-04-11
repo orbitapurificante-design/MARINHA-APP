@@ -423,25 +423,43 @@ function sair() {
     location.reload();
 }
 
-window.onload = async () => {
-    // Service Worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').then(reg => reg.update()).catch(() => {});
-    }
-    
-    const t = localStorage.getItem('m_tel');
-    if(t) {
-        let res = await api('clientes?tel=eq.' + t);
-        if(res && res.length > 0) {
-            USER = res[0];
-            entrar();
-        } else {
-            document.getElementById('eReg').style.display = 'flex';
-        }
-    } else {
-        document.getElementById('eReg').style.display = 'flex';
-    }
-};
+	window.onload = async () => {
+	    // Service Worker
+	    if ('serviceWorker' in navigator) {
+	        navigator.serviceWorker.register('./sw.js').then(reg => reg.update()).catch(() => {});
+	    }
+	    
+	    // Proteção contra saída acidental
+	    window.history.pushState({page: 1}, "", "");
+	    window.onpopstate = function(event) {
+	        // Se o viewer estiver aberto, fecha-o primeiro
+	        const v = document.getElementById('viewer');
+	        if (v.classList.contains('a')) {
+	            v.classList.remove('a');
+	            window.history.pushState({page: 1}, "", "");
+	            return;
+	        }
+
+	        if (confirm("Tem a certeza que deseja sair da aplicação?")) {
+	            window.history.back();
+	        } else {
+	            window.history.pushState({page: 1}, "", "");
+	        }
+	    };
+	    
+	    const t = localStorage.getItem('m_tel');
+	    if(t) {
+	        let res = await api('clientes?tel=eq.' + t);
+	        if(res && res.length > 0) {
+	            USER = res[0];
+	            entrar();
+	        } else {
+	            document.getElementById('eReg').style.display = 'flex';
+	        }
+	    } else {
+	        document.getElementById('eReg').style.display = 'flex';
+	    }
+	};
 </script>
 </body>
 </html>
