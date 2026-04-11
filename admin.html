@@ -970,29 +970,40 @@ function updViewer() {
 }
 
 	window.onload = () => {
-	  sincronizar().then(() => { renderDash(); });
-	  
-	  // Proteção contra saída acidental
-	  window.history.pushState({page: 1}, "", "");
-	  window.onpopstate = function(event) {
-	    // Se houver algum modal aberto, fecha-o primeiro
-	    const modais = document.querySelectorAll('.modal.a, .viewer.a, #cWrap.a');
-	    if (modais.length > 0) {
-	      modais.forEach(m => {
-	        if (m.id === 'cWrap') pararCam();
-	        else m.classList.remove('a');
-	      });
-	      window.history.pushState({page: 1}, "", "");
-	      return;
-	    }
+		  sincronizar().then(() => { renderDash(); });
+		  
+		  // Proteção contra saída acidental (Botão Voltar do Telemóvel)
+		  function lockBack() {
+		    window.history.pushState(null, "", window.location.href);
+		  }
+		  lockBack();
+		  
+		  window.onpopstate = function(event) {
+		    // Se houver algum modal aberto, fecha-o primeiro
+		    const modais = document.querySelectorAll('.modal.a, .viewer.a, #cWrap.a');
+		    if (modais.length > 0) {
+		      modais.forEach(m => {
+		        if (m.id === 'cWrap') pararCam();
+		        else m.classList.remove('a');
+		      });
+		      lockBack();
+		      return;
+		    }
 
-	    if (confirm("Tem a certeza que deseja sair do Painel de Administração?")) {
-	      window.history.back();
-	    } else {
-	      window.history.pushState({page: 1}, "", "");
-	    }
-	  };
-	};
+		    if (confirm("Tem a certeza que deseja sair do Painel de Administração?")) {
+		      // Se confirmar, permite sair
+		      window.history.go(-2);
+		    } else {
+		      // Se cancelar, bloqueia novamente
+		      lockBack();
+		    }
+		  };
+
+		  // Proteção extra ao fechar a aba ou recarregar
+		  window.onbeforeunload = function() {
+		    return "Tem a certeza que deseja sair?";
+		  };
+		};
 </script>
 </body>
 </html>
