@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0a1628">
-<title>MARINHA – Painel (v5.0)</title>
+<title>MARINHA – Painel (v6.0)</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -98,31 +98,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 .scan-box{background:linear-gradient(160deg,var(--n),var(--s));border-radius:18px;padding:20px;margin-bottom:14px}
 .cWrap{display:none;border-radius:16px;overflow:hidden;margin-bottom:12px}.cWrap.a{display:block}
 #qrVid{width:100%;display:block;max-height:260px;object-fit:cover}
-.qrRes{background:rgba(255,255,255,.1);border-radius:14px;padding:14px;margin-top:10px;display:none}.qrRes.a{display:block}
-.scan-inp{width:100%;padding:12px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;color:#fff;font-size:15px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:8px}
-.scan-inp::placeholder{color:rgba(255,255,255,.4)}
-.sResItem{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;background:rgba(255,255,255,.08);margin-bottom:6px}
-.sAvatar{width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.3);color:var(--g);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
 /* Toast */
-#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--n);color:#fff;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:.2s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
-#toast.v{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--n);color:#fff;padding:12px 20px;border-radius:24px;font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:.2s;pointer-events:none}
+#toast.v{opacity:1}
 
-/* LOG PAINEL */
-#logPainel{background:#000;color:#0f0;font-family:monospace;font-size:10px;padding:10px;border-radius:8px;margin-top:10px;max-height:150px;overflow-y:auto;display:none;border:1px solid #333}
+/* Log */
+#log{position:fixed;bottom:90px;right:16px;width:200px;max-height:300px;background:var(--n);color:#fff;border-radius:12px;padding:12px;font-size:11px;overflow-y:auto;z-index:9998;display:none}
+#log.v{display:block}
+.logLine{margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.1)}
+.logLine:last-child{border-bottom:none}
 
-/* TABELA HISTORICO */
-.hTable{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
-.hTable th{text-align:left;padding:8px;color:var(--mu);border-bottom:1px solid #eee}
-.hTable td{padding:8px;border-bottom:1px solid #f9f9f9}
+/* QR Scan Results */
+.qrRes{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border-radius:12px;max-height:200px;overflow-y:auto;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.qrRes.a{display:block}
+.sResItem{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid rgba(0,0,0,.06);cursor:pointer}
+.sResItem:hover{background:#f4f7fa}
+.sAvatar{width:36px;height:36px;border-radius:50%;background:var(--g);color:var(--n);font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.scan-inp{width:100%;padding:12px 14px;background:#fff;border:1.5px solid rgba(255,255,255,.3);border-radius:12px;font-size:15px;color:var(--n);outline:none;margin-bottom:10px;font-family:'DM Sans',sans-serif;-webkit-appearance:none}
+.scan-inp:focus{border-color:var(--g)}
+
+/* Table */
+.hTable{width:100%;border-collapse:collapse;font-size:11px}
+.hTable th{text-align:left;padding:8px 4px;background:#f4f7fa;font-weight:700;color:var(--mu);border-bottom:1px solid rgba(0,0,0,.06)}
+.hTable td{padding:8px 4px;border-bottom:1px solid rgba(0,0,0,.06)}
 </style>
 </head>
 <body>
 
-<!-- PIN -->
+<!-- PIN SCREEN -->
 <div id="ePin">
   <div class="pT">MARINHA</div>
-  <div class="pS">Painel da Loja</div>
+  <div class="pS">Painel de Administração</div>
   <div class="pDots">
     <div class="pDot" id="d0"></div>
     <div class="pDot" id="d1"></div>
@@ -140,7 +147,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     <button class="pBtn" onclick="pd('7')">7</button>
     <button class="pBtn" onclick="pd('8')">8</button>
     <button class="pBtn" onclick="pd('9')">9</button>
-    <button class="pBtn" style="opacity:.3" onclick="pd('')"></button>
     <button class="pBtn" onclick="pd('0')">0</button>
     <button class="pBtn" onclick="pa()">⌫</button>
   </div>
@@ -149,21 +155,30 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 <!-- APP -->
 <div id="eApp">
   <div class="cab">
-    <div>
+    <div style="flex:1">
       <div class="cabT" id="cabNome">MARINHA</div>
-      <div class="cabS">Painel da Loja</div>
+      <div class="cabS">Painel de Administração</div>
     </div>
   </div>
 
   <!-- DASHBOARD -->
   <div class="ecra a" id="ecraDash">
     <div class="s">
-      <div style="height:10px"></div>
-      <div class="stat">
-        <div class="sItem"><div class="sVal" id="sDia">0</div><div class="sLbl">Hoje</div></div>
-        <div class="sItem"><div class="sVal" id="sCli">0</div><div class="sLbl">Clientes</div></div>
-        <div class="sItem"><div class="sVal" id="sPro">0</div><div class="sLbl">Promos</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+        <div class="sItem">
+          <div class="sVal" id="sDia">0</div>
+          <div class="sLbl">Hoje</div>
+        </div>
+        <div class="sItem">
+          <div class="sVal" id="sCli">0</div>
+          <div class="sLbl">Clientes</div>
+        </div>
+        <div class="sItem">
+          <div class="sVal" id="sPro">0</div>
+          <div class="sLbl">Promos</div>
+        </div>
       </div>
+
       <div class="card">
         <div class="ct">Clientes Recentes</div>
         <div id="dRecentes"></div>
@@ -175,11 +190,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
   <div class="ecra" id="ecraClientes">
     <div class="s">
       <div class="card">
-        <input type="text" class="inp" placeholder="Pesquisar nome ou telemóvel..." oninput="filtrarCli(this.value)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-          <span id="cCont" style="font-size:12px;color:var(--mu)">0 clientes</span>
-          <button class="bP" style="width:auto;padding:8px 16px;font-size:13px" onclick="abrirNovoCli()">+ NOVO CLIENTE</button>
-        </div>
+        <div class="ct" id="cCont">0 clientes</div>
+        <input type="text" class="inp" placeholder="Pesquisar..." oninput="filtrarCli(this.value)">
+        <button class="bP" onclick="abrirNovoCli()" style="margin-top:10px">+ NOVO CLIENTE</button>
       </div>
       <div id="listaCli"></div>
     </div>
@@ -189,15 +202,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
   <div class="ecra" id="ecraFolheto">
     <div class="s">
       <div class="card">
-        <div class="ct">Folheto Digital</div>
+        <div class="ct">Folhetos</div>
+        <button class="bS" onclick="document.getElementById('fFolheto').click()">CARREGAR FOLHETO</button>
+        <input type="file" id="fFolheto" hidden accept="image/*" multiple onchange="addFolheto(event)">
         <div class="strip" id="stripFol"></div>
-        <button class="bS" onclick="document.getElementById('fInp').click()">+ ADICIONAR PÁGINAS</button>
-        <input type="file" id="fInp" hidden multiple accept="image/*" onchange="addFolheto(event)">
-        <div id="logPainel"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0">
-        <span class="ct" style="margin:0">Promoções Ativas</span>
-        <button class="bP" style="width:auto;padding:8px 16px;font-size:13px" onclick="abrirNovaPromo()">+ NOVA PROMO</button>
+
+      <div class="card">
+        <div class="ct">Promoções</div>
+        <button class="bP" onclick="abrirNovaPromo()">+ NOVA PROMOÇÃO</button>
       </div>
       <div id="listaPromos"></div>
     </div>
@@ -281,6 +294,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     <input type="tel" class="inp" id="mCliTel">
     <label class="lbl">Email</label>
     <input type="email" class="inp" id="mCliEmail">
+    <label class="lbl">PIN de Acesso (4 dígitos)</label>
+    <input type="text" class="inp" id="mCliPin" placeholder="Ex: 1234" maxlength="4">
     
     <div id="wFid" style="display:none">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0">
@@ -291,6 +306,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
         <div class="sItem" style="background:#f4f7fa">
           <div class="sVal" id="mCliPou">0.00€</div>
           <div class="sLbl">Total Gasto</div>
+        </div>
+      </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0">
+        <div class="sItem" style="background:#f4f7fa">
+          <div class="sVal" id="mCliAcs">0</div>
+          <div class="sLbl">Nº Acessos</div>
+        </div>
+        <div class="sItem" style="background:#f4f7fa">
+          <div class="sVal" id="mCliBonus">0</div>
+          <div class="sLbl">Bónus Pendente</div>
         </div>
       </div>
       
@@ -314,6 +340,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
         </div>
       </div>
       <button class="bS" style="background:var(--n);color:#fff" onclick="registarCompra()">+ REGISTAR DOCUMENTO</button>
+      
+      <div class="ct" style="margin-top:15px">Bónus de Fidelização</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="lbl">Adicionar Bónus</label>
+          <input type="number" class="inp" id="mBonusAdicionar" placeholder="Ex: 50" min="0">
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="bS" style="background:var(--gr);color:#fff;width:100%" onclick="adicionarBonus()">+ ADICIONAR</button>
+        </div>
+      </div>
       
       <div class="ct" style="margin-top:15px">Histórico Recente</div>
       <div style="max-height:150px;overflow-y:auto">
@@ -348,16 +385,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     <input type="text" class="inp" id="mPromoNome">
     <div class="row">
       <div><label class="lbl">Preço Original</label><input type="number" class="inp" id="mPromoOrig" step="0.01"></div>
-      <div><label class="lbl">Preço Promo</label><input type="number" class="inp" id="mPromoNovo" step="0.01"></div>
+      <div><label class="lbl">Preço Novo</label><input type="number" class="inp" id="mPromoNovo" step="0.01"></div>
     </div>
+    <label class="lbl">Emoji (opcional)</label>
+    <input type="text" class="inp" id="mPromoEmoji" placeholder="Ex: 🛍️">
     <div class="row">
-      <div><label class="lbl">Início</label><input type="date" class="inp" id="mPromoIni"></div>
-      <div><label class="lbl">Fim (Validade)</label><input type="date" class="inp" id="mPromoFim"></div>
+      <div><label class="lbl">Data Início</label><input type="date" class="inp" id="mPromoIni"></div>
+      <div><label class="lbl">Data Fim</label><input type="date" class="inp" id="mPromoFim"></div>
     </div>
-    <label class="lbl">Emoji (se não houver foto)</label>
-    <input type="text" class="inp" id="mPromoEmoji" value="🛒">
-    
-    <div class="row" style="margin-top:10px">
+
+    <div class="row" style="margin-top:20px">
       <button class="bS" onclick="fecharModal('mPromo')">CANCELAR</button>
       <button class="bP" onclick="guardarPromo()">GUARDAR PROMOÇÃO</button>
     </div>
@@ -367,37 +404,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
   </div>
 </div>
 
-<!-- VIEWER -->
+<!-- VIEWER FULLSCREEN -->
 <div class="viewer" id="viewer">
   <div class="vTop">
-    <div style="color:#fff;flex:1;font-weight:700" id="vCount">0 / 0</div>
-    <button class="vBtn" onclick="fecharViewer()">FECHAR</button>
+    <button class="vBtn" onclick="fecharViewer()">← Voltar</button>
+    <div id="vCount" style="flex:1;text-align:center;color:#fff">1 / 1</div>
   </div>
   <div class="vTrack" id="vTrack"></div>
 </div>
 
+<!-- TOAST & LOG -->
 <div id="toast"></div>
+<div id="log"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
-const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
-const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
+const SB = 'https://xxxxxxxxxxx.supabase.co';
 const BUCKET = 'marinha';
+const SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4eHh4eHh4eHh4eHh4eHgiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcwMjAwMDAwMCwiZXhwIjoxNzMzNTM2MDAwfQ.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 
-let DB = { clientes: [], promos: [], folhetos: [], cfg: { nomeLoja: 'MARINHA', pin: '1234', euroPonto: 1, pontoEuro: 20 } };
+var DB = { clientes: [], promos: [], folhetos: [], cfg: { nomeLoja: 'MARINHA', pin: '1234', euroPonto: 1, pontoEuro: 20 } };
+var _vIdx = 0;
 
-function hd() { return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json' }; }
-function log(m, c) { 
-    var p = document.getElementById('logPainel'); 
-    p.style.display = 'block'; 
-    p.innerHTML += `<div style="color:${c}">> ${m}</div>`; 
-    p.scrollTop = p.scrollHeight; 
-}
+function hd(){ return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json' }; }
 
 async function sincronizar() {
   try {
     const [c, p, f, g] = await Promise.all([
-      fetch(SB + '/rest/v1/clientes?order=nome.asc', { headers: hd() }).then(r => r.json()),
+      fetch(SB + '/rest/v1/clientes?order=id.asc', { headers: hd() }).then(r => r.json()),
       fetch(SB + '/rest/v1/promos?order=id.desc', { headers: hd() }).then(r => r.json()),
       fetch(SB + '/rest/v1/folhetos?order=id.asc', { headers: hd() }).then(r => r.json()),
       fetch(SB + '/rest/v1/config?id=eq.1', { headers: hd() }).then(r => r.json())
@@ -409,11 +443,11 @@ async function sincronizar() {
   } catch(e) { toast('Erro ao sincronizar'); }
 }
 
-// ── UPLOAD FOLHETO (v4.1) ──
+// ── UPLOAD FOLHETO ──
 async function addFolheto(e) {
   var files = e.target.files;
   if (!files.length) return;
-  log('INICIANDO UPLOAD (v4.1)...', '#fff');
+  log('INICIANDO UPLOAD...', '#fff');
   
   for (var i = 0; i < files.length; i++) {
     var f = files[i];
@@ -536,12 +570,12 @@ function irTab(tab) {
 
 // ── RENDERS ──
 function renderDash() {
-  document.getElementById('cabNome').textContent = DB.cfg.nomeLoja;
+  document.getElementById('cabNome').textContent = DB.cfg.nome_loja || DB.cfg.nomeLoja || 'MARINHA';
   document.getElementById('sDia').textContent = DB.clientes.filter(c => (c.historico || []).some(x => x.data.slice(0,10) === hoje())).length;
   document.getElementById('sCli').textContent = DB.clientes.length;
   document.getElementById('sPro').textContent = DB.promos.length;
   var rec = DB.clientes.slice(-6).reverse();
-  document.getElementById('dRecentes').innerHTML = rec.map(c => `<div class="cRow" onclick="verCli('${c.id}')"><div class="avatar">${c.nome[0]}</div><div style="flex:1"><b>${c.nome}</b><br><small>Nº ${c.num_cliente}</small></div><div>${c.pts} pts</div></div>`).join('');
+  document.getElementById('dRecentes').innerHTML = rec.map(c => `<div class="cRow" onclick="verCli('${c.id}')"><div class="avatar">${c.nome[0]}</div><div style="flex:1"><b>${c.nome}</b><br><small>Nº ${c.num_cliente} | Acessos: ${c.num_acessos || 0}</small></div><div>${c.pts} pts</div></div>`).join('');
 }
 
 function renderFolheto() {
@@ -564,7 +598,7 @@ function renderPromos() {
 function renderCli(f) {
   var lista = DB.clientes.filter(c => c.nome.toLowerCase().includes(f.toLowerCase()) || c.tel.includes(f));
   document.getElementById('cCont').textContent = lista.length + ' clientes';
-  document.getElementById('listaCli').innerHTML = lista.map(c => `<div class="cRow" onclick="verCli('${c.id}')"><div class="avatar">${c.nome[0]}</div><div style="flex:1"><b>${c.nome}</b><br><small>${c.tel}</small></div><div style="text-align:right"><div class="cPts">${c.pts}</div><div class="cPtsL">PONTOS</div></div></div>`).join('');
+  document.getElementById('listaCli').innerHTML = lista.map(c => `<div class="cRow" onclick="verCli('${c.id}')"><div class="avatar">${c.nome[0]}</div><div style="flex:1"><b>${c.nome}</b><br><small>${c.tel}</small></div><div style="text-align:right"><div style="font-size:10px;color:var(--mu);margin-bottom:2px">Acessos: ${c.num_acessos || 0}</div><div class="cPts">${c.pts}</div><div class="cPtsL">PONTOS</div></div></div>`).join('');
 }
 function filtrarCli(v) { renderCli(v); }
 
@@ -574,10 +608,12 @@ function abrirNovoCli() {
   document.getElementById('mCliNome').value = '';
   document.getElementById('mCliTel').value = '';
   document.getElementById('mCliEmail').value = '';
+  document.getElementById('mCliPin').value = '';
   document.getElementById('wFid').style.display = 'none';
   document.getElementById('wApagarCli').style.display = 'none';
   document.getElementById('mCli').classList.add('a');
 }
+
 function verCli(id) {
   var c = DB.clientes.find(x => x.id === id);
   document.getElementById('mCliTit').textContent = 'Editar Cliente';
@@ -585,9 +621,13 @@ function verCli(id) {
   document.getElementById('mCliNome').value = c.nome;
   document.getElementById('mCliTel').value = c.tel;
   document.getElementById('mCliEmail').value = c.email || '';
+  document.getElementById('mCliPin').value = c.pin || '';
   document.getElementById('mDocData').value = hoje();
   document.getElementById('mCliPts').textContent = c.pts || 0;
   document.getElementById('mCliPou').textContent = parseFloat(c.total_gasto || 0).toFixed(2) + '€';
+  document.getElementById('mCliAcs').textContent = c.num_acessos || 0;
+  document.getElementById('mCliBonus').textContent = c.bonus_pontos || 0;
+  document.getElementById('mBonusAdicionar').value = '';
   
   var h = c.historico || [];
   var html = '<tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Pts</th><th></th></tr>';
@@ -612,7 +652,6 @@ async function delDoc(cliId, idx) {
   
   log('Eliminando documento e ajustando valores...', '#fff');
   
-  // Reverter valores (se o doc tinha valor positivo, subtrai; se era NC negativo, soma)
   var novosPts = Math.max(0, (parseInt(c.pts) || 0) - (parseInt(doc.pts) || 0));
   var novoTotal = (parseFloat(c.total_gasto) || 0) - (parseFloat(doc.valor) || 0);
   
@@ -642,6 +681,37 @@ async function delDoc(cliId, idx) {
   }
 }
 
+async function adicionarBonus() {
+  var id = document.getElementById('mCliId').value;
+  var bonus = parseInt(document.getElementById('mBonusAdicionar').value) || 0;
+  if (bonus <= 0) return alert('Insira um valor de bónus válido');
+  
+  var c = DB.clientes.find(x => x.id == id);
+  if (!c) return alert('Cliente não encontrado');
+  
+  var novoBonus = (parseInt(c.bonus_pontos) || 0) + bonus;
+  
+  try {
+    var res = await fetch(SB + '/rest/v1/clientes?id=eq.' + id, {
+      method: 'PATCH',
+      headers: hd(),
+      body: JSON.stringify({ bonus_pontos: novoBonus })
+    });
+    
+    if (res.ok) {
+      log('SUCESSO: Bónus adicionado!', '#0f0');
+      await sincronizar();
+      verCli(id);
+      toast('✅ Bónus adicionado');
+    } else {
+      var err = await res.text();
+      log('ERRO AO ADICIONAR BÓNUS: ' + err, '#f00');
+    }
+  } catch(e) {
+    log('ERRO DE LIGAÇÃO: ' + e.message, '#f00');
+  }
+}
+
 async function registarCompra() {
   var id = document.getElementById('mCliId').value;
   var tipo = document.getElementById('mDocTipo').value;
@@ -650,7 +720,6 @@ async function registarCompra() {
   
   log('Iniciando registo de documento...', '#fff');
   
-  // Procurar o cliente pelo ID (pode ser o ID do Supabase ou o ID gerado pelo código)
   var c = DB.clientes.find(x => x.id == id);
   if (!c) {
     log('ERRO: Cliente não encontrado no banco de dados local.', '#f00');
@@ -658,13 +727,11 @@ async function registarCompra() {
   }
   var cfg = DB.cfg;
   
-  // Cálculo de pontos (usa euro_ponto da config)
   var r_euroPonto = parseFloat(cfg.euro_ponto || cfg.euroPonto || 1);
   var ptsGanhos = Math.floor(valor / r_euroPonto);
   
   log(`Cálculo: ${valor}€ / ${r_euroPonto} = ${ptsGanhos} pts`, '#fff');
   
-  // Se for Nota de Crédito, os valores são negativos para abater no total
   var valorRegisto = valor;
   var ptsRegisto = ptsGanhos;
   if (tipo === 'NC') {
@@ -676,7 +743,6 @@ async function registarCompra() {
   var dataDoc = document.getElementById('mDocData').value || hoje();
   var novoHist = { data: dataDoc, tipo: tipo, valor: valorRegisto, pts: ptsRegisto };
   
-  // Criar cópia do histórico para evitar problemas de referência
   var historico = JSON.parse(JSON.stringify(c.historico || []));
   historico.push(novoHist);
   
@@ -692,7 +758,6 @@ async function registarCompra() {
   log('A gravar no Supabase...', '#fff');
   
   try {
-    // Usar o ID exato do cliente para garantir que o Supabase o encontra
     var res = await fetch(SB + '/rest/v1/clientes?id=eq.' + c.id, { 
       method: 'PATCH', 
       headers: hd(), 
@@ -721,7 +786,8 @@ async function guardarCli() {
   var d = {
     nome: document.getElementById('mCliNome').value,
     tel: document.getElementById('mCliTel').value,
-    email: document.getElementById('mCliEmail').value
+    email: document.getElementById('mCliEmail').value,
+    pin: document.getElementById('mCliPin').value || null
   };
   if (!d.nome || !d.tel) return alert('Nome e Telemóvel obrigatórios');
   
@@ -730,7 +796,9 @@ async function guardarCli() {
     d.num_cliente = (DB.clientes.length + 1001).toString(); 
     d.pts = 0; 
     d.poupado = 0;
-    d.historico = []; 
+    d.historico = [];
+    d.num_acessos = 0;
+    d.bonus_pontos = 0;
     await fetch(SB + '/rest/v1/clientes', { method: 'POST', headers: hd(), body: JSON.stringify(d) });
   } else {
     await fetch(SB + '/rest/v1/clientes?id=eq.' + id, { method: 'PATCH', headers: hd(), body: JSON.stringify(d) });
@@ -877,48 +945,48 @@ async function guardarCfgFid() {
   }
 }
 
-	// ── SCANNER ──
-	var _stream = null;
-	async function iniciarCam() {
-	  try {
-	    const constraints = { 
-	      video: { 
-	        facingMode: 'environment',
-	        width: { ideal: 1280 },
-	        height: { ideal: 720 }
-	      } 
-	    };
-	    _stream = await navigator.mediaDevices.getUserMedia(constraints);
-	    const v = document.getElementById('qrVid');
-	    v.srcObject = _stream;
-	    v.setAttribute("playsinline", true); // necessário para iOS
-	    v.play();
-	    
-	    document.getElementById('cWrap').classList.add('a');
-	    document.getElementById('sPrincipal').style.display = 'none';
-	    requestAnimationFrame(scanLoop);
-	  } catch(e) { 
-	    console.error(e);
-	    alert('Erro ao abrir câmara: ' + e.message); 
-	  }
-	}
-	function scanLoop() {
-	  var v = document.getElementById('qrVid');
-	  if (v.readyState === v.HAVE_ENOUGH_DATA) {
-	    var cv = document.createElement('canvas');
-	    cv.width = v.videoWidth; cv.height = v.videoHeight;
-	    var ctx = cv.getContext('2d');
-	    ctx.drawImage(v, 0, 0, cv.width, cv.height);
-	    var img = ctx.getImageData(0, 0, cv.width, cv.height);
-	    var code = jsQR(img.data, img.width, img.height);
-	    if (code) { 
-	      pararCam(); 
-	      processarQR(code.data); 
-	      return; 
-	    }
-	  }
-	  if (_stream) requestAnimationFrame(scanLoop);
-	}
+// ── SCANNER ──
+var _stream = null;
+async function iniciarCam() {
+  try {
+    const constraints = { 
+      video: { 
+        facingMode: 'environment',
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      } 
+    };
+    _stream = await navigator.mediaDevices.getUserMedia(constraints);
+    const v = document.getElementById('qrVid');
+    v.srcObject = _stream;
+    v.setAttribute("playsinline", true);
+    v.play();
+    
+    document.getElementById('cWrap').classList.add('a');
+    document.getElementById('sPrincipal').style.display = 'none';
+    requestAnimationFrame(scanLoop);
+  } catch(e) { 
+    console.error(e);
+    alert('Erro ao abrir câmara: ' + e.message); 
+  }
+}
+function scanLoop() {
+  var v = document.getElementById('qrVid');
+  if (v.readyState === v.HAVE_ENOUGH_DATA) {
+    var cv = document.createElement('canvas');
+    cv.width = v.videoWidth; cv.height = v.videoHeight;
+    var ctx = cv.getContext('2d');
+    ctx.drawImage(v, 0, 0, cv.width, cv.height);
+    var img = ctx.getImageData(0, 0, cv.width, cv.height);
+    var code = jsQR(img.data, img.width, img.height);
+    if (code) { 
+      pararCam(); 
+      processarQR(code.data); 
+      return; 
+    }
+  }
+  if (_stream) requestAnimationFrame(scanLoop);
+}
 function pararCam() { if(_stream) _stream.getTracks().forEach(t => t.stop()); _stream = null; document.getElementById('cWrap').classList.remove('a'); document.getElementById('sPrincipal').style.display = 'block'; }
 function bip() {
   try {
@@ -956,9 +1024,9 @@ function hoje() { return new Date().toISOString().slice(0, 10); }
 function fd(d) { return d ? new Date(d).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' }) : ''; }
 function fecharModal(id) { document.getElementById(id).classList.remove('a'); }
 function toast(msg) { var el = document.getElementById('toast'); el.textContent = msg; el.classList.add('v'); setTimeout(() => el.classList.remove('v'), 2500); }
+function log(msg, color) { var el = document.getElementById('log'); var line = document.createElement('div'); line.className = 'logLine'; line.style.color = color || '#fff'; line.textContent = msg; el.appendChild(line); el.classList.add('v'); setTimeout(() => { if (el.children.length > 20) el.removeChild(el.firstChild); }, 100); }
 
 // Viewer
-var _vIdx = 0;
 function abrirViewer(i) { _vIdx = i; updViewer(); document.getElementById('viewer').classList.add('a'); }
 function fecharViewer() { document.getElementById('viewer').classList.remove('a'); }
 function updViewer() {
@@ -969,41 +1037,39 @@ function updViewer() {
   document.getElementById('vCount').textContent = (_vIdx + 1) + ' / ' + DB.folhetos.length;
 }
 
-	window.onload = () => {
-		  sincronizar().then(() => { renderDash(); });
-		  
-		  // Proteção contra saída acidental (Botão Voltar do Telemóvel)
-		  function lockBack() {
-		    window.history.pushState(null, "", window.location.href);
-		  }
-		  lockBack();
-		  
-		  window.onpopstate = function(event) {
-		    // Se houver algum modal aberto, fecha-o primeiro
-		    const modais = document.querySelectorAll('.modal.a, .viewer.a, #cWrap.a');
-		    if (modais.length > 0) {
-		      modais.forEach(m => {
-		        if (m.id === 'cWrap') pararCam();
-		        else m.classList.remove('a');
-		      });
-		      lockBack();
-		      return;
-		    }
+window.onload = () => {
+  sincronizar().then(() => { renderDash(); });
+  
+  // Proteção contra saída acidental (Botão Voltar do Telemóvel)
+  function lockBack() {
+    window.history.pushState(null, "", window.location.href);
+  }
+  lockBack();
+  
+  window.onpopstate = function(event) {
+    // Se houver algum modal aberto, fecha-o primeiro
+    const modais = document.querySelectorAll('.modal.a, .viewer.a, #cWrap.a');
+    if (modais.length > 0) {
+      modais.forEach(m => {
+        if (m.id === 'cWrap') pararCam();
+        else m.classList.remove('a');
+      });
+      lockBack();
+      return;
+    }
 
-		    if (confirm("Tem a certeza que deseja sair do Painel de Administração?")) {
-		      // Se confirmar, permite sair
-		      window.history.go(-2);
-		    } else {
-		      // Se cancelar, bloqueia novamente
-		      lockBack();
-		    }
-		  };
+    if (confirm("Tem a certeza que deseja sair do Painel de Administração?")) {
+      window.history.go(-2);
+    } else {
+      lockBack();
+    }
+  };
 
-		  // Proteção extra ao fechar a aba ou recarregar
-		  window.onbeforeunload = function() {
-		    return "Tem a certeza que deseja sair?";
-		  };
-		};
+  // Proteção extra ao fechar a aba ou recarregar
+  window.onbeforeunload = function() {
+    return "Tem a certeza que deseja sair?";
+  };
+};
 </script>
 </body>
 </html>
