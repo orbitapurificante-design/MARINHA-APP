@@ -25,6 +25,18 @@
         .rInp{width:100%;max-width:320px;padding:16px;background:#f4f7fa;border:1.5px solid #e1e8ed;border-radius:14px;color:var(--n);text-align:center;font-size:16px;outline:none;font-family:'DM Sans',sans-serif}
         .rInp::placeholder{color:#999}
         .rBtn{width:100%;max-width:320px;padding:16px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;cursor:pointer;font-size:16px;font-family:'DM Sans',sans-serif}
+        
+        /* PIN SCREEN */
+        #ePin{position:fixed;inset:0;z-index:9999;background:#ffffff;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px}
+        #ePin.v{display:flex}
+        .pTitle{font-size:24px;font-weight:800;color:var(--n);margin-bottom:10px}
+        .pDots{display:flex;gap:12px;margin:16px 0}
+        .pDot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(10,22,40,.3);background:transparent;transition:.15s}
+        .pDot.on{background:var(--g);border-color:var(--g)}
+        .pGrid{display:grid;grid-template-columns:repeat(3,60px);gap:10px;margin:20px 0}
+        .pBtn{height:60px;border:none;border-radius:14px;background:#eef2f7;color:var(--n);font-size:20px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:transform .1s,background .1s}
+        .pBtn:active{transform:scale(.92);background:#dde4ed}
+        .pErr{color:#e74c3c;font-size:13px;font-weight:600;min-height:20px;text-align:center}
 
         /* APP */
         #eApp{display:none;flex-direction:column;min-height:100vh}
@@ -107,6 +119,31 @@
     <input class="rInp" type="text" id="rNome" placeholder="O seu nome">
     <input class="rInp" type="tel" id="rTel" placeholder="Telemóvel">
     <button class="rBtn" id="btnEntrar" onclick="registar()">ACEDER AO CARTÃO</button>
+</div>
+
+<!-- PIN SCREEN -->
+<div id="ePin">
+    <div class="pTitle">Insira o seu PIN</div>
+    <div class="pDots">
+        <div class="pDot" id="pDot0"></div>
+        <div class="pDot" id="pDot1"></div>
+        <div class="pDot" id="pDot2"></div>
+        <div class="pDot" id="pDot3"></div>
+    </div>
+    <div class="pGrid">
+        <button class="pBtn" onclick="adicionarDigito('1')">1</button>
+        <button class="pBtn" onclick="adicionarDigito('2')">2</button>
+        <button class="pBtn" onclick="adicionarDigito('3')">3</button>
+        <button class="pBtn" onclick="adicionarDigito('4')">4</button>
+        <button class="pBtn" onclick="adicionarDigito('5')">5</button>
+        <button class="pBtn" onclick="adicionarDigito('6')">6</button>
+        <button class="pBtn" onclick="adicionarDigito('7')">7</button>
+        <button class="pBtn" onclick="adicionarDigito('8')">8</button>
+        <button class="pBtn" onclick="adicionarDigito('9')">9</button>
+        <button class="pBtn" onclick="adicionarDigito('0')">0</button>
+        <button class="pBtn" onclick="removerDigito()">⌫</button>
+        <button class="pBtn" onclick="fecharPinScreen()" style="background:#eef2f7;color:#e74c3c">✕</button>
+    </div>
 </div>
 
 <div id="eApp">
@@ -229,7 +266,7 @@ async function registar() {
             USER = res[0];
         } else {
             const num = (Math.floor(10000 + Math.random() * 89999)).toString();
-            USER = { id: Date.now().toString(36), nome: n, tel: t, pts: 0, poupado: 0, num_cliente: num, visitas: 0, historico: [], desde: hoje() };
+            USER = { id: Date.now().toString(36), nome: n, tel: t, pts: 0, poupado: 0, num_cliente: num, visitas: 0, historico: [], desde: hoje(), pin: null, num_acessos: 0, bonus_pontos: 0 };
             await fetch(SB + '/rest/v1/clientes', {
                 method: 'POST',
                 headers: Object.assign({}, hd(), { 'Prefer': 'return=representation' }),
@@ -237,7 +274,12 @@ async function registar() {
             });
         }
         localStorage.setItem('m_tel', t);
-        entrar();
+        // Se o cliente tem PIN, pedir antes de entrar
+        if (USER.pin) {
+            mostrarPinScreen();
+        } else {
+            entrar();
+        }
     } catch (err) {
         toast('⚠️ Erro ao aceder.');
         document.getElementById('btnEntrar').textContent = 'ACEDER AO CARTÃO';
@@ -245,8 +287,86 @@ async function registar() {
     }
 }
 
-function entrar() {
+// ── PIN SCREEN ──
+var _pinAtual = '';
+function mostrarPinScreen() {
+    _pinAtual = '';
     document.getElementById('eReg').style.display = 'none';
+    document.getElementById('ePin').classList.add('v');
+    atualizarPinDots();
+}
+
+function fecharPinScreen() {
+    document.getElementById('ePin').classList.remove('v');
+    document.getElementById('eReg').style.display = 'flex';
+    _pinAtual = '';
+    atualizarPinDots();
+}
+
+function adicionarDigito(d) {
+    if (_pinAtual.length >= 4) return;
+    _pinAtual += d;
+    atualizarPinDots();
+    if (_pinAtual.length === 4) {
+        setTimeout(() => {
+            if (_pinAtual === USER.pin) {
+                entrar();
+            } else {
+                toast('❌ PIN Incorreto');
+                _pinAtual = '';
+                atualizarPinDots();
+            }
+        }, 200);
+    }
+}
+
+function removerDigito() {
+    _pinAtual = _pinAtual.slice(0, -1);
+    atualizarPinDots();
+}
+
+function atualizarPinDots() {
+    for (var i = 0; i < 4; i++) {
+        var dot = document.getElementById('pDot' + i);
+        if (i < _pinAtual.length) {
+            dot.classList.add('on');
+        } else {
+            dot.classList.remove('on');
+        }
+    }
+}
+
+async function entrar() {
+    // Incrementar contador de acessos
+    if (USER && USER.id) {
+        var novoAcessos = (parseInt(USER.num_acessos) || 0) + 1;
+        try {
+            await fetch(SB + '/rest/v1/clientes?id=eq.' + USER.id, {
+                method: 'PATCH',
+                headers: hd(),
+                body: JSON.stringify({ num_acessos: novoAcessos })
+            });
+            USER.num_acessos = novoAcessos;
+        } catch(e) { console.error('Erro ao atualizar acessos:', e); }
+        
+        // Aplicar bónus pendente se existir
+        if (USER.bonus_pontos && USER.bonus_pontos > 0) {
+            var novosPts = (parseInt(USER.pts) || 0) + (parseInt(USER.bonus_pontos) || 0);
+            try {
+                await fetch(SB + '/rest/v1/clientes?id=eq.' + USER.id, {
+                    method: 'PATCH',
+                    headers: hd(),
+                    body: JSON.stringify({ pts: novosPts, bonus_pontos: 0 })
+                });
+                USER.pts = novosPts;
+                USER.bonus_pontos = 0;
+                toast('🎁 Bónus aplicado!');
+            } catch(e) { console.error('Erro ao aplicar bónus:', e); }
+        }
+    }
+    
+    document.getElementById('eReg').style.display = 'none';
+    document.getElementById('ePin').classList.remove('v');
     document.getElementById('eApp').classList.add('v');
     document.getElementById('eApp').style.display = 'flex';
     ir('Inicio');
@@ -396,7 +516,9 @@ function updViewer() {
 
 function fecharViewer() {
     document.getElementById('viewer').classList.remove('a');
-    if (_vTipo === 'folheto') ir('Inicio');
+    if (_vTipo === 'folheto') {
+        ir('Inicio');
+    }
 }
 
 // SWIPE
@@ -461,7 +583,13 @@ function sair() {
 	        let res = await api('clientes?tel=eq.' + t);
 	        if(res && res.length > 0) {
 	            USER = res[0];
-	            entrar();
+	            // Se o cliente tem PIN, pedir antes de entrar
+	            if (USER.pin) {
+	                document.getElementById('eReg').style.display = 'none';
+	                mostrarPinScreen();
+	            } else {
+	                entrar();
+	            }
 	        } else {
 	            document.getElementById('eReg').style.display = 'flex';
 	        }
