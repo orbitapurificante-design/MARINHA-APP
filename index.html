@@ -107,6 +107,45 @@
         /* TOAST */
         #toast{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(8px);background:var(--n);color:#fff;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:.2s;pointer-events:none;white-space:nowrap}
         #toast.v{opacity:1;transform:translateX(-50%) translateY(0)}
+        /* CARRINHO / ENCOMENDA */
+        .cart-btn{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));right:16px;z-index:200;
+          width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--gl));
+          border:none;box-shadow:0 4px 16px rgba(201,168,76,.5);cursor:pointer;display:none;
+          align-items:center;justify-content:center;font-size:24px}
+        .cart-btn.v{display:flex}
+        .cart-badge{position:absolute;top:-4px;right:-4px;background:var(--r);color:#fff;
+          font-size:11px;font-weight:800;min-width:20px;height:20px;border-radius:10px;
+          display:flex;align-items:center;justify-content:center;padding:0 4px}
+        .pQty{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:4px}
+        .qBtn{width:32px;height:32px;border-radius:50%;border:none;font-size:18px;font-weight:700;
+          cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+          font-family:'DM Sans',sans-serif}
+        .qBtn-m{background:#eef2f7;color:var(--n)}
+        .qBtn-p{background:var(--g);color:var(--n)}
+        .qNum{font-size:15px;font-weight:800;min-width:24px;text-align:center}
+        .qCx{flex:1;padding:5px 4px;background:var(--s);color:#fff;border:none;border-radius:8px;
+          font-size:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:center}
+
+        /* MODAL CARRINHO */
+        .mCart{background:#fff;border-radius:20px 20px 0 0;width:100%;padding:20px;
+          max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+        .cartItem{display:flex;align-items:center;gap:10px;padding:10px 0;
+          border-bottom:1px solid rgba(0,0,0,.06)}
+        .cartItem:last-child{border-bottom:none}
+        .cartImg{width:48px;height:64px;border-radius:8px;background:#eef2f7;
+          object-fit:contain;flex-shrink:0}
+        .cartInfo{flex:1;min-width:0}
+        .cartNome{font-size:13px;font-weight:700;margin-bottom:2px}
+        .cartSub{font-size:12px;color:var(--mu)}
+        .cartVal{font-size:14px;font-weight:800;color:var(--r);white-space:nowrap}
+        .cartTotRow{display:flex;justify-content:space-between;align-items:center;
+          padding:14px 0;border-top:2px solid var(--n);margin-top:8px}
+        .bWA{width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:14px;
+          font-weight:800;font-size:15px;cursor:pointer;font-family:'DM Sans',sans-serif;
+          display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px}
+        .bPDF{width:100%;padding:14px;background:var(--n);color:#fff;border:none;border-radius:14px;
+          font-weight:800;font-size:15px;cursor:pointer;font-family:'DM Sans',sans-serif;
+          display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
     </style>
 </head>
 <body>
@@ -177,7 +216,7 @@
     </div>
 
     <!-- FOLHETOS -->
-    <div class="ecra" id="ecraFolhetos"></div>
+    <div class="ecra" id="ecraCatalogo"></div>
 
     <!-- QR -->
     <div class="ecra" id="ecraQR">
@@ -197,9 +236,9 @@
             <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             Início
         </button>
-        <button class="nBtn" id="nFolhetos" onclick="ir('Folhetos')">
+        <button class="nBtn" id="nCatalogo" onclick="ir('Catalogo')">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-            Folhetos
+            Catálogo
         </button>
         <button class="nBtn" id="nQR" onclick="ir('QR')">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"></rect><rect x="16" y="3" width="5" height="5"></rect><rect x="3" y="16" width="5" height="5"></rect><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7"></path></svg>
@@ -210,6 +249,38 @@
             Sair
         </button>
     </nav>
+</div>
+
+<!-- CARRINHO FAB -->
+<button class="cart-btn" id="cartFab" onclick="abrirCarrinho()">
+    🛒<span class="cart-badge" id="cartBadge">0</span>
+</button>
+
+<!-- MODAL CARRINHO -->
+<div class="modal" id="mCarrinho">
+  <div class="mCart">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:18px;font-weight:800">🛒 Encomenda</div>
+      <button onclick="fecharCarrinho()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--mu)">×</button>
+    </div>
+    <div id="cartLista"></div>
+    <div class="cartTotRow">
+      <div style="font-size:14px;font-weight:700;color:var(--mu)">TOTAL ESTIMADO</div>
+      <div style="font-size:22px;font-weight:800;color:var(--n)" id="cartTotal">0.00€</div>
+    </div>
+    <div style="margin-bottom:6px">
+      <label style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1px;text-transform:uppercase">Nº Telemóvel Destino</label>
+      <input type="tel" id="cartTel" class="rInp" placeholder="351912345678" style="margin-top:6px;max-width:100%;text-align:left;padding:12px 14px">
+    </div>
+    <button class="bWA" onclick="enviarWhatsApp()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      ENVIAR POR WHATSAPP
+    </button>
+    <button class="bPDF" onclick="gerarPDF()">
+      📄 GERAR PDF / IMPRIMIR
+    </button>
+    <button onclick="limparCarrinho()" style="width:100%;padding:12px;background:none;border:none;color:var(--r);font-weight:700;font-size:13px;cursor:pointer;margin-top:4px">🗑 Limpar Encomenda</button>
+  </div>
 </div>
 
 <!-- VIEWER FULLSCREEN -->
@@ -232,6 +303,7 @@ const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
 const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
 let USER = null;
 let PROMOS_ATIVAS = [];
+let CART = {}; // { promoId: { promo, qty } }
 
 // Estado do Viewer
 let _vIdx = 0, _vSlides = [], _vTx = 0, _vTipo = ''; 
@@ -381,7 +453,7 @@ function ir(tab) {
     if(btn) btn.classList.add('a');
     
     if(tab === 'Inicio') renderInicio();
-    if(tab === 'Folhetos') abrirFolhetosFullscreen();
+    if(tab === 'Catalogo') abrirCatalogoFullscreen();
     if(tab === 'QR') renderQR();
     window.scrollTo(0, 0);
 }
@@ -416,15 +488,16 @@ async function renderInicio() {
         var po = parseFloat(p.preco_orig) || 0;
         var pn = parseFloat(p.preco_novo) || 0;
         var pct = (po > 0 && pn > 0) ? Math.round((1 - pn/po) * 100) : 0;
+        var und = parseInt(p.und_caixa) || 1;
         var fotoSrc = p.foto || '';
         var imgHtml = fotoSrc
             ? '<img src="' + fotoSrc + '" onerror="this.style.display=\'none\'">'
-            : '<div class="pEmoji">' + (p.emoji || '🛒') + '</div>';
+            : '<div class="pEmoji">🛒</div>';
         var valHtml = p.data_fim ? '<div class="pValidade">Até ' + fd(p.data_fim) + '</div>' : '';
+        var qty = CART[p.id] ? CART[p.id].qty : 0;
         return '<div class="pCard">' +
             '<div class="pImgW" onclick="abrirPromosFullscreen(' + idx + ')">' +
-                imgHtml +
-                valHtml +
+                imgHtml + valHtml +
             '</div>' +
             '<div class="pBody">' +
                 '<div class="pNome">' + p.nome + '</div>' +
@@ -433,6 +506,12 @@ async function renderInicio() {
                     (po > 0 ? '<span class="pOrig">' + po.toFixed(2) + '€</span>' : '') +
                     (pct > 0 ? '<div class="pBdg">-' + pct + '%</div>' : '') +
                 '</div>' +
+                '<div class="pQty" id="pqty_' + p.id + '">' +
+                    '<button class="qBtn qBtn-m" onclick="cartChange(\'' + p.id + '\',-1)">−</button>' +
+                    '<span class="qNum" id="qn_' + p.id + '">' + qty + '</span>' +
+                    '<button class="qBtn qBtn-p" onclick="cartChange(\'' + p.id + '\',1)">+</button>' +
+                    (und > 1 ? '<button class="qCx" onclick="cartChange(\'' + p.id + '\',' + und + ')">+1cx<br><span style="font-size:9px;opacity:.7">' + und + 'un</span></button>' : '') +
+                '</div>' +
             '</div>' +
         '</div>';
     }).join('') + '</div>';
@@ -440,15 +519,15 @@ async function renderInicio() {
 
 // --- VIEWER LOGIC ---
 
-async function abrirFolhetosFullscreen() {
+async function abrirCatalogoFullscreen() {
     const folhetos = await api('folhetos?order=id.asc');
     if(!folhetos || !folhetos.length) {
-        toast('Sem folhetos disponíveis');
+        toast('Sem catálogo disponível');
         ir('Inicio');
         return;
     }
     _vSlides = folhetos.map(f => ({ src: f.url || f.data }));
-    _vTipo = 'folheto';
+    _vTipo = 'catalogo';
     _vIdx = 0;
     mostrarViewer();
 }
@@ -516,7 +595,7 @@ function updViewer() {
 
 function fecharViewer() {
     document.getElementById('viewer').classList.remove('a');
-    if (_vTipo === 'folheto') {
+    if (_vTipo === 'catálogo') {
         ir('Inicio');
     }
 }
@@ -544,6 +623,158 @@ function sair() {
     localStorage.removeItem('m_tel');
     location.reload();
 }
+
+// ── CARRINHO ──
+function cartChange(id, delta) {
+    var p = PROMOS_ATIVAS.find(function(x){ return x.id == id; });
+    if(!p) return;
+    if(!CART[id]) CART[id] = { promo: p, qty: 0 };
+    CART[id].qty = Math.max(0, CART[id].qty + delta);
+    if(CART[id].qty === 0) delete CART[id];
+
+    // Atualizar badge qty no card
+    var el = document.getElementById('qn_' + id);
+    if(el) el.textContent = CART[id] ? CART[id].qty : 0;
+
+    // Atualizar FAB
+    var total = Object.values(CART).reduce(function(a,x){ return a + x.qty; }, 0);
+    var fab = document.getElementById('cartFab');
+    var badge = document.getElementById('cartBadge');
+    badge.textContent = total;
+    if(total > 0) fab.classList.add('v'); else fab.classList.remove('v');
+}
+
+function abrirCarrinho() {
+    var items = Object.values(CART);
+    var lista = document.getElementById('cartLista');
+    var totalVal = 0;
+
+    if(!items.length) {
+        lista.innerHTML = '<p style="text-align:center;color:var(--mu);padding:20px">Sem produtos na encomenda.</p>';
+        document.getElementById('cartTotal').textContent = '0.00€';
+        document.getElementById('mCarrinho').classList.add('a');
+        return;
+    }
+
+    lista.innerHTML = items.map(function(it) {
+        var pn = parseFloat(it.promo.preco_novo) || 0;
+        var sub = pn * it.qty;
+        totalVal += sub;
+        var und = parseInt(it.promo.und_caixa) || 1;
+        var cx = Math.floor(it.qty / und);
+        var un = it.qty % und;
+        var cxStr = cx > 0 ? cx + 'cx' : '';
+        var unStr = un > 0 ? un + 'un' : '';
+        var qtdStr = [cxStr, unStr].filter(Boolean).join(' + ') || it.qty + 'un';
+        return '<div class="cartItem">' +
+            (it.promo.foto ? '<img class="cartImg" src="' + it.promo.foto + '">' : '<div class="cartImg" style="display:flex;align-items:center;justify-content:center;font-size:28px">🛒</div>') +
+            '<div class="cartInfo">' +
+                '<div class="cartNome">' + it.promo.nome + '</div>' +
+                '<div class="cartSub">' + it.qty + ' un (' + qtdStr + ') × ' + pn.toFixed(2) + '€</div>' +
+            '</div>' +
+            '<div class="cartVal">' + sub.toFixed(2) + '€</div>' +
+        '</div>';
+    }).join('');
+
+    document.getElementById('cartTotal').textContent = totalVal.toFixed(2) + '€';
+    document.getElementById('mCarrinho').classList.add('a');
+}
+
+function fecharCarrinho() {
+    document.getElementById('mCarrinho').classList.remove('a');
+}
+
+function limparCarrinho() {
+    if(!confirm('Limpar toda a encomenda?')) return;
+    CART = {};
+    // Reset all qty displays
+    document.querySelectorAll('[id^="qn_"]').forEach(function(el){ el.textContent = '0'; });
+    document.getElementById('cartFab').classList.remove('v');
+    fecharCarrinho();
+}
+
+function gerarTextoEncomenda() {
+    var items = Object.values(CART);
+    if(!items.length) return '';
+    var loja = 'MARINHA';
+    var data = new Date().toLocaleDateString('pt-PT');
+    var linhas = ['📦 ENCOMENDA – ' + loja, '📅 ' + data, ''];
+    items.forEach(function(it) {
+        var und = parseInt(it.promo.und_caixa) || 1;
+        var cx = Math.floor(it.qty / und);
+        var un = it.qty % und;
+        var cxStr = cx > 0 ? cx + 'cx' : '';
+        var unStr = un > 0 ? un + 'un' : '';
+        var qtdStr = [cxStr, unStr].filter(Boolean).join('+') || it.qty + 'un';
+        var pn = parseFloat(it.promo.preco_novo) || 0;
+        linhas.push('• ' + it.promo.nome + ' — ' + it.qty + 'un (' + qtdStr + ') × ' + pn.toFixed(2) + '€ = ' + (pn * it.qty).toFixed(2) + '€');
+    });
+    var total = Object.values(CART).reduce(function(a,x){ return a + (parseFloat(x.promo.preco_novo)||0)*x.qty; }, 0);
+    linhas.push('');
+    linhas.push('💰 TOTAL ESTIMADO: ' + total.toFixed(2) + '€');
+    if(USER) linhas.push('👤 ' + USER.nome + ' | Nº ' + (USER.num_cliente || ''));
+    return linhas.join('\n');
+}
+
+function enviarWhatsApp() {
+    var tel = document.getElementById('cartTel').value.replace(/\D/g,'');
+    if(!tel || tel.length < 9) { toast('⚠️ Insira um nº de telemóvel válido'); return; }
+    if(!tel.startsWith('351') && tel.length === 9) tel = '351' + tel;
+    var txt = gerarTextoEncomenda();
+    if(!txt) { toast('⚠️ Carrinho vazio'); return; }
+    var url = 'https://wa.me/' + tel + '?text=' + encodeURIComponent(txt);
+    window.open(url, '_blank');
+}
+
+function gerarPDF() {
+    var items = Object.values(CART);
+    if(!items.length) { toast('⚠️ Carrinho vazio'); return; }
+    var total = items.reduce(function(a,x){ return a + (parseFloat(x.promo.preco_novo)||0)*x.qty; }, 0);
+    var data = new Date().toLocaleDateString('pt-PT');
+    var hora = new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'});
+
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+        '<style>body{font-family:Arial,sans-serif;padding:30px;max-width:600px;margin:0 auto;color:#0a1628}' +
+        'h1{color:#0a1628;font-size:22px;margin:0}' +
+        '.sub{color:#7a8a9a;font-size:12px;margin-bottom:24px}' +
+        'table{width:100%;border-collapse:collapse;margin-bottom:20px}' +
+        'th{background:#0a1628;color:#fff;padding:10px 8px;text-align:left;font-size:12px}' +
+        'td{padding:10px 8px;border-bottom:1px solid #eee;font-size:13px}' +
+        'tr:nth-child(even) td{background:#f9f9f9}' +
+        '.tot{background:#0a1628;color:#fff;padding:16px;border-radius:10px;text-align:right;font-size:18px;font-weight:bold}' +
+        '.tot span{color:#c9a84c}' +
+        '.footer{margin-top:24px;font-size:11px;color:#aaa;text-align:center}' +
+        '@media print{body{padding:10px}}' +
+        '</style></head><body>' +
+        '<h1>📦 ENCOMENDA</h1>' +
+        '<div class="sub">MARINHA &nbsp;|&nbsp; ' + data + ' ' + hora +
+        (USER ? ' &nbsp;|&nbsp; ' + USER.nome + ' (Nº ' + (USER.num_cliente||'') + ')' : '') + '</div>' +
+        '<table><thead><tr><th>PRODUTO</th><th>QTD</th><th>CX+UN</th><th>UNIT.</th><th>TOTAL</th></tr></thead><tbody>';
+
+    items.forEach(function(it) {
+        var pn = parseFloat(it.promo.preco_novo) || 0;
+        var und = parseInt(it.promo.und_caixa) || 1;
+        var cx = Math.floor(it.qty / und);
+        var un = it.qty % und;
+        var cxStr = (cx>0?cx+'cx ':'')+( un>0?un+'un':'');
+        html += '<tr><td>' + it.promo.nome + '</td><td>' + it.qty + '</td><td>' + (cxStr||'—') + '</td><td>' + pn.toFixed(2) + '€</td><td><b>' + (pn*it.qty).toFixed(2) + '€</b></td></tr>';
+    });
+
+    html += '</tbody></table>' +
+        '<div class="tot">TOTAL ESTIMADO &nbsp;<span>' + total.toFixed(2) + '€</span></div>' +
+        '<div class="footer">Documento gerado automaticamente • MARINHA</div>' +
+        '</body></html>';
+
+    var w = window.open('','_blank');
+    w.document.write(html);
+    w.document.close();
+    setTimeout(function(){ w.print(); }, 400);
+}
+
+// Fechar modal ao clicar fora
+document.getElementById('mCarrinho').addEventListener('click', function(e){
+    if(e.target === this) fecharCarrinho();
+});
 
 	window.onload = async () => {
 		    // Service Worker
