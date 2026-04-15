@@ -53,7 +53,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 .cRow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.06);cursor:pointer}
 .cPts{font-size:18px;font-weight:800;color:var(--n)}.cPtsL{font-size:10px;color:var(--mu);text-align:center}
 
-/* Folheto thumbnails */
+/* Catálogo thumbnails */
 .fThumb{flex-shrink:0;width:90px;height:130px;border-radius:10px;overflow:hidden;cursor:pointer;background:#eef2f7;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative}
 .fThumb img{width:100%;height:100%;object-fit:contain;background:#eef2f7}
 .fThumb .fDel{position:absolute;top:3px;right:3px;width:20px;height:20px;background:rgba(231,76,60,.85);border-radius:50%;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;line-height:1}
@@ -199,13 +199,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
   </div>
 
   <!-- FOLHETO & PROMOS -->
-  <div class="ecra" id="ecraFolheto">
+  <div class="ecra" id="ecraCatalogo">
     <div class="s">
       <div class="card">
-        <div class="ct">Folhetos</div>
-        <button class="bS" onclick="document.getElementById('fFolheto').click()">CARREGAR FOLHETO</button>
-        <input type="file" id="fFolheto" hidden accept="image/*" multiple onchange="addFolheto(event)">
-        <div class="strip" id="stripFol"></div>
+        <div class="ct">Catálogo</div>
+        <button class="bS" onclick="document.getElementById('fCatalogo').click()">CARREGAR FOLHETO</button>
+        <input type="file" id="fCatalogo" hidden accept="image/*" multiple onchange="addCatalogo(event)">
+        <div class="strip" id="stripCat"></div>
       </div>
 
       <div class="card">
@@ -269,9 +269,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
       <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
       Clientes
     </button>
-    <button class="nBtn" id="nFolheto" onclick="irTab('Folheto')">
+    <button class="nBtn" id="nCatalogo" onclick="irTab('Catalogo')">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-      Folheto
+      Catálogo
     </button>
     <button class="nBtn" id="nScanner" onclick="irTab('Scanner')">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="7" y1="7" x2="17" y2="7"></line><line x1="7" y1="12" x2="17" y2="12"></line><line x1="7" y1="17" x2="17" y2="17"></line></svg>
@@ -387,8 +387,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
       <div><label class="lbl">Preço Original</label><input type="number" class="inp" id="mPromoOrig" step="0.01"></div>
       <div><label class="lbl">Preço Novo</label><input type="number" class="inp" id="mPromoNovo" step="0.01"></div>
     </div>
-    <label class="lbl">Emoji (opcional)</label>
-    <input type="text" class="inp" id="mPromoEmoji" placeholder="Ex: 🛍️">
+    <label class="lbl">Nº Und por Caixa</label>
+    <input type="number" class="inp" id="mPromoUnd" placeholder="Ex: 12" min="1">
     <div class="row">
       <div><label class="lbl">Data Início</label><input type="date" class="inp" id="mPromoIni"></div>
       <div><label class="lbl">Data Fim</label><input type="date" class="inp" id="mPromoFim"></div>
@@ -422,7 +422,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
 const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
 const BUCKET = 'marinha';
-var DB = { clientes: [], promos: [], folhetos: [], cfg: { nomeLoja: 'MARINHA', pin: '1234', euroPonto: 1, pontoEuro: 20 } };
+var DB = { clientes: [], promos: [], catálogos: [], cfg: { nomeLoja: 'MARINHA', pin: '1234', euroPonto: 1, pontoEuro: 20 } };
 var _vIdx = 0;
 
 function hd(){ return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json' }; }
@@ -443,7 +443,7 @@ async function sincronizar() {
 }
 
 // ── UPLOAD FOLHETO ──
-async function addFolheto(e) {
+async function addCatalogo(e) {
   var files = e.target.files;
   if (!files.length) return;
   log('INICIANDO UPLOAD...', '#fff');
@@ -483,7 +483,7 @@ async function addFolheto(e) {
       log('ERRO CRÍTICO: ' + err.message, '#f00');
     }
   }
-  await sincronizar(); renderFolheto();
+  await sincronizar(); renderCatalogo();
 }
 
 // ── UPLOAD FOTO PROMO ──
@@ -563,7 +563,7 @@ function irTab(tab) {
   document.getElementById('n' + tab).classList.add('a');
   if (tab === 'Dash') renderDash();
   if (tab === 'Clientes') renderCli('');
-  if (tab === 'Folheto') { renderPromos(); renderFolheto(); }
+  if (tab === 'Catalogo') { renderPromos(); renderCatalogo(); }
   if (tab === 'Config') renderConfig();
 }
 
@@ -577,15 +577,15 @@ function renderDash() {
   document.getElementById('dRecentes').innerHTML = rec.map(c => `<div class="cRow" onclick="verCli('${c.id}')"><div class="avatar">${c.nome[0]}</div><div style="flex:1"><b>${c.nome}</b><br><small>Nº ${c.num_cliente} | Acessos: ${c.num_acessos || 0}</small></div><div>${c.pts} pts</div></div>`).join('');
 }
 
-function renderFolheto() {
-  var el = document.getElementById('stripFol');
-  el.innerHTML = DB.folhetos.map((f, i) => `<div class="fThumb" onclick="abrirViewer(${i})"><img src="${f.url}"><div class="fDel" onclick="event.stopPropagation();apagarFolheto(${f.id})">×</div></div>`).join('');
+function renderCatalogo() {
+  var el = document.getElementById('stripCat');
+  el.innerHTML = DB.folhetos.map((f, i) => `<div class="fThumb" onclick="abrirViewer(${i})"><img src="${f.url}"><div class="fDel" onclick="event.stopPropagation();apagarCatalogo(${f.id})">×</div></div>`).join('');
 }
 
-async function apagarFolheto(id) {
+async function apagarCatalogo(id) {
   if (!confirm('Remover página?')) return;
   await fetch(SB + '/rest/v1/folhetos?id=eq.' + id, { method: 'DELETE', headers: hd() });
-  await sincronizar(); renderFolheto();
+  await sincronizar(); renderCatalogo();
 }
 
 function renderPromos() {
@@ -820,7 +820,7 @@ function abrirNovaPromo() {
   document.getElementById('mPromoNome').value = '';
   document.getElementById('mPromoOrig').value = '';
   document.getElementById('mPromoNovo').value = '';
-  document.getElementById('mPromoEmoji').value = '🛒';
+  document.getElementById('mPromoUnd').value = '';
   document.getElementById('mPromoFotoImg').src = '';
   document.getElementById('mPromoFotoImg').style.display = 'none';
   document.getElementById('mPromoFotoEmoji').style.display = 'block';
@@ -835,7 +835,7 @@ function editarPromo(id) {
   document.getElementById('mPromoNome').value = p.nome;
   document.getElementById('mPromoOrig').value = p.preco_orig;
   document.getElementById('mPromoNovo').value = p.preco_novo;
-  document.getElementById('mPromoEmoji').value = p.emoji || '🛒';
+  document.getElementById('mPromoUnd').value = p.und_caixa || 1;
   document.getElementById('mPromoIni').value = p.data_ini || '';
   document.getElementById('mPromoFim').value = p.data_fim || '';
   if (p.foto) {
@@ -856,7 +856,7 @@ async function guardarPromo() {
     nome: document.getElementById('mPromoNome').value,
     preco_orig: parseFloat(document.getElementById('mPromoOrig').value) || 0,
     preco_novo: parseFloat(document.getElementById('mPromoNovo').value) || 0,
-    emoji: document.getElementById('mPromoEmoji').value || '🛒',
+    und_caixa: parseInt(document.getElementById('mPromoUnd').value) || 1,
     foto: document.getElementById('mPromoFotoImg').src || null,
     data_ini: document.getElementById('mPromoIni').value || null,
     data_fim: document.getElementById('mPromoFim').value || null
