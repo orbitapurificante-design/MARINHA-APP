@@ -590,7 +590,30 @@ async function apagarCatalogo(id) {
 
 function renderPromos() {
   var el = document.getElementById('listaPromos');
-  el.innerHTML = '<div class="pGrid2">' + DB.promos.map(p => `<div class="pCard" onclick="editarPromo('${p.id}')"><div class="pImg">${p.foto ? `<img src="${p.foto}">` : `<div class="pImgEmoji">${p.emoji||'🛒'}</div>`}</div><div class="pBody"><b>${p.nome}</b><br><span class="pNovo">${p.preco_novo}€</span></div></div>`).join('') + '</div>';
+  var hoje = new Date().toISOString().slice(0,10);
+  el.innerHTML = '<div class="pGrid2">' + DB.promos.map(p => {
+    var po = parseFloat(p.preco_orig)||0;
+    var pn = parseFloat(p.preco_novo)||0;
+    var pct = (po>0&&pn>0) ? Math.round((1-pn/po)*100) : 0;
+    var und = parseInt(p.und_caixa)||parseInt(p.emoji)||0;
+    var validade = p.data_fim ? `<div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;backdrop-filter:blur(4px)">Até ${fd(p.data_fim)}</div>` : '';
+    var expirou = p.data_fim && p.data_fim < hoje;
+    return `<div class="pCard" onclick="editarPromo('${p.id}')" style="${expirou?'opacity:.5':''}">
+      <div class="pImg" style="position:relative">
+        ${p.foto ? `<img src="${p.foto}">` : `<div class="pImgEmoji">🛒</div>`}
+        ${pct>0 ? `<div class="pBdg">-${pct}%</div>` : ''}
+        ${validade}
+      </div>
+      <div class="pBody">
+        <div class="pNome">${p.nome}</div>
+        <div class="precos">
+          ${pn>0 ? `<span class="pNovo">${pn.toFixed(2)}€</span>` : ''}
+          ${po>0 ? `<span class="pOrig">${po.toFixed(2)}€</span>` : ''}
+        </div>
+        ${und>1 ? `<div style="font-size:9px;color:var(--mu);margin-top:3px">CX: ${und} un</div>` : ''}
+      </div>
+    </div>`;
+  }).join('') + '</div>';
 }
 
 // ── CLIENTES ──
