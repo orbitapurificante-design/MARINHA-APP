@@ -835,7 +835,7 @@ function editarPromo(id) {
   document.getElementById('mPromoNome').value = p.nome;
   document.getElementById('mPromoOrig').value = p.preco_orig;
   document.getElementById('mPromoNovo').value = p.preco_novo;
-  document.getElementById('mPromoUnd').value = p.und_caixa || 1;
+  document.getElementById('mPromoUnd').value = (p.und_caixa && p.und_caixa > 1) ? p.und_caixa : (parseInt(p.emoji) > 1 ? parseInt(p.emoji) : 1);
   document.getElementById('mPromoIni').value = p.data_ini || '';
   document.getElementById('mPromoFim').value = p.data_fim || '';
   if (p.foto) {
@@ -852,24 +852,30 @@ function editarPromo(id) {
 
 async function guardarPromo() {
   var id = document.getElementById('mPromoId').value;
+  var fotoEl = document.getElementById('mPromoFotoImg');
+  var fotoUrl = (fotoEl.style.display !== 'none' && fotoEl.src && fotoEl.src.startsWith('http') && !fotoEl.src.endsWith('/admin.html')) ? fotoEl.src : null;
+  var undVal = parseInt(document.getElementById('mPromoUnd').value) || 1;
   var d = {
-    nome: document.getElementById('mPromoNome').value,
+    nome: document.getElementById('mPromoNome').value.trim(),
     preco_orig: parseFloat(document.getElementById('mPromoOrig').value) || 0,
     preco_novo: parseFloat(document.getElementById('mPromoNovo').value) || 0,
-    und_caixa: parseInt(document.getElementById('mPromoUnd').value) || 1,
-    foto: document.getElementById('mPromoFotoImg').src || null,
+    emoji: String(undVal),   // reutilizar coluna emoji para guardar und/caixa
+    foto: fotoUrl,
     data_ini: document.getElementById('mPromoIni').value || null,
     data_fim: document.getElementById('mPromoFim').value || null
   };
   if (!d.nome) return alert('Nome obrigatório');
-  
-  if (!id) {
-    d.id = uid();
-    await fetch(SB + '/rest/v1/promos', { method: 'POST', headers: hd(), body: JSON.stringify(d) });
-  } else {
-    await fetch(SB + '/rest/v1/promos?id=eq.' + id, { method: 'PATCH', headers: hd(), body: JSON.stringify(d) });
-  }
-  fecharModal('mPromo'); await sincronizar(); renderPromos(); toast('✅ Promoção guardada');
+  try {
+    if (!id) {
+      d.id = uid();
+      var r = await fetch(SB + '/rest/v1/promos', { method: 'POST', headers: Object.assign({}, hd(), {'Prefer':'return=representation'}), body: JSON.stringify(d) });
+      if(!r.ok) { var err = await r.text(); return alert('Erro ao guardar: ' + err); }
+    } else {
+      var r = await fetch(SB + '/rest/v1/promos?id=eq.' + id, { method: 'PATCH', headers: Object.assign({}, hd(), {'Prefer':'return=minimal'}), body: JSON.stringify(d) });
+      if(!r.ok) { var err = await r.text(); return alert('Erro ao atualizar: ' + err); }
+    }
+    fecharModal('mPromo'); await sincronizar(); renderPromos(); toast('✅ Promoção guardada');
+  } catch(e) { alert('Erro de ligação: ' + e.message); }
 }
 
 async function apagarPromo() {
