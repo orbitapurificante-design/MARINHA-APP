@@ -192,10 +192,14 @@
 <div id="eApp">
     <div class="cab">
         <div class="cabT" id="cabNome">MARINHA</div>
-        <!-- Avatar com badge carrinho sobreposto -->
+        <!-- Carrinho neon no header -->
         <div style="position:relative;cursor:pointer" onclick="abrirCarrinho()">
-            <div style="width:36px;height:36px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--n)" id="uLetra">M</div>
-            <span id="cartBadge" style="display:none;position:absolute;top:-5px;left:-5px;background:var(--r);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 3px;border:2px solid #fff;z-index:2">0</span>
+            <div style="width:40px;height:40px;border-radius:12px;border:1.5px solid rgba(201,168,76,.6);background:rgba(10,22,40,.7);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(201,168,76,.3),inset 0 0 8px rgba(201,168,76,.05);backdrop-filter:blur(4px)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px rgba(201,168,76,.7))">
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+                </svg>
+            </div>
+            <span id="cartBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:var(--r);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 3px;border:2px solid rgba(10,22,40,.9);z-index:2;box-shadow:0 0 6px rgba(231,76,60,.5)">0</span>
         </div>
     </div>
 
@@ -273,7 +277,7 @@
     </div>
     <div style="margin-bottom:6px">
       <label style="font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1px;text-transform:uppercase">Nº Telemóvel Destino</label>
-      <input type="tel" id="cartTel" class="rInp" placeholder="351912345678" style="margin-top:6px;max-width:100%;text-align:left;padding:12px 14px">
+      <input type="tel" id="cartTel" class="rInp" placeholder="351912345678" value="351967925745" style="margin-top:6px;max-width:100%;text-align:left;padding:12px 14px">
     </div>
     <button class="bWA" onclick="enviarWhatsApp()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -472,7 +476,7 @@ async function renderInicio() {
     const r_pontoEuro = (cfg && cfg[0] && cfg[0].ponto_euro) ? cfg[0].ponto_euro : 20;
     const poupadoReal = (USER.pts || 0) / r_pontoEuro;
     document.getElementById('hPou').textContent = poupadoReal.toFixed(2) + '€';
-    document.getElementById('uLetra').textContent = USER.nome[0].toUpperCase();
+    // (uLetra removido - substituído por carrinho neon)
 
     const h = hoje();
     const promos = await api('promos?order=id.desc');
@@ -504,7 +508,6 @@ async function renderInicio() {
         return '<div class="pCard">' +
             '<div class="pImgW" onclick="abrirPromosFullscreen(' + idx + ')">' +
                 imgHtml + valHtml +
-                (und > 1 ? '<div style="position:absolute;bottom:6px;left:6px;background:rgba(26,74,138,.85);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;backdrop-filter:blur(4px)">CX: ' + und + 'un</div>' : '') +
             '</div>' +
             '<div class="pBody">' +
                 '<div class="pNome">' + p.nome + '</div>' +
@@ -673,17 +676,26 @@ function abrirCarrinho() {
         var pn = parseFloat(it.promo.preco_novo) || 0;
         var sub = pn * it.qty;
         totalVal += sub;
-        var und = parseInt(it.promo.und_caixa) || 1;
-        var cx = Math.floor(it.qty / und);
-        var un = it.qty % und;
-        var cxStr = cx > 0 ? cx + 'cx' : '';
-        var unStr = un > 0 ? un + 'un' : '';
-        var qtdStr = [cxStr, unStr].filter(Boolean).join(' + ') || it.qty + 'un';
+        var und = parseInt(it.promo.und_caixa) || parseInt(it.promo.emoji) || 1;
+        var cx = Math.floor(it.qty / und);  // nº caixas completas
+        var un = it.qty % und;               // unidades restantes
+        var precoCx = pn * und;              // preço de 1 caixa
+
+        // Linha de cx só aparece se tiver pelo menos 1 caixa completa
+        var cxLine = '';
+        if(und > 1 && cx > 0) {
+            cxLine = cx + 'cx (' + und + 'un) × ' + precoCx.toFixed(2) + '€/cx';
+            if(un > 0) cxLine += ' + ' + un + 'un × ' + pn.toFixed(2) + '€';
+        } else {
+            cxLine = it.qty + 'un × ' + pn.toFixed(2) + '€';
+        }
+
         return '<div class="cartItem">' +
             (it.promo.foto ? '<img class="cartImg" src="' + it.promo.foto + '">' : '<div class="cartImg" style="display:flex;align-items:center;justify-content:center;font-size:28px">🛒</div>') +
             '<div class="cartInfo">' +
                 '<div class="cartNome">' + it.promo.nome + '</div>' +
-                '<div class="cartSub">' + it.qty + ' un (' + qtdStr + ') × ' + pn.toFixed(2) + '€</div>' +
+                '<div class="cartSub">' + cxLine + '</div>' +
+                (und > 1 && cx > 0 ? '<div style="font-size:10px;color:var(--mu)">Total: ' + it.qty + 'un</div>' : '') +
             '</div>' +
             '<div class="cartVal">' + sub.toFixed(2) + '€</div>' +
         '</div>';
@@ -713,14 +725,20 @@ function gerarTextoEncomenda() {
     var data = new Date().toLocaleDateString('pt-PT');
     var linhas = ['📦 ENCOMENDA – ' + loja, '📅 ' + data, ''];
     items.forEach(function(it) {
-        var und = parseInt(it.promo.und_caixa) || 1;
+        var pn = parseFloat(it.promo.preco_novo) || 0;
+        var und = parseInt(it.promo.und_caixa) || parseInt(it.promo.emoji) || 1;
         var cx = Math.floor(it.qty / und);
         var un = it.qty % und;
-        var cxStr = cx > 0 ? cx + 'cx' : '';
-        var unStr = un > 0 ? un + 'un' : '';
-        var qtdStr = [cxStr, unStr].filter(Boolean).join('+') || it.qty + 'un';
-        var pn = parseFloat(it.promo.preco_novo) || 0;
-        linhas.push('• ' + it.promo.nome + ' — ' + it.qty + 'un (' + qtdStr + ') × ' + pn.toFixed(2) + '€ = ' + (pn * it.qty).toFixed(2) + '€');
+        var precoCx = pn * und;
+        var linha;
+        if(und > 1 && cx > 0) {
+            linha = cx + 'cx(' + und + 'un)×' + precoCx.toFixed(2) + '€';
+            if(un > 0) linha += '+' + un + 'un×' + pn.toFixed(2) + '€';
+            linha += ' = ' + (pn * it.qty).toFixed(2) + '€';
+        } else {
+            linha = it.qty + 'un × ' + pn.toFixed(2) + '€ = ' + (pn * it.qty).toFixed(2) + '€';
+        }
+        linhas.push('• ' + it.promo.nome + ' — ' + linha);
     });
     var total = Object.values(CART).reduce(function(a,x){ return a + (parseFloat(x.promo.preco_novo)||0)*x.qty; }, 0);
     linhas.push('');
@@ -766,11 +784,16 @@ function gerarPDF() {
 
     items.forEach(function(it) {
         var pn = parseFloat(it.promo.preco_novo) || 0;
-        var und = parseInt(it.promo.und_caixa) || 1;
+        var und = parseInt(it.promo.und_caixa) || parseInt(it.promo.emoji) || 1;
         var cx = Math.floor(it.qty / und);
         var un = it.qty % und;
-        var cxStr = (cx>0?cx+'cx ':'')+( un>0?un+'un':'');
-        html += '<tr><td>' + it.promo.nome + '</td><td>' + it.qty + '</td><td>' + (cxStr||'—') + '</td><td>' + pn.toFixed(2) + '€</td><td><b>' + (pn*it.qty).toFixed(2) + '€</b></td></tr>';
+        var precoCx = pn * und;
+        var cxStr = '';
+        if(und > 1 && cx > 0) {
+            cxStr = cx + 'cx';
+            if(un > 0) cxStr += '+' + un + 'un';
+        }
+        html += '<tr><td>' + it.promo.nome + '</td><td style="text-align:center">' + it.qty + '</td><td style="text-align:center">' + (cxStr||'—') + '</td><td style="text-align:right">' + (und>1&&cx>0 ? precoCx.toFixed(2)+'€/cx<br><small>'+pn.toFixed(2)+'€/un</small>' : pn.toFixed(2)+'€') + '</td><td style="text-align:right"><b>' + (pn*it.qty).toFixed(2) + '€</b></td></tr>';
     });
 
     html += '</tbody></table>' +
