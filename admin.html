@@ -253,6 +253,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
       </div>
 
       <div class="card">
+        <div class="ct">Notificações</div>
+        <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Envia aviso de novidade a todos os clientes que entrarem na app. O sino aparece automaticamente quando adiciona uma promoção nova.</p>
+        <button class="bP" onclick="notificarClientes()">🔔 NOTIFICAR CLIENTES AGORA</button>
+      </div>
+
+      <div class="card">
         <div class="ct">Manutenção</div>
         <button class="bS" onclick="location.reload()">RECARREGAR PAINEL</button>
         <button class="bS" style="background:#eef2f7;color:var(--s)" onclick="localStorage.clear();location.reload()">LIMPAR CACHE TOTAL</button>
@@ -893,6 +899,12 @@ async function guardarPromo() {
       d.id = uid();
       var r = await fetch(SB + '/rest/v1/promos', { method: 'POST', headers: Object.assign({}, hd(), {'Prefer':'return=representation'}), body: JSON.stringify(d) });
       if(!r.ok) { var err = await r.text(); return alert('Erro ao guardar: ' + err); }
+      // Marcar timestamp de nova promoção no config → notifica clientes
+      await fetch(SB + '/rest/v1/config?id=eq.1', {
+        method: 'PATCH',
+        headers: Object.assign({}, hd(), {'Prefer':'return=minimal'}),
+        body: JSON.stringify({ ultima_promo: new Date().toISOString() })
+      });
     } else {
       var r = await fetch(SB + '/rest/v1/promos?id=eq.' + id, { method: 'PATCH', headers: Object.assign({}, hd(), {'Prefer':'return=minimal'}), body: JSON.stringify(d) });
       if(!r.ok) { var err = await r.text(); return alert('Erro ao atualizar: ' + err); }
@@ -1044,6 +1056,24 @@ function buscarCliScan(v) {
   var lista = DB.clientes.filter(c => c.nome.toLowerCase().includes(v.toLowerCase()) || c.tel.includes(v));
   res.innerHTML = lista.map(c => `<div class="sResItem" onclick="verCli('${c.id}')"><div class="sAvatar">${c.nome[0]}</div><div><b>${c.nome}</b><br><small>${c.tel}</small></div></div>`).join('');
   res.classList.add('a');
+}
+
+// ── NOTIFICAÇÕES ──
+async function notificarClientes() {
+  try {
+    var r = await fetch(SB + '/rest/v1/config?id=eq.1', {
+      method: 'PATCH',
+      headers: Object.assign({}, hd(), {'Prefer':'return=minimal'}),
+      body: JSON.stringify({ ultima_promo: new Date().toISOString() })
+    });
+    if(r.ok) {
+      toast('🔔 Clientes serão notificados ao entrar na app!');
+    } else {
+      toast('❌ Erro ao enviar notificação');
+    }
+  } catch(e) {
+    alert('Erro: ' + e.message);
+  }
 }
 
 // ── UTILS ──
