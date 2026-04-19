@@ -150,6 +150,34 @@
         .bPDF{width:100%;padding:14px;background:var(--n);color:#fff;border:none;border-radius:14px;
           font-weight:800;font-size:15px;cursor:pointer;font-family:'DM Sans',sans-serif;
           display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+        /* SINO NOVIDADES */
+        @keyframes bell-ring {
+            0%,100%{transform:rotate(0)}
+            10%{transform:rotate(18deg)}
+            20%{transform:rotate(-16deg)}
+            30%{transform:rotate(14deg)}
+            40%{transform:rotate(-10deg)}
+            50%{transform:rotate(6deg)}
+            60%{transform:rotate(0)}
+        }
+        .bell-wrap{position:relative;cursor:pointer;margin-right:6px}
+        .bell-ico{width:38px;height:38px;border-radius:12px;border:1.5px solid rgba(255,255,255,.15);
+          background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;
+          backdrop-filter:blur(4px)}
+        .bell-ico svg{filter:drop-shadow(0 0 3px rgba(255,255,255,.3))}
+        .bell-ico.ring svg{animation:bell-ring .7s ease-in-out}
+        .bell-dot{position:absolute;top:-4px;right:-4px;width:14px;height:14px;
+          background:var(--r);border-radius:50%;border:2px solid rgba(10,22,40,.9);
+          display:none;box-shadow:0 0 8px rgba(231,76,60,.7);
+          animation:pulse-dot 1.5s infinite}
+        .bell-dot.v{display:block}
+        @keyframes pulse-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.25);opacity:.8}}
+
+        /* BANNER NOVIDADE */
+        #bannerNovidade{display:none;background:linear-gradient(135deg,#e74c3c,#c0392b);
+          color:#fff;padding:12px 16px;margin:0 0 12px;border-radius:14px;
+          cursor:pointer;box-shadow:0 4px 16px rgba(231,76,60,.35)}
+        #bannerNovidade.v{display:flex;align-items:center;gap:10px}
     </style>
 </head>
 <body>
@@ -192,6 +220,15 @@
 <div id="eApp">
     <div class="cab">
         <div class="cabT" id="cabNome">MARINHA</div>
+        <!-- Sino de novidades -->
+        <div class="bell-wrap" onclick="verNovidades()" id="bellWrap">
+            <div class="bell-ico" id="bellIco">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+            </div>
+            <div class="bell-dot" id="bellDot"></div>
+        </div>
         <!-- Carrinho neon no header -->
         <div style="position:relative;cursor:pointer" onclick="abrirCarrinho()">
             <div style="width:40px;height:40px;border-radius:12px;border:1.5px solid rgba(201,168,76,.6);background:rgba(10,22,40,.7);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(201,168,76,.3),inset 0 0 8px rgba(201,168,76,.05);backdrop-filter:blur(4px)">
@@ -223,6 +260,15 @@
             </div>
 
             <span class="section-title">Promoções em Destaque</span>
+            <!-- Banner novidade -->
+            <div id="bannerNovidade" onclick="verNovidades()">
+                <div style="font-size:22px">🔔</div>
+                <div>
+                    <div style="font-weight:800;font-size:14px">Temos novidades!</div>
+                    <div style="font-size:11px;opacity:.85">Clique para ver as promoções novas</div>
+                </div>
+                <div style="margin-left:auto;font-size:18px">→</div>
+            </div>
             <div id="listPromos"></div>
         </div>
     </div>
@@ -486,6 +532,9 @@ async function renderInicio() {
         return ok1 && ok2;
     });
 
+    // Verificar novidades após carregar promos
+    verificarNovidades();
+
     const list = document.getElementById('listPromos');
     if(!PROMOS_ATIVAS.length) {
         list.innerHTML = '<p style="color:var(--mu);text-align:center;padding:20px">Nenhuma promoção ativa.</p>';
@@ -632,6 +681,48 @@ function renderQR() {
 function sair() {
     localStorage.removeItem('m_tel');
     location.reload();
+}
+
+// ── NOTIFICAÇÕES DE NOVIDADES ──
+async function verificarNovidades() {
+    try {
+        var cfg = await api('config?id=eq.1');
+        var ultimaPromo = cfg && cfg[0] && cfg[0].ultima_promo ? cfg[0].ultima_promo : null;
+        if(!ultimaPromo) return;
+
+        var vistoEm = localStorage.getItem('m_visto_promo') || '0';
+        var temNovidade = ultimaPromo > vistoEm;
+
+        var dot = document.getElementById('bellDot');
+        var banner = document.getElementById('bannerNovidade');
+        var bellIco = document.getElementById('bellIco');
+
+        if(temNovidade) {
+            if(dot) { dot.classList.add('v'); }
+            if(banner) { banner.classList.add('v'); }
+            if(bellIco) {
+                bellIco.classList.add('ring');
+                setTimeout(function(){ bellIco.classList.remove('ring'); bellIco.classList.add('ring');
+                    setTimeout(function(){ bellIco.classList.remove('ring'); }, 700);
+                }, 800);
+            }
+        } else {
+            if(dot) dot.classList.remove('v');
+            if(banner) banner.classList.remove('v');
+        }
+    } catch(e) { /* silencioso */ }
+}
+
+function verNovidades() {
+    // Marcar como visto
+    localStorage.setItem('m_visto_promo', new Date().toISOString());
+    var dot = document.getElementById('bellDot');
+    var banner = document.getElementById('bannerNovidade');
+    if(dot) dot.classList.remove('v');
+    if(banner) banner.classList.remove('v');
+    // Fazer scroll para promoções
+    var el = document.getElementById('listPromos');
+    if(el) el.scrollIntoView({ behavior: 'smooth' });
 }
 
 // ── CARRINHO ──
