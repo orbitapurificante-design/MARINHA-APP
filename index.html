@@ -630,23 +630,23 @@ function mostrarViewer() {
             var und = s.und || 0;
             var qtyAtual = CART[s.id] ? CART[s.id].qty : 0;
             var cxBtn = und > 1
-                ? `<button onclick="cartChangeViewer('${s.id}',${und})" style="flex:1;padding:10px 6px;background:var(--s);color:#fff;border:none;border-radius:12px;font-size:11px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:center;line-height:1.2">+1cx<br><span style="font-size:9px;opacity:.8">${und}un</span></button>`
+                ? `<button onclick="cartChangeViewer('${s.id}',${und})" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(26,74,138,.85);color:#fff;font-size:9px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:center;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(6px)"><span style="font-size:8px;opacity:.9">+cx</span><span style="font-size:8px;opacity:.7">${und}u</span></button>`
                 : '';
             overlays = `
-                <div class="vLegenda">
-                    <div class="pNome" style="color:#fff;font-size:16px;font-weight:800;margin-bottom:6px">${s.nome}</div>
-                    <div class="precos" style="margin-bottom:10px">
-                        <span style="font-size:24px;font-weight:800;color:var(--r)">${s.preco.toFixed(2)}€</span>
-                        ${s.orig > 0 ? `<span class="pOrig" style="color:rgba(255,255,255,.5)">${s.orig.toFixed(2)}€</span>` : ''}
-                        ${s.pct > 0 ? `<div class="vBdg" style="background:var(--r)">-${s.pct}%</div>` : ''}
-                        ${s.fim ? `<div class="vValidade">📅 Até ${fd(s.fim)}</div>` : ''}
+                <div style="position:absolute;right:12px;bottom:calc(100px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:8px;z-index:1100">
+                    <button onclick="cartChangeViewer('${s.id}',1)" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(201,168,76,.6);background:rgba(201,168,76,.85);color:var(--n);font-size:20px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 2px 10px rgba(0,0,0,.3)">+</button>
+                    <span id="vqn_${s.id}" style="font-size:16px;font-weight:800;color:#fff;min-width:28px;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8)">${qtyAtual}</span>
+                    <button onclick="cartChangeViewer('${s.id}',-1)" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(231,76,60,.6);background:rgba(231,76,60,.85);color:#fff;font-size:20px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 2px 10px rgba(0,0,0,.3)">−</button>
+                    ${cxBtn}
+                </div>
+                <div style="position:absolute;left:12px;bottom:calc(100px + env(safe-area-inset-bottom));z-index:1100;background:rgba(0,0,0,.45);padding:6px 10px;border-radius:10px;backdrop-filter:blur(8px)">
+                    <div style="font-size:13px;font-weight:800;color:#fff;line-height:1.2">${s.nome}</div>
+                    <div style="display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap">
+                        <span style="font-size:18px;font-weight:800;color:var(--r)">${s.preco.toFixed(2)}€</span>
+                        ${s.orig > 0 ? `<span style="font-size:11px;text-decoration:line-through;color:rgba(255,255,255,.5);font-weight:600">${s.orig.toFixed(2)}€</span>` : ''}
+                        ${s.pct > 0 ? `<span style="background:var(--r);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:4px">-${s.pct}%</span>` : ''}
                     </div>
-                    <div style="display:flex;align-items:center;gap:8px">
-                        <button onclick="cartChangeViewer('${s.id}',-1)" style="width:40px;height:40px;border-radius:50%;border:none;background:rgba(231,76,60,.8);color:#fff;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">−</button>
-                        <span id="vqn_${s.id}" style="font-size:20px;font-weight:800;color:#fff;min-width:32px;text-align:center">${qtyAtual}</span>
-                        <button onclick="cartChangeViewer('${s.id}',1)" style="width:40px;height:40px;border-radius:50%;border:none;background:rgba(201,168,76,.9);color:var(--n);font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">+</button>
-                        ${cxBtn}
-                    </div>
+                    ${s.fim ? `<div style="font-size:9px;color:rgba(255,255,255,.6);margin-top:2px">📅 Até ${fd(s.fim)}</div>` : ''}
                 </div>
             `;
         }
