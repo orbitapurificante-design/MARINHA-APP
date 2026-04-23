@@ -71,6 +71,12 @@
         .pImgW .pEmoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px}
         .pBdg{background:var(--r);color:#fff;font-size:11px;font-weight:800;padding:2px 6px;border-radius:6px;display:inline-block;margin-right:6px}
         .pValidade{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;z-index:1;backdrop-filter:blur(4px)}
+        /* Badge row: % + validade na mesma linha sobre a foto */
+        .pBadgeRow{position:absolute;top:7px;left:7px;right:7px;display:flex;align-items:center;justify-content:space-between;z-index:2;pointer-events:none}
+        .pBdgPct{background:var(--r);color:#fff;font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px}
+        .pBdgVal{background:rgba(0,0,0,0.52);color:#fff;font-size:9px;font-weight:700;padding:3px 7px;border-radius:6px;backdrop-filter:blur(4px)}
+        /* SAIR btn in card bottom row */
+        .pSairBtn{flex-shrink:0;padding:5px 8px;background:#eef2f7;color:var(--n);border:none;border-radius:8px;font-size:10px;font-weight:800;cursor:pointer;letter-spacing:.5px}
         .pBody{padding:12px}
         .pNome{font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.2;color:var(--n)}
         .precos{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -112,7 +118,7 @@
         .modal{display:none;position:fixed;inset:0;z-index:500;align-items:flex-end;background:rgba(0,0,0,.5)}
         .modal.a{display:flex}
         /* CARRINHO / ENCOMENDA */
-        .cart-btn{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));right:16px;z-index:200;
+        .cart-btn{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));right:16px;z-index:1200;
           width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--gl));
           border:none;box-shadow:0 4px 16px rgba(201,168,76,.5);cursor:pointer;display:none;
           align-items:center;justify-content:center;font-size:24px}
@@ -549,23 +555,29 @@ async function renderInicio() {
         var imgHtml = fotoSrc
             ? '<img src="' + fotoSrc + '" onerror="this.style.display=\'none\'">'
             : '<div class="pEmoji">🛒</div>';
-        var valHtml = p.data_fim ? '<div class="pValidade">Até ' + fd(p.data_fim) + '</div>' : '';
+        // % desconto + validade NA MESMA LINHA sobre a foto (poupa uma linha no card)
+        var badgeRow = (pct > 0 || p.data_fim)
+            ? '<div class="pBadgeRow">' +
+                (pct > 0 ? '<span class="pBdgPct">-' + pct + '%</span>' : '<span></span>') +
+                (p.data_fim ? '<span class="pBdgVal">Até ' + fd(p.data_fim) + '</span>' : '') +
+              '</div>'
+            : '';
         var qty = CART[String(p.id)] ? CART[String(p.id)].qty : 0;
-        var cxBtn = und > 1
-            ? '<button class="qCx" onclick="cartChange(\'' + p.id + '\',' + und + ')">+1cx<br><span style="font-size:9px;opacity:.7">' + und + 'un</span></button>'
+        var cxBtn = und > 0
+            ? '<div style="flex-shrink:0;text-align:center;font-size:9px;color:var(--mu);line-height:1.1">CX<br>' + und + 'un</div>'
             : '';
         return '<div class="pCard">' +
             '<div class="pImgW" onclick="abrirPromosFullscreen(' + idx + ')">' +
-                imgHtml + valHtml +
+                imgHtml + badgeRow +
             '</div>' +
             '<div class="pBody">' +
                 '<div class="pNome">' + p.nome + '</div>' +
                 '<div class="precos">' +
                     (pn > 0 ? '<span class="pNovo">' + pn.toFixed(2) + '€</span>' : '') +
                     (po > 0 ? '<span class="pOrig">' + po.toFixed(2) + '€</span>' : '') +
-                    (pct > 0 ? '<div class="pBdg">-' + pct + '%</div>' : '') +
                 '</div>' +
                 '<div class="pQty" id="pqty_' + p.id + '">' +
+                    '<button class="pSairBtn" onclick="event.stopPropagation();fecharViewer()">SAIR</button>' +
                     '<button class="qBtn qBtn-m" onclick="cartChange(\'' + p.id + '\',-1)">−</button>' +
                     '<span class="qNum" id="qn_' + p.id + '">' + qty + '</span>' +
                     '<button class="qBtn qBtn-p" onclick="cartChange(\'' + p.id + '\',1)">+</button>' +
