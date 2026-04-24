@@ -339,7 +339,6 @@
 <!-- VIEWER FULLSCREEN -->
 <div class="viewer" id="viewer">
     <div class="vHud">
-        <!-- SAIR no topo só para catálogo (promos têm botão em baixo) -->
         <button class="vClose" id="vCloseTop" onclick="fecharViewer()">
             <svg style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
             SAIR
@@ -377,7 +376,7 @@ async function api(table) {
     try {
         const r = await fetch(SB + '/rest/v1/' + table, { headers: hd() });
         return r.ok ? await r.json() : [];
-    } catch(e) { return []; }
+    } catch(e) { console.error('Erro API:', e); return []; }
 }
 
 async function registar() {
@@ -580,16 +579,33 @@ async function renderInicio() {
 // --- VIEWER LOGIC ---
 
 async function abrirCatalogoFullscreen() {
-    const folhetos = await api('folhetos?order=id.asc');
-    if(!folhetos || !folhetos.length) {
-        toast('Sem catálogo disponível');
+    try {
+        const folhetos = await api('folhetos?order=id.asc');
+        
+        if(!folhetos || !folhetos.length) {
+            toast('Sem catálogo disponível');
+            ir('Inicio');
+            return;
+        }
+        
+        _vSlides = folhetos.map(f => ({ 
+            src: f.url || f.data || f.imagem || ''
+        })).filter(s => s.src); // Filtrar slides vazios
+        
+        if(!_vSlides.length) {
+            toast('Catálogo indisponível');
+            ir('Inicio');
+            return;
+        }
+        
+        _vTipo = 'catalogo';
+        _vIdx = 0;
+        mostrarViewer();
+    } catch(e) {
+        console.error('Erro ao abrir catálogo:', e);
+        toast('Erro ao carregar catálogo');
         ir('Inicio');
-        return;
     }
-    _vSlides = folhetos.map(f => ({ src: f.url || f.data }));
-    _vTipo = 'catalogo';
-    _vIdx = 0;
-    mostrarViewer();
 }
 
 function abrirPromosFullscreen(idx) {
@@ -621,9 +637,9 @@ function mostrarViewer() {
     const viewer = document.getElementById('viewer');
     
     track.style.width = (_vSlides.length * 100) + 'vw';
-    track.innerHTML = _vSlides.map(s => {
+    track.innerHTML = _vSlides.map((s, i) => {
         let content = s.src 
-            ? `<img src="${s.src}" loading="lazy">` 
+            ? `<img src="${s.src}" loading="lazy" alt="Slide ${i+1}">` 
             : `<div style="font-size:80px">🛒</div>`;
         
         let overlays = '';
@@ -635,16 +651,13 @@ function mostrarViewer() {
                 : '';
             var cartQtyTotal = Object.values(CART).reduce(function(a,x){return a+x.qty;},0);
             overlays = `
-                <!-- SAIR: topo esquerdo bola vermelha -->
                 <button onclick="fecharViewer()" style="position:absolute;top:calc(10px + env(safe-area-inset-top));left:14px;z-index:1200;width:44px;height:44px;border-radius:50%;border:none;background:var(--r);color:#fff;font-size:8px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 12px rgba(231,76,60,.5);letter-spacing:.3px;font-family:'DM Sans',sans-serif">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                     <span style="font-size:8px;margin-top:1px">SAIR</span>
                 </button>
 
-                <!-- Data validade: topo direito sobre a foto -->
                 ${s.fim ? `<div style="position:absolute;top:calc(14px + env(safe-area-inset-top));right:68px;z-index:1200;background:rgba(231,76,60,.85);color:#fff;font-size:13px;font-weight:800;padding:5px 12px;border-radius:10px;backdrop-filter:blur(6px);letter-spacing:.3px;box-shadow:0 2px 10px rgba(0,0,0,.4)">📅 Até ${fd(s.fim)}</div>` : ''}
 
-                <!-- Carrinho: topo direito -->
                 <div onclick="fecharViewer();setTimeout(abrirCarrinho,120)" style="position:absolute;top:calc(10px + env(safe-area-inset-top));right:14px;z-index:1200;cursor:pointer">
                     <div style="width:44px;height:44px;border-radius:50%;border:2px solid rgba(201,168,76,.7);background:rgba(10,22,40,.8);display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(201,168,76,.35);backdrop-filter:blur(6px)">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px rgba(201,168,76,.8))"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
@@ -652,28 +665,21 @@ function mostrarViewer() {
                     <span class="viewer-cart-badge" style="display:${cartQtyTotal>0?'flex':'none'};position:absolute;top:-5px;right:-5px;background:var(--r);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 3px;border:2px solid rgba(10,22,40,.9);box-shadow:0 0 6px rgba(231,76,60,.5)">${cartQtyTotal}</span>
                 </div>
 
-                <!-- Barra inferior -->
                 <div style="position:absolute;bottom:0;left:0;right:0;z-index:1100;background:rgba(0,0,0,.72);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.1);padding:10px 14px calc(12px + env(safe-area-inset-bottom))">
 
-                    <!-- Contador páginas centrado acima do nome -->
                     <div style="text-align:center;margin-bottom:6px">
                         <span id="vCountInner_${s.id}" style="background:rgba(255,255,255,.15);color:#fff;font-size:11px;font-weight:700;padding:3px 14px;border-radius:20px;backdrop-filter:blur(4px);letter-spacing:.5px"></span>
                     </div>
 
-                    <!-- Linha 1: Nome -->
                     <div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px">${s.nome}</div>
 
-                    <!-- Linha 2: Preços à esquerda + botões deslocados à direita -->
                     <div style="display:flex;align-items:center;gap:6px">
-                        <!-- Preços -->
                         <div style="display:flex;align-items:baseline;gap:5px;flex-shrink:0">
                             <span style="font-size:26px;font-weight:800;color:var(--r);line-height:1">${s.preco.toFixed(2)}€</span>
                             ${s.orig > 0 ? `<span style="font-size:11px;text-decoration:line-through;color:rgba(255,255,255,.4);font-weight:600">${s.orig.toFixed(2)}€</span>` : ''}
                             ${s.pct > 0 ? `<span style="background:var(--r);color:#fff;font-size:10px;font-weight:800;padding:2px 5px;border-radius:4px">-${s.pct}%</span>` : ''}
                         </div>
-                        <!-- Spacer empurra botões para direita -->
                         <div style="flex:1"></div>
-                        <!-- Botões qty deslocados à direita -->
                         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
                             <button onclick="cartChangeViewer('${s.id}',-1)" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(231,76,60,.8);background:rgba(231,76,60,.9);color:#fff;font-size:22px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
                             <span id="vqn_${s.id}" style="font-size:20px;font-weight:800;color:#fff;min-width:28px;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.9)">${qtyAtual}</span>
@@ -684,7 +690,7 @@ function mostrarViewer() {
                 </div>
             `;
         } else {
-            // CATÁLOGO: SAIR bola vermelha topo esquerdo + contador inline
+            // CATÁLOGO
             overlays = `
                 <button onclick="fecharViewer()" style="position:absolute;top:calc(10px + env(safe-area-inset-top));left:14px;z-index:1200;width:44px;height:44px;border-radius:50%;border:none;background:var(--r);color:#fff;font-size:8px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(231,76,60,.5);font-family:'DM Sans',sans-serif">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -698,17 +704,11 @@ function mostrarViewer() {
         return `<div class="vSlide">${content}${overlays}</div>`;
     }).join('');
 
-    dots.innerHTML = _vSlides.map((_, i) => `<div class="vDot ${i===_vIdx?'a':''}"></div>`).join('');
-    // Modo promo: esconder botão SAIR do topo e dots (ficam na barra inferior)
+    dots.innerHTML = _vSlides.map((_, idx) => `<div class="vDot ${idx===_vIdx?'a':''}"></div>`).join('');
     var closeTop = document.getElementById('vCloseTop');
     var dotsEl = document.getElementById('vDots');
-    // Esconder sempre o botão SAIR do topo — agora está no overlay de cada slide
     if(closeTop) closeTop.style.display = 'none';
-    if(_vTipo === 'promo') {
-        if(dotsEl) dotsEl.style.display = 'none';
-    } else {
-        if(dotsEl) dotsEl.style.display = 'none'; // contador inline substitui dots
-    }
+    if(dotsEl) dotsEl.style.display = 'none';
     viewer.classList.add('a');
     updViewer();
 }
@@ -718,22 +718,22 @@ function updViewer() {
     track.style.transform = `translateX(-${_vIdx * 100}vw)`;
     const countTxt = (_vIdx + 1) + ' / ' + _vSlides.length;
     document.getElementById('vCount').textContent = countTxt;
-    document.querySelectorAll('.vDot').forEach((d, i) => d.classList.toggle('a', i === _vIdx));
+    document.querySelectorAll('.vDot').forEach((d, idx) => d.classList.toggle('a', idx === _vIdx));
 
     if(_vTipo === 'promo') {
         document.getElementById('vCount').style.display = 'none';
-        _vSlides.forEach(function(s, i) {
+        _vSlides.forEach(function(s) {
             var el = document.getElementById('vCountInner_' + s.id);
-            if(el) el.textContent = (i + 1) + ' / ' + _vSlides.length;
+            if(el) el.textContent = (_vIdx + 1) + ' / ' + _vSlides.length;
             var qEl = document.getElementById('vqn_' + s.id);
             if(qEl) qEl.textContent = CART[s.id] ? CART[s.id].qty : 0;
         });
     } else {
-        // Catálogo: esconder vCount fixo do topo, usar inline
+        // Catálogo
         document.getElementById('vCount').style.display = 'none';
-        _vSlides.forEach(function(s, i) {
-            var el = document.getElementById('vCountInner_cat_' + i);
-            if(el) el.textContent = (i + 1) + ' / ' + _vSlides.length;
+        _vSlides.forEach(function(s, idx) {
+            var el = document.getElementById('vCountInner_cat_' + idx);
+            if(el) el.textContent = (_vIdx + 1) + ' / ' + _vSlides.length;
         });
     }
 }
@@ -800,13 +800,11 @@ async function verificarNovidades() {
 }
 
 function verNovidades() {
-    // Marcar como visto
     localStorage.setItem('m_visto_promo', new Date().toISOString());
     var dot = document.getElementById('bellDot');
     var banner = document.getElementById('bannerNovidade');
     if(dot) dot.classList.remove('v');
     if(banner) banner.classList.remove('v');
-    // Fazer scroll para promoções
     var el = document.getElementById('listPromos');
     if(el) el.scrollIntoView({ behavior: 'smooth' });
 }
@@ -814,7 +812,6 @@ function verNovidades() {
 // ── CARRINHO ──
 function cartChangeViewer(id, delta) {
     cartChange(id, delta);
-    // Actualizar contador no viewer
     var vEl = document.getElementById('vqn_' + id);
     if(vEl) {
         var key = String(id);
@@ -822,9 +819,7 @@ function cartChangeViewer(id, delta) {
         vEl.style.color = 'var(--g)';
         setTimeout(function(){ vEl.style.color = '#fff'; }, 300);
     }
-    // Actualizar badge do carrinho sobreposto no viewer (reconstruir não é viável, só actualizar texto)
     var totalCarrinho = Object.values(CART).reduce(function(a,x){return a+x.qty;},0);
-    // Rebuscar o span do badge no viewer pela classe
     var viewerBadges = document.querySelectorAll('.viewer-cart-badge');
     viewerBadges.forEach(function(b){
         b.textContent = totalCarrinho;
@@ -840,15 +835,12 @@ function cartChange(id, delta) {
     CART[key].qty = Math.max(0, CART[key].qty + delta);
     if(CART[key].qty === 0) delete CART[key];
 
-    // Atualizar número no card
     var el = document.getElementById('qn_' + id);
     if(el) el.textContent = CART[key] ? CART[key].qty : 0;
 
-    // Destacar card se tem qtd
     var card = el ? el.closest('.pCard') : null;
     if(card) card.style.outline = (CART[key] && CART[key].qty > 0) ? '2px solid var(--g)' : 'none';
 
-    // Atualizar badge
     var total = Object.values(CART).reduce(function(a,x){ return a + x.qty; }, 0);
     var badge = document.getElementById('cartBadge');
     if(badge) {
@@ -874,11 +866,10 @@ function abrirCarrinho() {
         var sub = pn * it.qty;
         totalVal += sub;
         var und = parseInt(it.promo.und_caixa) || parseInt(it.promo.emoji) || 1;
-        var cx = Math.floor(it.qty / und);  // nº caixas completas
-        var un = it.qty % und;               // unidades restantes
-        var precoCx = pn * und;              // preço de 1 caixa
+        var cx = Math.floor(it.qty / und);
+        var un = it.qty % und;
+        var precoCx = pn * und;
 
-        // Linha de cx só aparece se tiver pelo menos 1 caixa completa
         var cxLine = '';
         if(und > 1 && cx > 0) {
             cxLine = cx + 'cx (' + und + 'un) × ' + precoCx.toFixed(2) + '€/cx';
@@ -1004,25 +995,21 @@ function gerarPDF() {
     setTimeout(function(){ w.print(); }, 400);
 }
 
-// Fechar modal ao clicar fora
 document.getElementById('mCarrinho').addEventListener('click', function(e){
     if(e.target === this) fecharCarrinho();
 });
 
 	window.onload = async () => {
-		    // Service Worker
 		    if ('serviceWorker' in navigator) {
 		        navigator.serviceWorker.register('./sw.js').then(reg => reg.update()).catch(() => {});
 		    }
 		    
-		    // Proteção contra saída acidental (Botão Voltar do Telemóvel)
 		    function lockBack() {
 		        window.history.pushState(null, "", window.location.href);
 		    }
 		    lockBack();
 
 		    window.onpopstate = function(event) {
-		        // Se o viewer estiver aberto, fecha-o primeiro
 		        const v = document.getElementById('viewer');
 		        if (v.classList.contains('a')) {
 		            v.classList.remove('a');
@@ -1037,7 +1024,6 @@ document.getElementById('mCarrinho').addEventListener('click', function(e){
 		        }
 		    };
 
-		    // Proteção extra ao fechar a aba ou recarregar
 		    window.onbeforeunload = function() {
 		        return "Tem a certeza que deseja sair?";
 		    };
@@ -1047,7 +1033,6 @@ document.getElementById('mCarrinho').addEventListener('click', function(e){
 	        let res = await api('clientes?tel=eq.' + t);
 	        if(res && res.length > 0) {
 	            USER = res[0];
-	            // Se o cliente tem PIN, pedir antes de entrar
 	            if (USER.pin) {
 	                document.getElementById('eReg').style.display = 'none';
 	                mostrarPinScreen();
