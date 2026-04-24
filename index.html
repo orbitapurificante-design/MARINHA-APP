@@ -631,40 +631,47 @@ function mostrarViewer() {
             var und = s.und || 0;
             var qtyAtual = CART[s.id] ? CART[s.id].qty : 0;
             var cxBtn = und > 1
-                ? `<button onclick="cartChangeViewer('${s.id}',${und})" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(26,74,138,.9);color:#fff;font-size:8px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(6px);flex-shrink:0;line-height:1.1"><span>+cx</span><span style="opacity:.75;font-size:7px">${und}u</span></button>`
+                ? `<button onclick="cartChangeViewer('${s.id}',${und})" style="width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(26,74,138,.9);color:#fff;font-size:8px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(6px);flex-shrink:0;line-height:1.1"><span style="font-size:9px">+cx</span><span style="opacity:.75;font-size:8px">${und}u</span></button>`
                 : '';
             var cartQtyTotal = Object.values(CART).reduce(function(a,x){return a+x.qty;},0);
             overlays = `
-                <!-- Botão carrinho sobreposto no canto superior direito -->
-                <div onclick="fecharViewer();setTimeout(abrirCarrinho,120)" style="position:absolute;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:1200;cursor:pointer">
-                    <div style="width:42px;height:42px;border-radius:12px;border:1.5px solid rgba(201,168,76,.6);background:rgba(10,22,40,.75);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(201,168,76,.3);backdrop-filter:blur(6px)">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px rgba(201,168,76,.7))"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                <!-- Data validade: topo direito sobre a foto -->
+                ${s.fim ? `<div style="position:absolute;top:calc(14px + env(safe-area-inset-top));right:68px;z-index:1200;background:rgba(231,76,60,.85);color:#fff;font-size:13px;font-weight:800;padding:5px 12px;border-radius:10px;backdrop-filter:blur(6px);letter-spacing:.3px;box-shadow:0 2px 10px rgba(0,0,0,.4)">📅 Até ${fd(s.fim)}</div>` : ''}
+
+                <!-- Carrinho: topo direito -->
+                <div onclick="fecharViewer();setTimeout(abrirCarrinho,120)" style="position:absolute;top:calc(10px + env(safe-area-inset-top));right:14px;z-index:1200;cursor:pointer">
+                    <div style="width:44px;height:44px;border-radius:50%;border:2px solid rgba(201,168,76,.7);background:rgba(10,22,40,.8);display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(201,168,76,.35);backdrop-filter:blur(6px)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px rgba(201,168,76,.8))"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
                     </div>
-                    ${cartQtyTotal > 0 ? `<span class="viewer-cart-badge" style="position:absolute;top:-5px;right:-5px;background:var(--r);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid rgba(10,22,40,.9);box-shadow:0 0 6px rgba(231,76,60,.5)">${cartQtyTotal}</span>` : `<span class="viewer-cart-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:var(--r);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 3px;border:2px solid rgba(10,22,40,.9)">0</span>`}
+                    <span class="viewer-cart-badge" style="display:${cartQtyTotal>0?'flex':'none'};position:absolute;top:-5px;right:-5px;background:var(--r);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 3px;border:2px solid rgba(10,22,40,.9);box-shadow:0 0 6px rgba(231,76,60,.5)">${cartQtyTotal}</span>
                 </div>
 
-                <!-- Barra inferior com tudo organizado -->
-                <div style="position:absolute;bottom:0;left:0;right:0;z-index:1100;background:rgba(0,0,0,.7);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,.1);padding:10px 14px calc(10px + env(safe-area-inset-bottom))">
-                    <!-- Linha 1: Nome + Preço + % + Validade -->
-                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-                        <div style="font-size:13px;font-weight:800;color:#fff;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.nome}</div>
-                        <span style="font-size:18px;font-weight:800;color:var(--r);flex-shrink:0">${s.preco.toFixed(2)}€</span>
-                        ${s.orig > 0 ? `<span style="font-size:10px;text-decoration:line-through;color:rgba(255,255,255,.45);flex-shrink:0">${s.orig.toFixed(2)}€</span>` : ''}
-                        ${s.pct > 0 ? `<span style="background:var(--r);color:#fff;font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px;flex-shrink:0">-${s.pct}%</span>` : ''}
-                        ${s.fim ? `<span style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.75);font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0;border:1px solid rgba(255,255,255,.15)">📅 ${fd(s.fim)}</span>` : ''}
-                    </div>
-                    <!-- Linha 2: SAIR | − qty + | +1cx -->
+                <!-- Barra inferior -->
+                <div style="position:absolute;bottom:0;left:0;right:0;z-index:1100;background:rgba(0,0,0,.72);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.1);padding:12px 14px calc(12px + env(safe-area-inset-bottom))">
+
+                    <!-- Linha 1: Nome (toda a largura) -->
+                    <div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px">${s.nome}</div>
+
+                    <!-- Linha 2: Preços + botões + SAIR bola vermelha -->
                     <div style="display:flex;align-items:center;gap:8px">
-                        <button onclick="fecharViewer()" style="height:36px;padding:0 14px;border-radius:18px;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font-size:11px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.5px;display:flex;align-items:center;gap:5px;flex-shrink:0;backdrop-filter:blur(4px)">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                            SAIR
-                        </button>
+                        <!-- Preços -->
+                        <div style="display:flex;align-items:baseline;gap:6px;flex-shrink:0">
+                            <span style="font-size:26px;font-weight:800;color:var(--r);line-height:1">${s.preco.toFixed(2)}€</span>
+                            ${s.orig > 0 ? `<span style="font-size:12px;text-decoration:line-through;color:rgba(255,255,255,.45);font-weight:600">${s.orig.toFixed(2)}€</span>` : ''}
+                            ${s.pct > 0 ? `<span style="background:var(--r);color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px">-${s.pct}%</span>` : ''}
+                        </div>
+                        <!-- Spacer -->
                         <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px">
-                            <button onclick="cartChangeViewer('${s.id}',-1)" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(231,76,60,.7);background:rgba(231,76,60,.85);color:#fff;font-size:20px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">−</button>
-                            <span id="vqn_${s.id}" style="font-size:18px;font-weight:800;color:#fff;min-width:28px;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8)">${qtyAtual}</span>
-                            <button onclick="cartChangeViewer('${s.id}',1)" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(201,168,76,.7);background:rgba(201,168,76,.9);color:var(--n);font-size:20px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">+</button>
+                            <button onclick="cartChangeViewer('${s.id}',-1)" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(231,76,60,.8);background:rgba(231,76,60,.9);color:#fff;font-size:22px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">−</button>
+                            <span id="vqn_${s.id}" style="font-size:20px;font-weight:800;color:#fff;min-width:30px;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.9)">${qtyAtual}</span>
+                            <button onclick="cartChangeViewer('${s.id}',1)" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(201,168,76,.8);background:rgba(201,168,76,.95);color:var(--n);font-size:22px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">+</button>
                             ${cxBtn}
                         </div>
+                        <!-- SAIR bola vermelha -->
+                        <button onclick="fecharViewer()" style="width:42px;height:42px;border-radius:50%;border:none;background:var(--r);color:#fff;font-size:9px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 12px rgba(231,76,60,.5);letter-spacing:.3px;font-family:'DM Sans',sans-serif">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                            <span style="font-size:8px;margin-top:1px">SAIR</span>
+                        </button>
                     </div>
                 </div>
             `;
