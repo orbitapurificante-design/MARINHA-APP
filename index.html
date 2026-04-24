@@ -635,6 +635,12 @@ function mostrarViewer() {
                 : '';
             var cartQtyTotal = Object.values(CART).reduce(function(a,x){return a+x.qty;},0);
             overlays = `
+                <!-- SAIR: topo esquerdo bola vermelha -->
+                <button onclick="fecharViewer()" style="position:absolute;top:calc(10px + env(safe-area-inset-top));left:14px;z-index:1200;width:44px;height:44px;border-radius:50%;border:none;background:var(--r);color:#fff;font-size:8px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 12px rgba(231,76,60,.5);letter-spacing:.3px;font-family:'DM Sans',sans-serif">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    <span style="font-size:8px;margin-top:1px">SAIR</span>
+                </button>
+
                 <!-- Data validade: topo direito sobre a foto -->
                 ${s.fim ? `<div style="position:absolute;top:calc(14px + env(safe-area-inset-top));right:68px;z-index:1200;background:rgba(231,76,60,.85);color:#fff;font-size:13px;font-weight:800;padding:5px 12px;border-radius:10px;backdrop-filter:blur(6px);letter-spacing:.3px;box-shadow:0 2px 10px rgba(0,0,0,.4)">📅 Até ${fd(s.fim)}</div>` : ''}
 
@@ -647,31 +653,33 @@ function mostrarViewer() {
                 </div>
 
                 <!-- Barra inferior -->
-                <div style="position:absolute;bottom:0;left:0;right:0;z-index:1100;background:rgba(0,0,0,.72);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.1);padding:12px 14px calc(12px + env(safe-area-inset-bottom))">
+                <div style="position:absolute;bottom:0;left:0;right:0;z-index:1100;background:rgba(0,0,0,.72);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.1);padding:10px 14px calc(12px + env(safe-area-inset-bottom))">
 
-                    <!-- Linha 1: Nome (toda a largura) -->
+                    <!-- Contador páginas centrado acima do nome -->
+                    <div style="text-align:center;margin-bottom:6px">
+                        <span id="vCountInner_${s.id}" style="background:rgba(255,255,255,.15);color:#fff;font-size:11px;font-weight:700;padding:3px 14px;border-radius:20px;backdrop-filter:blur(4px);letter-spacing:.5px"></span>
+                    </div>
+
+                    <!-- Linha 1: Nome -->
                     <div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px">${s.nome}</div>
 
-                    <!-- Linha 2: Preços + botões + SAIR bola vermelha -->
-                    <div style="display:flex;align-items:center;gap:8px">
+                    <!-- Linha 2: Preços à esquerda + botões deslocados à direita -->
+                    <div style="display:flex;align-items:center;gap:6px">
                         <!-- Preços -->
-                        <div style="display:flex;align-items:baseline;gap:6px;flex-shrink:0">
+                        <div style="display:flex;align-items:baseline;gap:5px;flex-shrink:0">
                             <span style="font-size:26px;font-weight:800;color:var(--r);line-height:1">${s.preco.toFixed(2)}€</span>
-                            ${s.orig > 0 ? `<span style="font-size:12px;text-decoration:line-through;color:rgba(255,255,255,.45);font-weight:600">${s.orig.toFixed(2)}€</span>` : ''}
-                            ${s.pct > 0 ? `<span style="background:var(--r);color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px">-${s.pct}%</span>` : ''}
+                            ${s.orig > 0 ? `<span style="font-size:11px;text-decoration:line-through;color:rgba(255,255,255,.4);font-weight:600">${s.orig.toFixed(2)}€</span>` : ''}
+                            ${s.pct > 0 ? `<span style="background:var(--r);color:#fff;font-size:10px;font-weight:800;padding:2px 5px;border-radius:4px">-${s.pct}%</span>` : ''}
                         </div>
-                        <!-- Spacer -->
-                        <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px">
-                            <button onclick="cartChangeViewer('${s.id}',-1)" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(231,76,60,.8);background:rgba(231,76,60,.9);color:#fff;font-size:22px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">−</button>
-                            <span id="vqn_${s.id}" style="font-size:20px;font-weight:800;color:#fff;min-width:30px;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.9)">${qtyAtual}</span>
-                            <button onclick="cartChangeViewer('${s.id}',1)" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(201,168,76,.8);background:rgba(201,168,76,.95);color:var(--n);font-size:22px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">+</button>
+                        <!-- Spacer empurra botões para direita -->
+                        <div style="flex:1"></div>
+                        <!-- Botões qty deslocados à direita -->
+                        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+                            <button onclick="cartChangeViewer('${s.id}',-1)" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(231,76,60,.8);background:rgba(231,76,60,.9);color:#fff;font-size:22px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+                            <span id="vqn_${s.id}" style="font-size:20px;font-weight:800;color:#fff;min-width:28px;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.9)">${qtyAtual}</span>
+                            <button onclick="cartChangeViewer('${s.id}',1)" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(201,168,76,.8);background:rgba(201,168,76,.95);color:var(--n);font-size:22px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
                             ${cxBtn}
                         </div>
-                        <!-- SAIR bola vermelha -->
-                        <button onclick="fecharViewer()" style="width:42px;height:42px;border-radius:50%;border:none;background:var(--r);color:#fff;font-size:9px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 12px rgba(231,76,60,.5);letter-spacing:.3px;font-family:'DM Sans',sans-serif">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                            <span style="font-size:8px;margin-top:1px">SAIR</span>
-                        </button>
                     </div>
                 </div>
             `;
@@ -697,14 +705,23 @@ function mostrarViewer() {
 function updViewer() {
     const track = document.getElementById('vTrack');
     track.style.transform = `translateX(-${_vIdx * 100}vw)`;
-    document.getElementById('vCount').textContent = (_vIdx + 1) + ' / ' + _vSlides.length;
+    const countTxt = (_vIdx + 1) + ' / ' + _vSlides.length;
+    document.getElementById('vCount').textContent = countTxt;
     document.querySelectorAll('.vDot').forEach((d, i) => d.classList.toggle('a', i === _vIdx));
-    // Actualizar qtds no viewer
+
     if(_vTipo === 'promo') {
-        _vSlides.forEach(function(s) {
-            var el = document.getElementById('vqn_' + s.id);
-            if(el) el.textContent = CART[s.id] ? CART[s.id].qty : 0;
+        // Ocultar o vCount fixo do topo (substituído pelo inline na barra)
+        document.getElementById('vCount').style.display = 'none';
+        // Preencher todos os contadores inline (só o slide atual é visível mas todos precisam do valor)
+        _vSlides.forEach(function(s, i) {
+            var el = document.getElementById('vCountInner_' + s.id);
+            if(el) el.textContent = (i + 1) + ' / ' + _vSlides.length;
+            // Actualizar qtd
+            var qEl = document.getElementById('vqn_' + s.id);
+            if(qEl) qEl.textContent = CART[s.id] ? CART[s.id].qty : 0;
         });
+    } else {
+        document.getElementById('vCount').style.display = '';
     }
 }
 
