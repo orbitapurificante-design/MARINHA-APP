@@ -83,23 +83,50 @@
         .vTrack{display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1);height:100vh;will-change:transform}
         .vSlide{flex-shrink:0;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
         .vSlide img{width:100vw;height:100vh;object-fit:contain;display:block;touch-action:pan-y pinch-zoom;margin-top:0}
-        .vHud{position:fixed;top:calc(20px + env(safe-area-inset-top));left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;z-index:1100;pointer-events:none}
-        .vCount{background:rgba(0,0,0,0.4);color:#fff;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;backdrop-filter:blur(4px);position:fixed;top:calc(20px + env(safe-area-inset-top));left:50%;transform:translateX(-50%)}
-        .vClose{background:rgba(231,76,60,0.4);color:#fff;padding:8px 16px;border-radius:12px;font-size:13px;font-weight:800;backdrop-filter:blur(8px);pointer-events:auto;cursor:pointer;border:1px solid rgba(231,76,60,0.3);display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:1px}
         .vDots{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:1100;pointer-events:none}
         .vDot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.3);transition:0.2s}
         .vDot.a{background:var(--g);transform:scale(1.3)}
-        
-        /* Legenda na Promoção Fullscreen */
-        .vLegenda{position:absolute;bottom:calc(90px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:500px;background:rgba(0,0,0,0.55);color:#fff;padding:14px 16px;border-radius:20px;backdrop-filter:blur(16px);z-index:1100;border:1px solid rgba(255,255,255,0.12)}
-        .vLegenda .pNome{font-size:16px;font-weight:800;margin-bottom:4px;color:#fff}
-        .vLegenda .precos{display:flex;align-items:center;gap:8px;margin-bottom:0;flex-wrap:wrap}
-        .vLegenda .pNovo{font-size:22px;font-weight:800;color:#fff}
-        .vLegenda .pOrig{font-size:14px;text-decoration:line-through;color:#c9a84c;font-weight:700}
-        
-        /* Badges no Fullscreen */
-        .vBdg{background:var(--r);color:#fff;font-size:11px;font-weight:800;padding:2px 6px;border-radius:4px;display:inline-block}
-        .vValidade{background:rgba(255,255,255,0.1);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;display:inline-block;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.05)}
+
+        /* VIEWER FIXOS - TOPO */
+        .vClose-fixed {
+            position: fixed !important;
+            top: 14px !important;
+            left: 14px !important;
+            z-index: 1200 !important;
+            width: 44px !important;
+            height: 44px !important;
+            border-radius: 50% !important;
+            border: none !important;
+            background: var(--r) !important;
+            color: #fff !important;
+            font-size: 8px !important;
+            font-weight: 800 !important;
+            cursor: pointer !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 0 12px rgba(231,76,60,.5) !important;
+            letter-spacing: .3px !important;
+            font-family: 'DM Sans', sans-serif !important;
+            padding: 0 !important;
+        }
+
+        .vCount-fixed {
+            position: fixed !important;
+            top: 14px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 1200 !important;
+            background: rgba(0,0,0,0.6) !important;
+            color: #fff !important;
+            padding: 6px 16px !important;
+            border-radius: 20px !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            backdrop-filter: blur(6px) !important;
+            letter-spacing: .5px !important;
+        }
 
         /* CARTÃO QR */
         .qrHero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:32px 20px;color:#fff;text-align:center}
@@ -338,15 +365,19 @@
 
 <!-- VIEWER FULLSCREEN -->
 <div class="viewer" id="viewer">
-    <div class="vHud">
-        <button class="vClose" id="vCloseTop" onclick="fecharViewer()">
-            <svg style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            SAIR
-        </button>
-        <div class="vCount" id="vCount">1 / 1</div>
-    </div>
     <div class="vTrack" id="vTrack"></div>
     <div class="vDots" id="vDots"></div>
+    
+    <!-- BOTÃO SAIR FIXO - TOPO ESQUERDO -->
+    <button class="vClose-fixed" id="vCloseFixed" onclick="fecharViewer()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        <span style="font-size:8px;margin-top:1px">SAIR</span>
+    </button>
+    
+    <!-- CONTADOR PÁGINA FIXO - TOPO CENTRO -->
+    <div class="vCount-fixed" id="vCountFixed">1 / 1</div>
 </div>
 
 <div id="toast"></div>
@@ -516,13 +547,10 @@ async function renderInicio() {
     document.getElementById('hNome').textContent = USER.nome;
     document.getElementById('hNum').textContent = 'Nº ' + (USER.num_cliente || '—');
     document.getElementById('hPts').textContent = USER.pts || 0;
-    // O valor poupado real é calculado com base nos pontos que o cliente tem
-    // Vamos buscar a configuração de fidelização para saber quanto vale cada ponto
     const cfg = await api('config?id=eq.1');
     const r_pontoEuro = (cfg && cfg[0] && cfg[0].ponto_euro) ? cfg[0].ponto_euro : 20;
     const poupadoReal = (USER.pts || 0) / r_pontoEuro;
     document.getElementById('hPou').textContent = poupadoReal.toFixed(2) + '€';
-    // (uLetra removido - substituído por carrinho neon)
 
     const h = hoje();
     const promos = await api('promos?order=id.desc');
@@ -532,7 +560,6 @@ async function renderInicio() {
         return ok1 && ok2;
     });
 
-    // Verificar novidades após carregar promos
     verificarNovidades();
 
     const list = document.getElementById('listPromos');
@@ -637,78 +664,19 @@ function mostrarViewer() {
     const viewer = document.getElementById('viewer');
     
     track.style.width = (_vSlides.length * 100) + 'vw';
+    
+    // Gerar slides SEM os overlays (ficarão fixos no topo/fundo)
     track.innerHTML = _vSlides.map((s, i) => {
         let content = s.src 
             ? `<img src="${s.src}" loading="lazy" alt="Slide ${i+1}">` 
             : `<div style="font-size:80px">🛒</div>`;
-        
-        let overlays = '';
-        if (_vTipo === 'promo') {
-            var und = s.und || 0;
-            var qtyAtual = CART[s.id] ? CART[s.id].qty : 0;
-            var cxBtn = und > 1
-                ? `<button onclick="cartChangeViewer('${s.id}',${und})" style="width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(26,74,138,.9);color:#fff;font-size:8px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(6px);flex-shrink:0;line-height:1.1"><span style="font-size:9px">+cx</span><span style="opacity:.75;font-size:8px">${und}u</span></button>`
-                : '';
-            var cartQtyTotal = Object.values(CART).reduce(function(a,x){return a+x.qty;},0);
-            overlays = `
-                <button onclick="fecharViewer()" style="position:absolute;top:calc(10px + env(safe-area-inset-top));left:14px;z-index:1200;width:44px;height:44px;border-radius:50%;border:none;background:var(--r);color:#fff;font-size:8px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 12px rgba(231,76,60,.5);letter-spacing:.3px;font-family:'DM Sans',sans-serif">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    <span style="font-size:8px;margin-top:1px">SAIR</span>
-                </button>
-
-                ${s.fim ? `<div style="position:absolute;top:calc(14px + env(safe-area-inset-top));right:68px;z-index:1200;background:rgba(231,76,60,.85);color:#fff;font-size:13px;font-weight:800;padding:5px 12px;border-radius:10px;backdrop-filter:blur(6px);letter-spacing:.3px;box-shadow:0 2px 10px rgba(0,0,0,.4)">📅 Até ${fd(s.fim)}</div>` : ''}
-
-                <div onclick="fecharViewer();setTimeout(abrirCarrinho,120)" style="position:absolute;top:calc(10px + env(safe-area-inset-top));right:14px;z-index:1200;cursor:pointer">
-                    <div style="width:44px;height:44px;border-radius:50%;border:2px solid rgba(201,168,76,.7);background:rgba(10,22,40,.8);display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(201,168,76,.35);backdrop-filter:blur(6px)">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px rgba(201,168,76,.8))"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-                    </div>
-                    <span class="viewer-cart-badge" style="display:${cartQtyTotal>0?'flex':'none'};position:absolute;top:-5px;right:-5px;background:var(--r);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 3px;border:2px solid rgba(10,22,40,.9);box-shadow:0 0 6px rgba(231,76,60,.5)">${cartQtyTotal}</span>
-                </div>
-
-                <div style="position:absolute;bottom:0;left:0;right:0;z-index:1100;background:rgba(0,0,0,.72);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.1);padding:10px 14px calc(12px + env(safe-area-inset-bottom))">
-
-                    <div style="text-align:center;margin-bottom:6px">
-                        <span id="vCountInner_${s.id}" style="background:rgba(255,255,255,.15);color:#fff;font-size:11px;font-weight:700;padding:3px 14px;border-radius:20px;backdrop-filter:blur(4px);letter-spacing:.5px"></span>
-                    </div>
-
-                    <div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px">${s.nome}</div>
-
-                    <div style="display:flex;align-items:center;gap:6px">
-                        <div style="display:flex;align-items:baseline;gap:5px;flex-shrink:0">
-                            <span style="font-size:26px;font-weight:800;color:var(--r);line-height:1">${s.preco.toFixed(2)}€</span>
-                            ${s.orig > 0 ? `<span style="font-size:11px;text-decoration:line-through;color:rgba(255,255,255,.4);font-weight:600">${s.orig.toFixed(2)}€</span>` : ''}
-                            ${s.pct > 0 ? `<span style="background:var(--r);color:#fff;font-size:10px;font-weight:800;padding:2px 5px;border-radius:4px">-${s.pct}%</span>` : ''}
-                        </div>
-                        <div style="flex:1"></div>
-                        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-                            <button onclick="cartChangeViewer('${s.id}',-1)" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(231,76,60,.8);background:rgba(231,76,60,.9);color:#fff;font-size:22px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
-                            <span id="vqn_${s.id}" style="font-size:20px;font-weight:800;color:#fff;min-width:28px;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.9)">${qtyAtual}</span>
-                            <button onclick="cartChangeViewer('${s.id}',1)" style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(201,168,76,.8);background:rgba(201,168,76,.95);color:var(--n);font-size:22px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
-                            ${cxBtn}
-                        </div>
-                    </div>
-                </div>
-            `;
-        } else {
-            // CATÁLOGO
-            overlays = `
-                <button onclick="fecharViewer()" style="position:absolute;top:calc(10px + env(safe-area-inset-top));left:14px;z-index:1200;width:44px;height:44px;border-radius:50%;border:none;background:var(--r);color:#fff;font-size:8px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(231,76,60,.5);font-family:'DM Sans',sans-serif">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    <span style="font-size:8px;margin-top:1px">SAIR</span>
-                </button>
-                <div style="position:absolute;bottom:16px;left:0;right:0;text-align:center;z-index:1100">
-                    <span id="vCountInner_cat_${i}" style="background:rgba(0,0,0,.5);color:#fff;font-size:12px;font-weight:700;padding:4px 16px;border-radius:20px;backdrop-filter:blur(6px);letter-spacing:.5px"></span>
-                </div>
-            `;
-        }
-        return `<div class="vSlide">${content}${overlays}</div>`;
+        return `<div class="vSlide">${content}</div>`;
     }).join('');
 
     dots.innerHTML = _vSlides.map((_, idx) => `<div class="vDot ${idx===_vIdx?'a':''}"></div>`).join('');
-    var closeTop = document.getElementById('vCloseTop');
-    var dotsEl = document.getElementById('vDots');
-    if(closeTop) closeTop.style.display = 'none';
-    if(dotsEl) dotsEl.style.display = 'none';
+    
+    if(dots) dots.style.display = 'none';
+    
     viewer.classList.add('a');
     updViewer();
 }
@@ -717,25 +685,12 @@ function updViewer() {
     const track = document.getElementById('vTrack');
     track.style.transform = `translateX(-${_vIdx * 100}vw)`;
     const countTxt = (_vIdx + 1) + ' / ' + _vSlides.length;
-    document.getElementById('vCount').textContent = countTxt;
+    
+    // Atualizar contador FIXO
+    const fixedCount = document.getElementById('vCountFixed');
+    if(fixedCount) fixedCount.textContent = countTxt;
+    
     document.querySelectorAll('.vDot').forEach((d, idx) => d.classList.toggle('a', idx === _vIdx));
-
-    if(_vTipo === 'promo') {
-        document.getElementById('vCount').style.display = 'none';
-        _vSlides.forEach(function(s) {
-            var el = document.getElementById('vCountInner_' + s.id);
-            if(el) el.textContent = (_vIdx + 1) + ' / ' + _vSlides.length;
-            var qEl = document.getElementById('vqn_' + s.id);
-            if(qEl) qEl.textContent = CART[s.id] ? CART[s.id].qty : 0;
-        });
-    } else {
-        // Catálogo
-        document.getElementById('vCount').style.display = 'none';
-        _vSlides.forEach(function(s, idx) {
-            var el = document.getElementById('vCountInner_cat_' + idx);
-            if(el) el.textContent = (_vIdx + 1) + ' / ' + _vSlides.length;
-        });
-    }
 }
 
 function fecharViewer() {
