@@ -71,12 +71,6 @@
         .pImgW .pEmoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px}
         .pBdg{background:var(--r);color:#fff;font-size:11px;font-weight:800;padding:2px 6px;border-radius:6px;display:inline-block;margin-right:6px}
         .pValidade{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:#fff;font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;z-index:1;backdrop-filter:blur(4px)}
-        /* Badge row: % + validade na mesma linha sobre a foto */
-        .pBadgeRow{position:absolute;top:7px;left:7px;right:7px;display:flex;align-items:center;justify-content:space-between;z-index:2;pointer-events:none}
-        .pBdgPct{background:var(--r);color:#fff;font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px}
-        .pBdgVal{background:rgba(0,0,0,0.52);color:#fff;font-size:9px;font-weight:700;padding:3px 7px;border-radius:6px;backdrop-filter:blur(4px)}
-        /* SAIR btn in card bottom row */
-        .pSairBtn{flex-shrink:0;padding:5px 8px;background:#eef2f7;color:var(--n);border:none;border-radius:8px;font-size:10px;font-weight:800;cursor:pointer;letter-spacing:.5px}
         .pBody{padding:12px}
         .pNome{font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.2;color:var(--n)}
         .precos{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -118,7 +112,7 @@
         .modal{display:none;position:fixed;inset:0;z-index:500;align-items:flex-end;background:rgba(0,0,0,.5)}
         .modal.a{display:flex}
         /* CARRINHO / ENCOMENDA */
-        .cart-btn{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));right:16px;z-index:1200;
+        .cart-btn{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));right:16px;z-index:200;
           width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--gl));
           border:none;box-shadow:0 4px 16px rgba(201,168,76,.5);cursor:pointer;display:none;
           align-items:center;justify-content:center;font-size:24px}
@@ -345,7 +339,8 @@
 <!-- VIEWER FULLSCREEN -->
 <div class="viewer" id="viewer">
     <div class="vHud">
-        <button class="vClose" onclick="fecharViewer()">
+        <!-- SAIR no topo só para catálogo (promos têm botão em baixo) -->
+        <button class="vClose" id="vCloseTop" onclick="fecharViewer()">
             <svg style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
             SAIR
         </button>
@@ -555,29 +550,23 @@ async function renderInicio() {
         var imgHtml = fotoSrc
             ? '<img src="' + fotoSrc + '" onerror="this.style.display=\'none\'">'
             : '<div class="pEmoji">🛒</div>';
-        // % desconto + validade NA MESMA LINHA sobre a foto (poupa uma linha no card)
-        var badgeRow = (pct > 0 || p.data_fim)
-            ? '<div class="pBadgeRow">' +
-                (pct > 0 ? '<span class="pBdgPct">-' + pct + '%</span>' : '<span></span>') +
-                (p.data_fim ? '<span class="pBdgVal">Até ' + fd(p.data_fim) + '</span>' : '') +
-              '</div>'
-            : '';
+        var valHtml = p.data_fim ? '<div class="pValidade">Até ' + fd(p.data_fim) + '</div>' : '';
         var qty = CART[String(p.id)] ? CART[String(p.id)].qty : 0;
-        var cxBtn = und > 0
-            ? '<div style="flex-shrink:0;text-align:center;font-size:9px;color:var(--mu);line-height:1.1">CX<br>' + und + 'un</div>'
+        var cxBtn = und > 1
+            ? '<button class="qCx" onclick="cartChange(\'' + p.id + '\',' + und + ')">+1cx<br><span style="font-size:9px;opacity:.7">' + und + 'un</span></button>'
             : '';
         return '<div class="pCard">' +
             '<div class="pImgW" onclick="abrirPromosFullscreen(' + idx + ')">' +
-                imgHtml + badgeRow +
+                imgHtml + valHtml +
             '</div>' +
             '<div class="pBody">' +
                 '<div class="pNome">' + p.nome + '</div>' +
                 '<div class="precos">' +
                     (pn > 0 ? '<span class="pNovo">' + pn.toFixed(2) + '€</span>' : '') +
                     (po > 0 ? '<span class="pOrig">' + po.toFixed(2) + '€</span>' : '') +
+                    (pct > 0 ? '<div class="pBdg">-' + pct + '%</div>' : '') +
                 '</div>' +
                 '<div class="pQty" id="pqty_' + p.id + '">' +
-                    '<button class="pSairBtn" onclick="event.stopPropagation();fecharViewer()">SAIR</button>' +
                     '<button class="qBtn qBtn-m" onclick="cartChange(\'' + p.id + '\',-1)">−</button>' +
                     '<span class="qNum" id="qn_' + p.id + '">' + qty + '</span>' +
                     '<button class="qBtn qBtn-p" onclick="cartChange(\'' + p.id + '\',1)">+</button>' +
@@ -642,23 +631,41 @@ function mostrarViewer() {
             var und = s.und || 0;
             var qtyAtual = CART[s.id] ? CART[s.id].qty : 0;
             var cxBtn = und > 1
-                ? `<button onclick="cartChangeViewer('${s.id}',${und})" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(26,74,138,.85);color:#fff;font-size:9px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:center;line-height:1.1;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(6px)"><span style="font-size:8px;opacity:.9">+cx</span><span style="font-size:8px;opacity:.7">${und}u</span></button>`
+                ? `<button onclick="cartChangeViewer('${s.id}',${und})" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(26,74,138,.9);color:#fff;font-size:8px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(6px);flex-shrink:0;line-height:1.1"><span>+cx</span><span style="opacity:.75;font-size:7px">${und}u</span></button>`
                 : '';
+            var cartQtyTotal = Object.values(CART).reduce(function(a,x){return a+x.qty;},0);
             overlays = `
-                <div style="position:absolute;right:12px;bottom:calc(100px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:8px;z-index:1100">
-                    <button onclick="cartChangeViewer('${s.id}',1)" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(201,168,76,.6);background:rgba(201,168,76,.85);color:var(--n);font-size:20px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 2px 10px rgba(0,0,0,.3)">+</button>
-                    <span id="vqn_${s.id}" style="font-size:16px;font-weight:800;color:#fff;min-width:28px;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8)">${qtyAtual}</span>
-                    <button onclick="cartChangeViewer('${s.id}',-1)" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(231,76,60,.6);background:rgba(231,76,60,.85);color:#fff;font-size:20px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 2px 10px rgba(0,0,0,.3)">−</button>
-                    ${cxBtn}
-                </div>
-                <div style="position:absolute;left:12px;bottom:calc(100px + env(safe-area-inset-bottom));z-index:1100;background:rgba(0,0,0,.45);padding:6px 10px;border-radius:10px;backdrop-filter:blur(8px)">
-                    <div style="font-size:13px;font-weight:800;color:#fff;line-height:1.2">${s.nome}</div>
-                    <div style="display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap">
-                        <span style="font-size:18px;font-weight:800;color:var(--r)">${s.preco.toFixed(2)}€</span>
-                        ${s.orig > 0 ? `<span style="font-size:11px;text-decoration:line-through;color:rgba(255,255,255,.5);font-weight:600">${s.orig.toFixed(2)}€</span>` : ''}
-                        ${s.pct > 0 ? `<span style="background:var(--r);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:4px">-${s.pct}%</span>` : ''}
+                <!-- Botão carrinho sobreposto no canto superior direito -->
+                <div onclick="fecharViewer();setTimeout(abrirCarrinho,120)" style="position:absolute;top:calc(16px + env(safe-area-inset-top));right:16px;z-index:1200;cursor:pointer">
+                    <div style="width:42px;height:42px;border-radius:12px;border:1.5px solid rgba(201,168,76,.6);background:rgba(10,22,40,.75);display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(201,168,76,.3);backdrop-filter:blur(6px)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px rgba(201,168,76,.7))"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
                     </div>
-                    ${s.fim ? `<div style="font-size:9px;color:rgba(255,255,255,.6);margin-top:2px">📅 Até ${fd(s.fim)}</div>` : ''}
+                    ${cartQtyTotal > 0 ? `<span class="viewer-cart-badge" style="position:absolute;top:-5px;right:-5px;background:var(--r);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid rgba(10,22,40,.9);box-shadow:0 0 6px rgba(231,76,60,.5)">${cartQtyTotal}</span>` : `<span class="viewer-cart-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:var(--r);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;padding:0 3px;border:2px solid rgba(10,22,40,.9)">0</span>`}
+                </div>
+
+                <!-- Barra inferior com tudo organizado -->
+                <div style="position:absolute;bottom:0;left:0;right:0;z-index:1100;background:rgba(0,0,0,.7);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,.1);padding:10px 14px calc(10px + env(safe-area-inset-bottom))">
+                    <!-- Linha 1: Nome + Preço + % + Validade -->
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+                        <div style="font-size:13px;font-weight:800;color:#fff;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.nome}</div>
+                        <span style="font-size:18px;font-weight:800;color:var(--r);flex-shrink:0">${s.preco.toFixed(2)}€</span>
+                        ${s.orig > 0 ? `<span style="font-size:10px;text-decoration:line-through;color:rgba(255,255,255,.45);flex-shrink:0">${s.orig.toFixed(2)}€</span>` : ''}
+                        ${s.pct > 0 ? `<span style="background:var(--r);color:#fff;font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px;flex-shrink:0">-${s.pct}%</span>` : ''}
+                        ${s.fim ? `<span style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.75);font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0;border:1px solid rgba(255,255,255,.15)">📅 ${fd(s.fim)}</span>` : ''}
+                    </div>
+                    <!-- Linha 2: SAIR | − qty + | +1cx -->
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <button onclick="fecharViewer()" style="height:36px;padding:0 14px;border-radius:18px;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font-size:11px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.5px;display:flex;align-items:center;gap:5px;flex-shrink:0;backdrop-filter:blur(4px)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                            SAIR
+                        </button>
+                        <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px">
+                            <button onclick="cartChangeViewer('${s.id}',-1)" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(231,76,60,.7);background:rgba(231,76,60,.85);color:#fff;font-size:20px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">−</button>
+                            <span id="vqn_${s.id}" style="font-size:18px;font-weight:800;color:#fff;min-width:28px;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8)">${qtyAtual}</span>
+                            <button onclick="cartChangeViewer('${s.id}',1)" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(201,168,76,.7);background:rgba(201,168,76,.9);color:var(--n);font-size:20px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">+</button>
+                            ${cxBtn}
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -666,6 +673,16 @@ function mostrarViewer() {
     }).join('');
 
     dots.innerHTML = _vSlides.map((_, i) => `<div class="vDot ${i===_vIdx?'a':''}"></div>`).join('');
+    // Modo promo: esconder botão SAIR do topo e dots (ficam na barra inferior)
+    var closeTop = document.getElementById('vCloseTop');
+    var dotsEl = document.getElementById('vDots');
+    if(_vTipo === 'promo') {
+        if(closeTop) closeTop.style.display = 'none';
+        if(dotsEl) dotsEl.style.display = 'none';
+    } else {
+        if(closeTop) closeTop.style.display = '';
+        if(dotsEl) dotsEl.style.display = '';
+    }
     viewer.classList.add('a');
     updViewer();
 }
@@ -759,17 +776,23 @@ function verNovidades() {
 
 // ── CARRINHO ──
 function cartChangeViewer(id, delta) {
-    // Chamar a função principal do carrinho
     cartChange(id, delta);
-    // Actualizar também o contador dentro do viewer
+    // Actualizar contador no viewer
     var vEl = document.getElementById('vqn_' + id);
     if(vEl) {
         var key = String(id);
         vEl.textContent = CART[key] ? CART[key].qty : 0;
-        // Flash visual
         vEl.style.color = 'var(--g)';
         setTimeout(function(){ vEl.style.color = '#fff'; }, 300);
     }
+    // Actualizar badge do carrinho sobreposto no viewer (reconstruir não é viável, só actualizar texto)
+    var totalCarrinho = Object.values(CART).reduce(function(a,x){return a+x.qty;},0);
+    // Rebuscar o span do badge no viewer pela classe
+    var viewerBadges = document.querySelectorAll('.viewer-cart-badge');
+    viewerBadges.forEach(function(b){
+        b.textContent = totalCarrinho;
+        b.style.display = totalCarrinho > 0 ? 'flex' : 'none';
+    });
 }
 
 function cartChange(id, delta) {
