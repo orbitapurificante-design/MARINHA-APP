@@ -1131,7 +1131,7 @@ async function abrirModalWA() {
     toast('A carregar clientes...');
     await sincronizar();
   }
-  const comTel = DB.clientes.filter(c => c.telemovel && c.telemovel.toString().replace(/\D/g,'').length >= 9);
+  const comTel = DB.clientes.filter(c => c.tel && c.tel.toString().replace(/\D/g,'').length >= 9);
   if(!comTel.length) {
     const total = DB.clientes.length;
     toast(`⚠️ ${total} clientes mas nenhum tem telemóvel registado`);
@@ -1148,9 +1148,9 @@ async function abrirModalWA() {
 
 function renderWALista() {
   const lista = document.getElementById('waLista');
-  const comTel = DB.clientes.filter(c => c.telemovel && c.telemovel.toString().replace(/\D/g,'').length >= 9);
+  const comTel = DB.clientes.filter(c => c.tel && c.tel.toString().replace(/\D/g,'').length >= 9);
   const filtrados = _waFiltro
-    ? comTel.filter(c => c.nome.toLowerCase().includes(_waFiltro) || c.telemovel.toString().includes(_waFiltro))
+    ? comTel.filter(c => c.nome.toLowerCase().includes(_waFiltro) || c.tel.toString().includes(_waFiltro))
     : comTel;
 
   if(!filtrados.length) {
@@ -1159,7 +1159,7 @@ function renderWALista() {
   }
 
   lista.innerHTML = filtrados.map(c => {
-    const tel = c.telemovel.toString().replace(/\D/g,'');
+    const tel = c.tel.toString().replace(/\D/g,'');
     const telFmt = tel.length === 9 ? tel.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3') : tel;
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer" onclick="toggleWA('${c.id}')">
       <div style="width:22px;height:22px;border-radius:6px;border:2px solid ${c._wasel?'#25D366':'#ddd'};background:${c._wasel?'#25D366':'#fff'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s">
@@ -1186,7 +1186,7 @@ function toggleWA(id) {
 }
 
 function selecionarTodosWA(val) {
-  DB.clientes.filter(c => c.telemovel).forEach(c => c._wasel = val);
+  DB.clientes.filter(c => c.tel).forEach(c => c._wasel = val);
   renderWALista();
 }
 
@@ -1196,19 +1196,19 @@ function filtrarWA(v) {
 }
 
 function actualizarWASubtitle() {
-  const sel = DB.clientes.filter(c => c._wasel && c.telemovel).length;
-  const total = DB.clientes.filter(c => c.telemovel && c.telemovel.toString().replace(/\D/g,'').length >= 9).length;
+  const sel = DB.clientes.filter(c => c._wasel && c.tel).length;
+  const total = DB.clientes.filter(c => c.tel && c.tel.toString().replace(/\D/g,'').length >= 9).length;
   document.getElementById('waSubtitle').textContent = `${sel} de ${total} clientes selecionados`;
   document.getElementById('waBtnTxt').textContent = `ENVIAR WHATSAPP (${sel})`;
 }
 
 async function enviarWASelecionados() {
-  const selecionados = DB.clientes.filter(c => c._wasel && c.telemovel && c.telemovel.toString().replace(/\D/g,'').length >= 9);
+  const selecionados = DB.clientes.filter(c => c._wasel && c.tel && c.tel.toString().replace(/\D/g,'').length >= 9);
   if(!selecionados.length) { toast('⚠️ Seleciona pelo menos um cliente'); return; }
   if(!confirm(`Abrir WhatsApp para ${selecionados.length} cliente(s)?\n\nO browser vai abrir um separador por cliente.`)) return;
 
   for(let c of selecionados) {
-    const tel = c.telemovel.toString().replace(/\D/g,'');
+    const tel = c.tel.toString().replace(/\D/g,'');
     const telFull = tel.startsWith('351') ? tel : '351' + tel;
     const msg = gerarMsgWA(c);
     window.open('https://wa.me/' + telFull + '?text=' + encodeURIComponent(msg), '_blank');
