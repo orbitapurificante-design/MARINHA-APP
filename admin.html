@@ -1118,11 +1118,14 @@ var _waFiltro = '';
 function gerarMsgWA(cliente) {
   const appUrl = window.location.href.replace('admin.html','index.html');
   const promos = DB.promos.slice(0,3).map(p => {
-    const pct = p.preco_orig > 0 && p.preco_novo > 0 ? ` (-${Math.round((1-p.preco_novo/p.preco_orig)*100)}%)` : '';
-    return `🔹 ${p.nome} — *${parseFloat(p.preco_novo).toFixed(2)}€*${pct}`;
+    const pn = parseFloat(p.preco_novo).toFixed(2);
+    const po = parseFloat(p.preco_orig);
+    const pct = po > 0 && parseFloat(p.preco_novo) > 0 ? ` − ${Math.round((1-parseFloat(p.preco_novo)/po)*100)}% off` : '';
+    return `▸ ${p.nome}  *${pn}€*${pct}`;
   }).join('\n');
-  const nome = cliente ? `Olá *${cliente.nome.split(' ')[0]}*! 👋\n\n` : '';
-  return `${nome}🌟 *MARINHA* tem novidades especiais para si!\n\n${promos}\n\n🛒 Veja todas as suas ofertas exclusivas:\n${appUrl}\n\n_Boas compras! 🎁_\n_Equipa Marinha_`;
+  const primeiroNome = cliente ? cliente.nome.split(' ')[0] : '';
+  const saudacao = primeiroNome ? `Olá *${primeiroNome}*,\n\n` : '';
+  return `${saudacao}Temos novidades para si 👇\n\n${promos}\n\n✦ Ver todas as ofertas:\n${appUrl}\n\n— *Marinha*`;
 }
 
 async function abrirModalWA() {
