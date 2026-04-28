@@ -253,11 +253,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
       </div>
 
       <div class="card">
-        <div class="ct">Notificações</div>
-        <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Envia aviso de novidade aos clientes. O sino aparece automaticamente quando adiciona uma promoção nova.</p>
-        <button class="bP" onclick="enviarWAClientes()" style="background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">
+        <div class="ct">Notificações WhatsApp</div>
+        <p style="font-size:12px;color:var(--mu);margin-bottom:12px">Seleciona os clientes e envia uma mensagem profissional de promoções pelo WhatsApp.</p>
+        <button class="bP" onclick="abrirModalWA()" style="background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          ENVIAR WHATSAPP A CLIENTES
+          SELECIONAR CLIENTES E ENVIAR
         </button>
         <button class="bP" onclick="notificarClientes()" style="background:var(--n);color:#fff">🔔 ACTIVAR SINO NA APP</button>
       </div>
@@ -410,6 +410,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     </div>
     <div id="wApagarPromo" style="margin-top:10px">
       <button class="bD" onclick="apagarPromo()">APAGAR PROMOÇÃO</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL WHATSAPP CLIENTES -->
+<div class="modal" id="mWA" style="z-index:6000">
+  <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="background:linear-gradient(135deg,#25D366,#128C7E);padding:16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="color:#fff;font-weight:800;font-size:16px">📲 Enviar WhatsApp</div>
+        <div style="color:rgba(255,255,255,.8);font-size:11px;margin-top:2px" id="waSubtitle">Seleciona os clientes</div>
+      </div>
+      <button onclick="fecharModal('mWA')" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer">×</button>
+    </div>
+    <div style="padding:12px 14px;border-bottom:1px solid #eee;flex-shrink:0;background:#f9f9f9">
+      <input id="waSearch" type="text" placeholder="🔍 Pesquisar cliente..." oninput="filtrarWA(this.value)"
+        style="width:100%;padding:9px 12px;border:1.5px solid #ddd;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:8px">
+      <div style="display:flex;gap:8px">
+        <button onclick="selecionarTodosWA(true)" style="flex:1;padding:7px;background:#25D366;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">✓ Todos</button>
+        <button onclick="selecionarTodosWA(false)" style="flex:1;padding:7px;background:#eee;color:#555;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">✕ Nenhum</button>
+      </div>
+    </div>
+    <div id="waLista" style="flex:1;overflow-y:auto;padding:8px 14px;min-height:200px;max-height:35vh"></div>
+    <div style="padding:12px 14px;border-top:1px solid #eee;flex-shrink:0">
+      <div style="font-size:10px;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">PREVIEW DA MENSAGEM</div>
+      <div id="waPreview" style="background:#e7ffdb;border-radius:10px;padding:10px 12px;font-size:11px;line-height:1.5;color:#1a1a1a;white-space:pre-wrap;max-height:110px;overflow-y:auto;border:1px solid #c3f0b0;font-family:monospace"></div>
+    </div>
+    <div style="padding:12px 14px;flex-shrink:0;background:#fff;border-top:1px solid #eee">
+      <button onclick="enviarWASelecionados()" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <span id="waBtnTxt">ENVIAR WHATSAPP</span>
+      </button>
     </div>
   </div>
 </div>
@@ -1075,38 +1107,103 @@ async function notificarClientes() {
   } catch(e) { alert('Erro: ' + e.message); }
 }
 
-async function enviarWAClientes() {
-  // Buscar clientes com telemóvel
-  const clientes = DB.clientes.filter(c => c.telemovel && c.telemovel.toString().length >= 9);
-  if(!clientes.length) { alert('Nenhum cliente com telemóvel registado.'); return; }
+// ── WHATSAPP MODAL ──
+var _waFiltro = '';
 
-  // Mensagem bonita
+function gerarMsgWA(cliente) {
   const appUrl = window.location.href.replace('admin.html','index.html');
-  const promos = DB.promos.slice(0,3).map(p => `🔹 ${p.nome} — ${p.preco_novo}€`).join('\n');
-  const msg = `🌟 *MARINHA* 🌟\n\nTemos novidades e promoções especiais para si!\n\n${promos}\n\n🛒 Aceda agora às suas ofertas exclusivas:\n${appUrl}\n\n_Boas compras! 🎁_`;
+  const promos = DB.promos.slice(0,3).map(p => {
+    const pct = p.preco_orig > 0 && p.preco_novo > 0 ? ` (-${Math.round((1-p.preco_novo/p.preco_orig)*100)}%)` : '';
+    return `🔹 ${p.nome} — *${parseFloat(p.preco_novo).toFixed(2)}€*${pct}`;
+  }).join('\n');
+  const nome = cliente ? `Olá *${cliente.nome.split(' ')[0]}*! 👋\n\n` : '';
+  return `${nome}🌟 *MARINHA* tem novidades especiais para si!\n\n${promos}\n\n🛒 Veja todas as suas ofertas exclusivas:\n${appUrl}\n\n_Boas compras! 🎁_\n_Equipa Marinha_`;
+}
 
-  // Abrir WhatsApp para o primeiro (mobile não suporta envio em massa directo)
-  const tel = clientes[0].telemovel.toString().replace(/\D/g,'');
-  const telFull = tel.startsWith('351') ? tel : '351' + tel;
-  
-  // Mostrar preview e opção de copiar
-  const textarea = document.createElement('textarea');
-  textarea.value = msg;
-  document.body.appendChild(textarea);
-  textarea.select();
-  document.execCommand('copy');
-  document.body.removeChild(textarea);
+function abrirModalWA() {
+  const comTel = DB.clientes.filter(c => c.telemovel && c.telemovel.toString().replace(/\D/g,'').length >= 9);
+  if(!comTel.length) { toast('⚠️ Nenhum cliente com telemóvel registado'); return; }
+  _waFiltro = '';
+  document.getElementById('waSearch').value = '';
+  // Pré-selecionar todos
+  comTel.forEach(c => c._wasel = true);
+  renderWALista(comTel);
+  document.getElementById('waPreview').textContent = gerarMsgWA(comTel[0]);
+  actualizarWASubtitle();
+  document.getElementById('mWA').classList.add('a');
+}
 
-  if(confirm(`📱 Mensagem copiada!\n\nPretende abrir WhatsApp para ${clientes.length} cliente(s)?\n\nVai abrir um a um — OK para continuar.`)) {
-    for(let c of clientes.slice(0,5)) {
-      const t = c.telemovel.toString().replace(/\D/g,'');
-      const tf = t.startsWith('351') ? t : '351' + t;
-      window.open('https://wa.me/' + tf + '?text=' + encodeURIComponent(msg), '_blank');
-      await new Promise(res => setTimeout(res, 800));
-    }
-    if(clientes.length > 5) toast(`⚠️ Mostrados primeiros 5 de ${clientes.length}. Repita para os restantes.`);
-    await notificarClientes();
+function renderWALista(clientes) {
+  const lista = document.getElementById('waLista');
+  const comTel = (clientes || DB.clientes).filter(c => c.telemovel && c.telemovel.toString().replace(/\D/g,'').length >= 9);
+  const filtrados = _waFiltro
+    ? comTel.filter(c => c.nome.toLowerCase().includes(_waFiltro) || c.telemovel.toString().includes(_waFiltro))
+    : comTel;
+
+  if(!filtrados.length) {
+    lista.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">Nenhum cliente encontrado</div>';
+    return;
   }
+
+  lista.innerHTML = filtrados.map(c => {
+    const tel = c.telemovel.toString().replace(/\D/g,'');
+    const telFmt = tel.length === 9 ? tel.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3') : tel;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer" onclick="toggleWA('${c.id}')">
+      <div style="width:22px;height:22px;border-radius:6px;border:2px solid ${c._wasel?'#25D366':'#ddd'};background:${c._wasel?'#25D366':'#fff'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s">
+        ${c._wasel ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nome}</div>
+        <div style="font-size:11px;color:#888">📱 ${telFmt}</div>
+      </div>
+      <div style="flex-shrink:0">
+        <a href="https://wa.me/${tel.startsWith('351')?tel:'351'+tel}?text=${encodeURIComponent(gerarMsgWA(c))}" target="_blank" onclick="event.stopPropagation()" style="background:#25D366;color:#fff;border:none;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:3px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967c-.273-.099-.471-.148-.67.15c-.197.297-.767.966-.94 1.164c-.173.199-.347.223-.644.075c-.297-.15-1.255-.463-2.39-1.475c-.883-.788-1.48-1.761-1.653-2.059c-.173-.297-.018-.458.13-.606c.134-.133.298-.347.446-.52c.149-.174.198-.298.298-.497c.099-.198.05-.371-.025-.52c-.075-.149-.669-1.612-.916-2.207c-.242-.579-.487-.5-.669-.51c-.173-.008-.371-.01-.57-.01c-.198 0-.52.074-.792.372c-.272.297-1.04 1.016-1.04 2.479c0 1.462 1.065 2.875 1.213 3.074c.149.198 2.096 3.2 5.077 4.487c.709.306 1.262.489 1.694.625c.712.227 1.36.195 1.871.118c.571-.085 1.758-.719 2.006-1.413c.248-.694.248-1.289.173-1.413c-.074-.124-.272-.198-.57-.347z"/></svg>
+          Enviar
+        </a>
+      </div>
+    </div>`;
+  }).join('');
+  actualizarWASubtitle();
+}
+
+function toggleWA(id) {
+  const c = DB.clientes.find(x => String(x.id) === String(id));
+  if(c) { c._wasel = !c._wasel; renderWALista(); actualizarWASubtitle(); }
+}
+
+function selecionarTodosWA(val) {
+  DB.clientes.filter(c => c.telemovel).forEach(c => c._wasel = val);
+  renderWALista();
+}
+
+function filtrarWA(v) {
+  _waFiltro = v.toLowerCase();
+  renderWALista();
+}
+
+function actualizarWASubtitle() {
+  const sel = DB.clientes.filter(c => c._wasel && c.telemovel).length;
+  const total = DB.clientes.filter(c => c.telemovel && c.telemovel.toString().replace(/\D/g,'').length >= 9).length;
+  document.getElementById('waSubtitle').textContent = `${sel} de ${total} clientes selecionados`;
+  document.getElementById('waBtnTxt').textContent = `ENVIAR WHATSAPP (${sel})`;
+}
+
+async function enviarWASelecionados() {
+  const selecionados = DB.clientes.filter(c => c._wasel && c.telemovel && c.telemovel.toString().replace(/\D/g,'').length >= 9);
+  if(!selecionados.length) { toast('⚠️ Seleciona pelo menos um cliente'); return; }
+  if(!confirm(`Abrir WhatsApp para ${selecionados.length} cliente(s)?\n\nO browser vai abrir um separador por cliente.`)) return;
+
+  for(let c of selecionados) {
+    const tel = c.telemovel.toString().replace(/\D/g,'');
+    const telFull = tel.startsWith('351') ? tel : '351' + tel;
+    const msg = gerarMsgWA(c);
+    window.open('https://wa.me/' + telFull + '?text=' + encodeURIComponent(msg), '_blank');
+    await new Promise(res => setTimeout(res, 600));
+  }
+  await notificarClientes();
+  fecharModal('mWA');
+  toast(`✅ WhatsApp aberto para ${selecionados.length} cliente(s)!`);
 }
 
 // ── UTILS ──
