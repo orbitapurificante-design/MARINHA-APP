@@ -344,13 +344,21 @@
 
 <!-- VIEWER FULLSCREEN -->
 <div class="viewer" id="viewer">
+    <!-- SAIR fixo topo esquerdo (para catálogo) -->
+    <button id="vSairFixed" onclick="fecharViewer()" style="display:none;position:fixed;top:calc(10px + env(safe-area-inset-top));left:14px;z-index:1300;width:44px;height:44px;border-radius:50%;border:none;background:var(--r);color:#fff;font-size:8px;font-weight:800;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(231,76,60,.5);font-family:'DM Sans',sans-serif">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span style="font-size:8px;margin-top:1px">SAIR</span>
+    </button>
+    <!-- Contador fixo em baixo (para catálogo) -->
+    <div id="vCountFixed" style="display:none;position:fixed;bottom:24px;left:0;right:0;text-align:center;z-index:1300;pointer-events:none">
+        <span id="vCountFixedTxt" style="background:rgba(0,0,0,.55);color:#fff;font-size:13px;font-weight:700;padding:5px 18px;border-radius:20px;backdrop-filter:blur(6px);letter-spacing:.5px"></span>
+    </div>
     <div class="vHud">
-        <!-- SAIR no topo só para catálogo (promos têm botão em baixo) -->
-        <button class="vClose" id="vCloseTop" onclick="fecharViewer()">
+        <button class="vClose" id="vCloseTop" onclick="fecharViewer()" style="display:none">
             <svg style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
             SAIR
         </button>
-        <div class="vCount" id="vCount">1 / 1</div>
+        <div class="vCount" id="vCount" style="display:none">1 / 1</div>
     </div>
     <div class="vTrack" id="vTrack"></div>
     <div class="vDots" id="vDots"></div>
@@ -690,16 +698,8 @@ function mostrarViewer() {
                 </div>
             `;
         } else {
-            // CATÁLOGO: SAIR bola vermelha topo esquerdo + contador inline
-            overlays = `
-                <button onclick="fecharViewer()" style="position:absolute;top:calc(10px + env(safe-area-inset-top));left:14px;z-index:1200;width:44px;height:44px;border-radius:50%;border:none;background:var(--r);color:#fff;font-size:8px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(231,76,60,.5);font-family:'DM Sans',sans-serif">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    <span style="font-size:8px;margin-top:1px">SAIR</span>
-                </button>
-                <div style="position:absolute;bottom:16px;left:0;right:0;text-align:center;z-index:1100">
-                    <span id="vCountInner_cat_${i}" style="background:rgba(0,0,0,.5);color:#fff;font-size:12px;font-weight:700;padding:4px 16px;border-radius:20px;backdrop-filter:blur(6px);letter-spacing:.5px"></span>
-                </div>
-            `;
+            // Catálogo: sem overlays nos slides (SAIR e contador são fixos fora)
+            overlays = '';
         }
         return `<div class="vSlide">${content}${overlays}</div>`;
     }).join('');
@@ -708,13 +708,21 @@ function mostrarViewer() {
     // Modo promo: esconder botão SAIR do topo e dots (ficam na barra inferior)
     var closeTop = document.getElementById('vCloseTop');
     var dotsEl = document.getElementById('vDots');
-    // Esconder sempre o botão SAIR do topo — agora está no overlay de cada slide
-    if(closeTop) closeTop.style.display = 'none';
+    var sairFixed = document.getElementById('vSairFixed');
+    var countFixed = document.getElementById('vCountFixed');
+
     if(_vTipo === 'promo') {
+        // Promos: SAIR está na barra inferior de cada slide
+        if(sairFixed) sairFixed.style.display = 'none';
+        if(countFixed) countFixed.style.display = 'none';
         if(dotsEl) dotsEl.style.display = 'none';
     } else {
-        if(dotsEl) dotsEl.style.display = 'none'; // contador inline substitui dots
+        // Catálogo: SAIR e contador fixos
+        if(sairFixed) { sairFixed.style.display = 'flex'; }
+        if(countFixed) { countFixed.style.display = 'block'; }
+        if(dotsEl) dotsEl.style.display = 'none';
     }
+    if(closeTop) closeTop.style.display = 'none';
     viewer.classList.add('a');
     updViewer();
 }
@@ -723,11 +731,9 @@ function updViewer() {
     const track = document.getElementById('vTrack');
     track.style.transform = `translateX(-${_vIdx * 100}vw)`;
     const countTxt = (_vIdx + 1) + ' / ' + _vSlides.length;
-    document.getElementById('vCount').textContent = countTxt;
     document.querySelectorAll('.vDot').forEach((d, i) => d.classList.toggle('a', i === _vIdx));
 
     if(_vTipo === 'promo') {
-        document.getElementById('vCount').style.display = 'none';
         _vSlides.forEach(function(s, i) {
             var el = document.getElementById('vCountInner_' + s.id);
             if(el) el.textContent = (i + 1) + ' / ' + _vSlides.length;
@@ -735,20 +741,20 @@ function updViewer() {
             if(qEl) qEl.textContent = CART[s.id] ? CART[s.id].qty : 0;
         });
     } else {
-        // Catálogo: esconder vCount fixo do topo, usar inline
-        document.getElementById('vCount').style.display = 'none';
-        _vSlides.forEach(function(s, i) {
-            var el = document.getElementById('vCountInner_cat_' + i);
-            if(el) el.textContent = (i + 1) + ' / ' + _vSlides.length;
-        });
+        // Catálogo: atualizar contador fixo
+        var fixedTxt = document.getElementById('vCountFixedTxt');
+        if(fixedTxt) fixedTxt.textContent = countTxt;
     }
 }
 
 function fecharViewer() {
     document.getElementById('viewer').classList.remove('a');
-    if (_vTipo === 'catalogo') {
-        ir('Inicio');
-    }
+    var sairFixed = document.getElementById('vSairFixed');
+    var countFixed = document.getElementById('vCountFixed');
+    if(sairFixed) sairFixed.style.display = 'none';
+    if(countFixed) countFixed.style.display = 'none';
+    if (_vTipo === 'catalogo') ir('Inicio');
+    _vTipo = '';
 }
 
 // SWIPE
