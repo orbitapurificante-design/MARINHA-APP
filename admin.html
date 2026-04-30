@@ -791,29 +791,62 @@ async function registarCompra() {
 async function guardarCli() {
   var id = document.getElementById('mCliId').value;
   var d = {
-    nome: document.getElementById('mCliNome').value,
-    denom: document.getElementById('mCliDenom').value.trim() || null,
-    tel: document.getElementById('mCliTel').value,
-    nif: document.getElementById('mCliNif').value.trim() || null,
-    email: document.getElementById('mCliEmail').value,
+    nome: document.getElementById('mCliNome').value.trim(),
+    tel: document.getElementById('mCliTel').value.trim(),
+    email: document.getElementById('mCliEmail').value.trim() || null,
     pin: document.getElementById('mCliPin').value || null
   };
+
+  // Adicionar campos novos só se tiverem valor (evita erro se colunas não existem)
+  var denom = document.getElementById('mCliDenom')?.value.trim();
+  var nif = document.getElementById('mCliNif')?.value.trim();
+  if(denom) d.denom = denom;
+  if(nif) d.nif = nif;
+
   if (!d.nome || !d.tel) return alert('Nome e Telemóvel obrigatórios');
-  
-  if (!id) { 
-    d.id = uid(); 
-    d.num_cliente = (DB.clientes.length + 1001).toString(); 
-    d.pts = 0; 
-    d.poupado = 0;
-    d.historico = [];
-    d.num_acessos = 0;
-    d.bonus_pontos = 0;
-    await fetch(SB + '/rest/v1/clientes', { method: 'POST', headers: hd(), body: JSON.stringify(d) });
-  } else {
-    await fetch(SB + '/rest/v1/clientes?id=eq.' + id, { method: 'PATCH', headers: hd(), body: JSON.stringify(d) });
+
+  try {
+    var r;
+    if (!id) {
+      d.id = uid();
+      d.num_cliente = (DB.clientes.length + 1001).toString();
+      d.pts = 0; d.poupado = 0; d.num_acessos = 0; d.bonus_pontos = 0;
+      r = await fetch(SB + '/rest/v1/clientes', {
+        method: 'POST',
+        headers: Object.assign({}, hd(), {'Prefer':'return=minimal'}),
+        body: JSON.stringify(d)
+      });
+    } else {
+      r = await fetch(SB + '/rest/v1/clientes?id=eq.' + id, {
+        method: 'PATCH',
+        headers: Object.assign({}, hd(), {'Prefer':'return=minimal'}),
+        body: JSON.stringify(d)
+      });
+    }
+    if(!r.ok) {
+      var err = await r.text();
+      // Se erro for coluna não existe, tentar sem os novos campos
+      if(err.includes('denom') || err.includes('nif')) {
+        delete d.denom; delete d.nif;
+        r = await fetch(SB + '/rest/v1/clientes' + (id ? '?id=eq.'+id : ''), {
+          method: id ? 'PATCH' : 'POST',
+          headers: Object.assign({}, hd(), {'Prefer':'return=minimal'}),
+          body: JSON.stringify(d)
+        });
+        if(!r.ok) return alert('Erro ao guardar: ' + await r.text());
+        toast('⚠️ Guardado sem NIF/Denominação (colunas não existem no Supabase)');
+      } else {
+        return alert('Erro ao guardar: ' + err);
+      }
+    } else {
+      toast('✅ Cliente guardado!');
+    }
+    fecharModal('mCli');
+    await sincronizar();
+    renderCli('');
+  } catch(e) {
+    alert('Erro de ligação: ' + e.message);
   }
-  
-  fecharModal('mCli'); await sincronizar(); renderCli(''); toast('✅ Guardado');
 }
 
 async function apagarCli() {
