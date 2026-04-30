@@ -543,18 +543,22 @@ async function init() {
   const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   document.getElementById('cabData').textContent = `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
+
+  // Definir datas ANTES de renderizar
   document.getElementById('fData').value = HOJE;
   document.getElementById('relDe').value = HOJE;
   document.getElementById('relAte').value = HOJE;
 
   // Carregar clientes do Supabase
-  const cli = await api('clientes?order=nome.asc');
-  if(cli) DB_CLIENTES = cli;
+  const cli = await api('clientes?select=*&order=nome.asc');
+  if(cli && Array.isArray(cli)) {
+    DB_CLIENTES = cli;
+  }
 
+  adicionarCSS();
   renderFaturas();
   renderClientes();
   renderRelatorio();
-  adicionarCSS();
 }
 
 function adicionarCSS() {
@@ -952,12 +956,10 @@ function togglePago(id) {
 }
 
 function actualizarStats() {
-  const total = FATURAS.length;
-  const pagas = FATURAS.filter(f => f.pago).length;
-  const pend  = total - pagas;
-  document.getElementById('stTotal').textContent = total;
-  document.getElementById('stPago').textContent  = pagas;
-  document.getElementById('stPend').textContent  = pend;
+  const todas = getFaturasFiltradas();
+  document.getElementById('stTotal').textContent = todas.length;
+  document.getElementById('stPago').textContent  = todas.filter(f => f.pago).length;
+  document.getElementById('stPend').textContent  = todas.filter(f => !f.pago).length;
 }
 
 // ═══════════════════════════════════════════
