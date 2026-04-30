@@ -290,6 +290,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     <input type="hidden" id="mCliId">
     <label class="lbl">Nome Completo</label>
     <input type="text" class="inp" id="mCliNome">
+    <label class="lbl">Denominação Comercial</label>
+    <input type="text" class="inp" id="mCliDenom" placeholder="Ex: Restaurante O Farol, Lda">
     <label class="lbl">Telemóvel</label>
     <input type="tel" class="inp" id="mCliTel">
     <label class="lbl">NIF / Contribuinte</label>
@@ -607,6 +609,7 @@ function abrirNovoCli() {
   document.getElementById('mCliTit').textContent = 'Novo Cliente';
   document.getElementById('mCliId').value = '';
   document.getElementById('mCliNome').value = '';
+  document.getElementById('mCliDenom').value = '';
   document.getElementById('mCliTel').value = '';
   document.getElementById('mCliNif').value = '';
   document.getElementById('mCliEmail').value = '';
@@ -621,6 +624,7 @@ function verCli(id) {
   document.getElementById('mCliTit').textContent = 'Editar Cliente';
   document.getElementById('mCliId').value = c.id;
   document.getElementById('mCliNome').value = c.nome;
+  document.getElementById('mCliDenom').value = c.denom || '';
   document.getElementById('mCliTel').value = c.tel;
   document.getElementById('mCliNif').value = c.nif || '';
   document.getElementById('mCliEmail').value = c.email || '';
@@ -788,6 +792,7 @@ async function guardarCli() {
   var id = document.getElementById('mCliId').value;
   var d = {
     nome: document.getElementById('mCliNome').value,
+    denom: document.getElementById('mCliDenom').value.trim() || null,
     tel: document.getElementById('mCliTel').value,
     nif: document.getElementById('mCliNif').value.trim() || null,
     email: document.getElementById('mCliEmail').value,
