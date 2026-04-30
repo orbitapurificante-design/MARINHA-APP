@@ -237,6 +237,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
       <div class="card">
         <div class="ct">Dados do Documento</div>
 
+        <label class="lbl">Colaborador</label>
+        <select class="sel" id="fColaborador" style="margin-bottom:10px">
+          <option value="">-- Selecionar --</option>
+          <option value="admin">🔑 Administrador</option>
+          <option value="comercial1">👤 Comercial 1</option>
+          <option value="comercial2">👤 Comercial 2</option>
+          <option value="comercial3">👤 Comercial 3</option>
+        </select>
+
         <label class="lbl">Cliente</label>
         <div style="position:relative;margin-bottom:10px">
           <input class="inp" id="fNome" placeholder="Nome do cliente" style="margin-bottom:0" oninput="filtrarClienteScan(this.value)">
@@ -329,8 +338,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
   <div class="ecra" id="ecra2">
     <div class="s">
       <div class="card no-print">
-        <div class="ct">Pesquisar Cliente</div>
-        <input class="inp" id="searchCli" placeholder="Nome ou telemóvel..." oninput="renderClientes()" style="margin-bottom:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div class="ct" style="margin-bottom:0;flex:1">Pesquisar Cliente</div>
+          <button onclick="recarregarClientes()" style="padding:6px 12px;background:var(--s);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">↺</button>
+        </div>
+        <input class="inp" id="searchCli" placeholder="Nome, denominação ou telemóvel..." oninput="renderClientes()" style="margin-bottom:0">
       </div>
       <div class="card">
         <div id="listaCli"></div>
@@ -567,6 +579,11 @@ function pin(v) {
       document.getElementById('ePin').style.display = 'none';
       document.getElementById('eApp').classList.add('v');
       document.getElementById('cabComercial').textContent = NOMES_CONFIG[comercial] || comercial;
+      // Pré-selecionar colaborador no formulário
+      const fCol = document.getElementById('fColaborador');
+      if(fCol) fCol.value = comercial;
+      // Admin pode trocar colaborador, outros não
+      if(fCol) fCol.disabled = !IS_ADMIN;
       init();
     } else {
       document.getElementById('pErr').textContent = '❌ PIN incorreto';
@@ -870,9 +887,10 @@ function limparForm() {
   _pagoFormState = false;
   document.getElementById('chkPago').classList.remove('on');
   document.getElementById('nifMatch').style.display = 'none';
+  const fCol = document.getElementById('fColaborador');
+  if(fCol && COMERCIAL_ATUAL) { fCol.value = COMERCIAL_ATUAL; fCol.disabled = !IS_ADMIN; }
   const st = document.getElementById('qrStatus');
-  st.style.display = 'none';
-  st.className = 'qrStatus';
+  st.style.display = 'none'; st.className = 'qrStatus';
   const diag = document.getElementById('qrDiag');
   if(diag) diag.style.display = 'none';
 }
@@ -902,7 +920,7 @@ function gravarFatura() {
     data: data || HOJE,
     valor,
     pago: _pagoFormState,
-    comercial: COMERCIAL_ATUAL,
+    comercial: document.getElementById('fColaborador')?.value || COMERCIAL_ATUAL,
     criadoEm: new Date().toISOString()
   };
 
@@ -1022,31 +1040,62 @@ function actualizarStats() {
 function renderClientes() {
   const q = (document.getElementById('searchCli')?.value || '').toLowerCase();
   const lista = DB_CLIENTES.filter(c =>
-    !q || c.nome.toLowerCase().includes(q) || (c.tel||'').includes(q)
+    !q || c.nome.toLowerCase().includes(q) || (c.tel||'').includes(q) ||
+    (c.denom && c.denom.toLowerCase().includes(q))
   );
 
   const el = document.getElementById('listaCli');
   if(!lista.length) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--mu);font-size:13px">Sem clientes</div>';
+    if(DB_CLIENTES.length === 0) {
+      el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--mu)">
+        <div style="font-size:32px;margin-bottom:8px">👥</div>
+        <div style="font-weight:700;margin-bottom:4px">Sem clientes carregados</div>
+        <div style="font-size:12px;margin-bottom:12px">Verifica a ligação ao Supabase</div>
+        <button onclick="recarregarClientes()" style="padding:10px 20px;background:var(--s);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">↺ Recarregar</button>
+      </div>`;
+    } else {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--mu);font-size:13px">Nenhum cliente encontrado</div>';
+    }
     return;
   }
 
   el.innerHTML = lista.map(c => {
-    const fatsCli = FATURAS.filter(f => f.nome === c.nome);
-    const total = fatsCli.reduce((a,f) => a+f.valor, 0);
-    const pagas = fatsCli.filter(f => f.pago).reduce((a,f) => a+f.valor, 0);
+    const nomeMostrar = c.denom || c.nome;
+    const fatsCli = FATURAS.filter(f => f.nome === nomeMostrar || f.nome === c.nome || f.nome === (c.denom||''));
+    const total = fatsCli.reduce((a,f) => a+(parseFloat(f.valor)||0), 0);
+    const pagas = fatsCli.filter(f => f.pago).reduce((a,f) => a+(parseFloat(f.valor)||0), 0);
     const pend  = total - pagas;
     return `<div class="cRow" onclick="verCliente('${c.nome.replace(/'/g,"\\'")}')">
-      <div class="avatar">${c.nome[0]}</div>
+      <div class="avatar">${nomeMostrar[0].toUpperCase()}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.nome)}</div>
-        <div style="font-size:11px;color:var(--mu)">${c.tel||''} · ${fatsCli.length} faturas</div>
+        <div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(nomeMostrar)}</div>
+        <div style="font-size:11px;color:var(--mu)">${c.tel||''} · ${fatsCli.length} faturas${c.denom?` · ${esc(c.nome)}`:''}${c.nif?` · NIF ${c.nif}`:''}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
         ${pend > 0 ? `<div style="color:var(--r);font-weight:800;font-size:13px">${pend.toFixed(2)}€</div><div style="font-size:9px;color:var(--r)">pendente</div>` : `<div style="color:var(--gr);font-weight:700;font-size:12px">✓ OK</div>`}
       </div>
     </div>`;
   }).join('');
+}
+
+async function recarregarClientes() {
+  toast('A carregar clientes...');
+  const cli = await api('clientes?select=*&order=nome.asc');
+  if(cli && Array.isArray(cli) && cli.length > 0) {
+    DB_CLIENTES = cli;
+    renderClientes();
+    toast('✅ ' + cli.length + ' clientes carregados');
+  } else {
+    // Tentar sem order
+    const cli2 = await api('clientes?select=*');
+    if(cli2 && Array.isArray(cli2) && cli2.length > 0) {
+      DB_CLIENTES = cli2;
+      renderClientes();
+      toast('✅ ' + cli2.length + ' clientes carregados');
+    } else {
+      toast('❌ Sem acesso aos clientes — verifica RLS no Supabase');
+    }
+  }
 }
 
 function verCliente(nome) {
@@ -1092,11 +1141,11 @@ function renderRelatorio() {
     : FATURAS.filter(f => !f.comercial || f.comercial === COMERCIAL_ATUAL);
 
   lista = lista.filter(f => {
-    if(!f.data) return false;
-    const d = f.data.substring(0,10); // garantir formato YYYY-MM-DD
-    return d >= de && d <= ate;
+    // Filtrar por data de recebimento (criadoEm), não data da fatura
+    const dataRec = f.criadoEm ? f.criadoEm.substring(0,10) : (f.data||'').substring(0,10);
+    return dataRec >= de && dataRec <= ate;
   });
-  lista.sort((a,b) => (b.data||'') > (a.data||'') ? 1 : -1);
+  lista.sort((a,b) => (b.criadoEm||b.data||'') > (a.criadoEm||a.data||'') ? 1 : -1);
 
   const valPago = lista.filter(f => f.pago).reduce((s,f) => s + (parseFloat(f.valor)||0), 0);
   const valPend = lista.filter(f => !f.pago).reduce((s,f) => s + (parseFloat(f.valor)||0), 0);
@@ -1120,7 +1169,8 @@ function renderRelatorio() {
         <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f.nome)}</div>
         <div style="font-size:11px;color:var(--mu);display:flex;align-items:center;gap:4px;flex-wrap:wrap">
           <span class="fatBadge ${cor}" style="width:auto;height:auto;padding:1px 5px;font-size:9px;border-radius:4px">${f.tipo}</span>
-          ${esc(f.num)} · ${dataFmt}
+          ${esc(f.num)} · Fatura: ${dataFmt}
+          ${f.criadoEm ? `· Rec: ${new Date(f.criadoEm).toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}` : ''}
           ${IS_ADMIN && nomeComercial ? `<span style="color:var(--s);font-size:10px">· ${esc(nomeComercial)}</span>` : ''}
         </div>
       </div>
