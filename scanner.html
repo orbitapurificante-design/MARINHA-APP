@@ -514,7 +514,8 @@ const NOMES_CONFIG = {
   'comercial2': 'Comercial 2',
   'comercial3': 'Comercial 3',
 };
-const SK  = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
+const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
+const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
 
 // Estado do utilizador atual
 let COMERCIAL_ATUAL = null; // 'admin' | 'comercial1' | ...
@@ -1079,22 +1080,44 @@ function renderClientes() {
 }
 
 async function recarregarClientes() {
-  toast('A carregar clientes...');
-  const cli = await api('clientes?select=*&order=nome.asc');
-  if(cli && Array.isArray(cli) && cli.length > 0) {
-    DB_CLIENTES = cli;
-    renderClientes();
-    toast('✅ ' + cli.length + ' clientes carregados');
-  } else {
-    // Tentar sem order
-    const cli2 = await api('clientes?select=*');
-    if(cli2 && Array.isArray(cli2) && cli2.length > 0) {
-      DB_CLIENTES = cli2;
-      renderClientes();
-      toast('✅ ' + cli2.length + ' clientes carregados');
+  const el = document.getElementById('listaCli');
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--mu)">A carregar...</div>';
+
+  // Tentar com select simples
+  try {
+    const r = await fetch(SB + '/rest/v1/clientes?select=id,nome,tel,nif,denom&limit=100', {
+      headers: {
+        'apikey': SK,
+        'Authorization': 'Bearer ' + SK,
+        'Accept': 'application/json'
+      }
+    });
+    const txt = await r.text();
+    console.log('Status:', r.status, 'Body:', txt.substring(0,200));
+
+    if(r.ok) {
+      const data = JSON.parse(txt);
+      if(Array.isArray(data) && data.length > 0) {
+        DB_CLIENTES = data;
+        renderClientes();
+        toast('✅ ' + data.length + ' clientes carregados');
+        return;
+      } else {
+        el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--mu)">
+          <div style="font-size:24px;margin-bottom:8px">⚠️</div>
+          <b>Tabela vazia ou sem registos</b><br>
+          <small style="color:#aaa">Status: ${r.status}</small>
+        </div>`;
+      }
     } else {
-      toast('❌ Sem acesso aos clientes — verifica RLS no Supabase');
+      el.innerHTML = `<div style="padding:16px;background:#fff3f3;border-radius:12px;font-size:12px">
+        <b style="color:var(--r)">Erro ${r.status}</b><br>
+        <code style="font-size:10px;word-break:break-all">${txt.substring(0,300)}</code><br><br>
+        <b>Solução:</b> No Supabase → Settings → API → copia a <b>anon public key</b> (começa com eyJ...) e substitui no código.
+      </div>`;
     }
+  } catch(e) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--r)">❌ Erro de ligação:<br><small>${e.message}</small></div>`;
   }
 }
 
