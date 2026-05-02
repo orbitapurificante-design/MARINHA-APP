@@ -1,24 +1,21 @@
-const CACHE_NAME = 'scanner-v2';
+const CACHE_NAME = 'scanner-v3';
+const BASE = '/MARINHA';
 const URLS_TO_CACHE = [
-  './scanner.html',
-  './scanner-manifest.json',
-  './scanner-icon.svg',
+  BASE + '/scanner.html',
+  BASE + '/scanner-manifest.json',
+  BASE + '/scanner-icon.svg',
   'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'
 ];
 
-// Instalar — cache dos recursos
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(URLS_TO_CACHE).catch(err => {
-        console.log('Cache parcial:', err);
-      });
-    })
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.allSettled(URLS_TO_CACHE.map(url => cache.add(url).catch(e => console.log('skip:', url))))
+    )
   );
   self.skipWaiting();
 });
 
-// Activar — limpar caches antigos
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -28,31 +25,23 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch — cache first para recursos locais, network first para API
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-
-  // API Supabase — sempre network (dados em tempo real)
   if(url.hostname.includes('supabase.co')) {
-    event.respondWith(
-      fetch(event.request).catch(() => new Response('{"error":"offline"}', {
-        headers: {'Content-Type': 'application/json'}
-      }))
-    );
+    event.respondWith(fetch(event.request).catch(() =>
+      new Response('{"error":"offline"}', {headers:{'Content-Type':'application/json'}})
+    ));
     return;
   }
-
-  // Recursos locais — cache first, fallback network
   event.respondWith(
     caches.match(event.request).then(cached => {
       if(cached) return cached;
       return fetch(event.request).then(response => {
         if(response && response.status === 200 && event.request.method === 'GET') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          caches.open(CACHE_NAME).then(c => c.put(event.request, response.clone()));
         }
         return response;
-      }).catch(() => caches.match('./scanner.html'));
+      }).catch(() => caches.match(BASE + '/scanner.html'));
     })
   );
 });
