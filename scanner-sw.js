@@ -2,8 +2,8 @@ const CACHE_NAME = 'scanner-v2';
 const URLS_TO_CACHE = [
   './scanner.html',
   './scanner-manifest.json',
-  'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js',
-  'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap'
+  './scanner-icon.svg',
+  'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'
 ];
 
 // Instalar — cache dos recursos
