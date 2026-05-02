@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Scanner">
-<link rel="manifest" href="scanner-manifest.json">
-<link rel="apple-touch-icon" href="scanner-icon.svg">
+<link rel="manifest" href="/MARINHA/scanner-manifest.json">
+<link rel="apple-touch-icon" href="/MARINHA/scanner-icon.svg">
 <title>MARINHA – Scanner</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -499,7 +499,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 // SERVICE WORKER REGISTRATION
 // ═══════════════════════════════════════════
 if('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('scanner-sw.js').catch(()=>{});
+  navigator.serviceWorker.register('/MARINHA/scanner-sw.js', {scope: '/MARINHA/scanner.html'})
+    .then(r => console.log('SW registado:', r.scope))
+    .catch(e => console.log('SW erro:', e));
 }
 const PINS_CONFIG = {
   'admin':      '0000',   // Administrador — vê tudo
