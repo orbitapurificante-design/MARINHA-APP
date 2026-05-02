@@ -2,15 +2,15 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0a1628">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Scanner">
-<link rel="manifest" id="pwaManifest">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a1628'/><text y='.9em' font-size='80' x='10'>📄</text></svg>">
-<title>MARINHA – Scanner Faturas</title>
+<link rel="manifest" href="scanner-manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230a1628'/><text y='72' x='12' font-size='72'>📄</text></svg>">
+<title>MARINHA – Scanner</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <style>
@@ -329,6 +329,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
         <div id="listaFat"></div>
       </div>
 
+      <!-- Barra subtotais da selecção -->
+      <div id="barraSubtotais" style="background:linear-gradient(135deg,var(--n),var(--s));border-radius:16px;padding:14px 16px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="color:rgba(255,255,255,.7);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase" id="subtotaisLabel">Selecção</div>
+          <button onclick="imprimirFaturas()" style="padding:7px 14px;background:var(--g);color:var(--n);border:none;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif">🖨 Imprimir</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center">
+            <div style="color:#fff;font-size:18px;font-weight:800" id="subTotal">0€</div>
+            <div style="color:rgba(255,255,255,.6);font-size:9px;text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Total</div>
+          </div>
+          <div style="background:rgba(39,174,96,.2);border-radius:10px;padding:10px;text-align:center">
+            <div style="color:#7dffb3;font-size:18px;font-weight:800" id="subPago">0€</div>
+            <div style="color:rgba(255,255,255,.6);font-size:9px;text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Pago</div>
+          </div>
+          <div style="background:rgba(231,76,60,.2);border-radius:10px;padding:10px;text-align:center">
+            <div style="color:#ff8080;font-size:18px;font-weight:800" id="subPend">0€</div>
+            <div style="color:rgba(255,255,255,.6);font-size:9px;text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Pendente</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -380,7 +402,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <div class="ct" style="margin-bottom:0">Detalhe</div>
-          <button onclick="window.print()" style="padding:6px 12px;background:var(--n);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🖨 Imprimir</button>
+          <button onclick="imprimirRelatorio()" style="padding:7px 14px;background:var(--n);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">🖨 Imprimir</button>
         </div>
         <div id="relLista"></div>
       </div>
@@ -430,6 +452,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
       <div class="checkBox" id="eFatPago" onclick="this.classList.toggle('on')"></div>
       <span style="font-size:14px;font-weight:700">Pago / Liquidado</span>
     </div>
+    <!-- Colaborador - só admin pode alterar -->
+    <div id="eFatColabWrap" style="display:none;margin-top:10px">
+      <label class="lbl">Colaborador</label>
+      <select class="sel" id="eFatColab" style="margin-bottom:0">
+        <option value="">-- Sem atribuição --</option>
+        <option value="admin">🔑 Administrador</option>
+        <option value="comercial1">👤 Comercial 1</option>
+        <option value="comercial2">👤 Comercial 2</option>
+        <option value="comercial3">👤 Comercial 3</option>
+      </select>
+    </div>
     <div style="display:flex;gap:8px;margin-top:14px">
       <button class="bD" onclick="eliminarFaturaEdit()" style="flex:1;margin-bottom:0">🗑 Eliminar</button>
       <button class="bP" onclick="guardarFaturaEdit()" style="flex:2">💾 Guardar</button>
@@ -463,45 +496,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 
 <script>
 // ═══════════════════════════════════════════
-// PWA — MANIFEST + SERVICE WORKER
+// SERVICE WORKER REGISTRATION
 // ═══════════════════════════════════════════
-(function() {
-  // Gerar manifest inline
-  const manifest = {
-    name: 'Marinha Scanner',
-    short_name: 'Scanner',
-    description: 'Scanner de Faturas QR',
-    start_url: window.location.pathname,
-    display: 'standalone',
-    background_color: '#0a1628',
-    theme_color: '#0a1628',
-    orientation: 'portrait',
-    icons: [
-      { src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="%230a1628" rx="80"/><text y="360" x="60" font-size="380">📄</text></svg>', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
-    ]
-  };
-  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const link = document.getElementById('pwaManifest') || document.createElement('link');
-  link.id = 'pwaManifest';
-  link.rel = 'manifest';
-  link.href = url;
-  if(!document.getElementById('pwaManifest')) document.head.appendChild(link);
-
-  // Registar Service Worker para funcionar offline
-  if('serviceWorker' in navigator) {
-    const swCode = `
-const CACHE = 'scanner-v1';
-const URLS = [self.location.pathname];
-self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(URLS))); self.skipWaiting(); });
-self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k))))); self.clients.claim(); });
-self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(()=>caches.match(e.request)))); });
-    `;
-    const swBlob = new Blob([swCode], {type:'application/javascript'});
-    const swUrl = URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl).catch(()=>{});
-  }
-})();
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('scanner-sw.js').catch(()=>{});
+}
 const PINS_CONFIG = {
   'admin':      '0000',   // Administrador — vê tudo
   'comercial1': '1111',   // Comercial 1
@@ -514,8 +513,7 @@ const NOMES_CONFIG = {
   'comercial2': 'Comercial 2',
   'comercial3': 'Comercial 3',
 };
-const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
-const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
+const SK  = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
 
 // Estado do utilizador atual
 let COMERCIAL_ATUAL = null; // 'admin' | 'comercial1' | ...
@@ -981,7 +979,7 @@ function renderFaturas() {
 
   if(FILTRO_FAT === 1) lista = lista.filter(f => f.pago);
   else if(FILTRO_FAT === 2) lista = lista.filter(f => !f.pago);
-  else if(FILTRO_FAT === 3) lista = lista.filter(f => f.data === HOJE);
+  else if(FILTRO_FAT === 3) lista = lista.filter(f => (f.criadoEm||f.data||'').substring(0,10) === HOJE);
 
   if(search) lista = lista.filter(f =>
     f.nome.toLowerCase().includes(search) ||
@@ -989,6 +987,23 @@ function renderFaturas() {
     f.tipo.toLowerCase().includes(search) ||
     (f.valor+'').includes(search)
   );
+
+  // Ordenar do mais antigo para o mais recente (data da fatura)
+  lista.sort((a,b) => {
+    const da = (a.data||'').substring(0,10);
+    const db = (b.data||'').substring(0,10);
+    return da < db ? -1 : da > db ? 1 : 0;
+  });
+
+  // Actualizar subtotais
+  const totVal  = lista.reduce((s,f) => s + (parseFloat(f.valor)||0), 0);
+  const pagoVal = lista.filter(f => f.pago).reduce((s,f) => s + (parseFloat(f.valor)||0), 0);
+  const pendVal = totVal - pagoVal;
+  const filtLabel = ['Todos','Pagos','Pendentes','Hoje'][FILTRO_FAT] + (search ? ` · "${search}"` : '');
+  document.getElementById('subtotaisLabel').textContent = filtLabel + ' (' + lista.length + ')';
+  document.getElementById('subTotal').textContent = totVal.toFixed(2) + '€';
+  document.getElementById('subPago').textContent  = pagoVal.toFixed(2) + '€';
+  document.getElementById('subPend').textContent  = pendVal.toFixed(2) + '€';
 
   const el = document.getElementById('listaFat');
   if(!lista.length) {
@@ -999,7 +1014,7 @@ function renderFaturas() {
 
   el.innerHTML = lista.map(f => {
     const cor = {FT:'ft',FS:'fs',FR:'ft',VD:'vd',ND:'nd',NC:'nd'}[f.tipo] || 'nd';
-    const dataFmt = f.data ? f.data.split('-').reverse().join('/') : '';
+    const dataFmt = f.data ? f.data.substring(0,10).split('-').reverse().join('/') : '';
     return `<div class="fatRow" onclick="editarFatura('${f.id}')" style="cursor:pointer">
       <div class="fatBadge ${cor}">${f.tipo}</div>
       <div class="fatInfo">
@@ -1206,8 +1221,125 @@ function renderRelatorio() {
 }
 
 // ═══════════════════════════════════════════
-// EDITAR / ELIMINAR FATURA
+// IMPRESSÃO
 // ═══════════════════════════════════════════
+function imprimirFaturas() {
+  const search = (document.getElementById('searchFat')?.value || '').toLowerCase();
+  let lista = getFaturasFiltradas();
+  if(FILTRO_FAT === 1) lista = lista.filter(f => f.pago);
+  else if(FILTRO_FAT === 2) lista = lista.filter(f => !f.pago);
+  else if(FILTRO_FAT === 3) lista = lista.filter(f => (f.criadoEm||f.data||'').substring(0,10) === HOJE);
+  if(search) lista = lista.filter(f => f.nome.toLowerCase().includes(search) || f.num.toLowerCase().includes(search));
+  lista.sort((a,b) => (a.data||'') < (b.data||'') ? -1 : 1);
+
+  const totVal  = lista.reduce((s,f) => s+(parseFloat(f.valor)||0), 0);
+  const pagoVal = lista.filter(f=>f.pago).reduce((s,f) => s+(parseFloat(f.valor)||0), 0);
+  const pendVal = totVal - pagoVal;
+  const hoje = new Date().toLocaleDateString('pt-PT');
+
+  const linhas = lista.map((f,i) => {
+    const dataFmt = f.data ? f.data.substring(0,10).split('-').reverse().join('/') : '—';
+    return `<tr style="background:${i%2===0?'#fff':'#f9f9f9'}">
+      <td>${i+1}</td>
+      <td><b>${esc(f.nome)}</b>${f.nif?`<br><small>NIF: ${f.nif}</small>`:''}</td>
+      <td style="text-align:center"><span style="background:${f.tipo==='FT'?'#1a4a8a':'#8a5cf6'};color:#fff;padding:2px 6px;border-radius:4px;font-size:11px">${f.tipo}</span></td>
+      <td>${esc(f.num)}</td>
+      <td style="text-align:center">${dataFmt}</td>
+      <td style="text-align:right;font-weight:700">${parseFloat(f.valor).toFixed(2)} €</td>
+      <td style="text-align:center"><span style="background:${f.pago?'#d4edda':'#f8d7da'};color:${f.pago?'#155724':'#721c24'};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">${f.pago?'PAGO':'PEND.'}</span></td>
+    </tr>`;
+  }).join('');
+
+  abrirJanelaImpressao(`
+    <h2 style="margin:0 0 4px;color:#0a1628">LISTAGEM DE DOCUMENTOS</h2>
+    <div style="color:#666;font-size:12px;margin-bottom:16px">Impresso em ${hoje} · ${lista.length} documentos</div>
+    <table><thead><tr><th>#</th><th>Cliente</th><th>Tipo</th><th>Documento</th><th>Data Fat.</th><th style="text-align:right">Valor</th><th>Estado</th></tr></thead>
+    <tbody>${linhas}</tbody></table>
+    <div class="totais">
+      <div class="tot-item tot-total"><div class="tot-val">${totVal.toFixed(2)} €</div><div class="tot-lbl">Total</div></div>
+      <div class="tot-item tot-pago"><div class="tot-val">${pagoVal.toFixed(2)} €</div><div class="tot-lbl">Pago</div></div>
+      <div class="tot-item tot-pend"><div class="tot-val">${pendVal.toFixed(2)} €</div><div class="tot-lbl">Pendente</div></div>
+    </div>
+  `);
+}
+
+function imprimirRelatorio() {
+  const de  = document.getElementById('relDe')?.value;
+  const ate = document.getElementById('relAte')?.value;
+  if(!de||!ate) return;
+
+  let lista = IS_ADMIN ? [...FATURAS] : FATURAS.filter(f => !f.comercial || f.comercial === COMERCIAL_ATUAL);
+  lista = lista.filter(f => {
+    const dataRec = f.criadoEm ? f.criadoEm.substring(0,10) : (f.data||'').substring(0,10);
+    return dataRec >= de && dataRec <= ate;
+  });
+  lista.sort((a,b) => (a.criadoEm||a.data||'') < (b.criadoEm||b.data||'') ? -1 : 1);
+
+  const totVal  = lista.reduce((s,f) => s+(parseFloat(f.valor)||0), 0);
+  const pagoVal = lista.filter(f=>f.pago).reduce((s,f) => s+(parseFloat(f.valor)||0), 0);
+  const pendVal = totVal - pagoVal;
+  const hoje = new Date().toLocaleDateString('pt-PT');
+  const deFmt = de.split('-').reverse().join('/');
+  const ateFmt = ate.split('-').reverse().join('/');
+
+  const linhas = lista.map((f,i) => {
+    const dataFat = f.data ? f.data.substring(0,10).split('-').reverse().join('/') : '—';
+    const dataRec = f.criadoEm ? new Date(f.criadoEm).toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+    const comercialNome = IS_ADMIN ? (NOMES_CONFIG[f.comercial]||f.comercial||'—') : '';
+    return `<tr style="background:${i%2===0?'#fff':'#f9f9f9'}">
+      <td>${i+1}</td>
+      <td><b>${esc(f.nome)}</b>${f.nif?`<br><small>NIF: ${f.nif}</small>`:''}</td>
+      <td style="text-align:center"><span style="background:${f.tipo==='FT'?'#1a4a8a':'#8a5cf6'};color:#fff;padding:2px 6px;border-radius:4px;font-size:11px">${f.tipo}</span></td>
+      <td>${esc(f.num)}</td>
+      <td style="text-align:center">${dataFat}</td>
+      <td style="text-align:center;font-size:11px">${dataRec}</td>
+      ${IS_ADMIN?`<td style="font-size:11px;color:#555">${esc(comercialNome)}</td>`:''}
+      <td style="text-align:right;font-weight:700">${parseFloat(f.valor).toFixed(2)} €</td>
+      <td style="text-align:center"><span style="background:${f.pago?'#d4edda':'#f8d7da'};color:${f.pago?'#155724':'#721c24'};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">${f.pago?'PAGO':'PEND.'}</span></td>
+    </tr>`;
+  }).join('');
+
+  abrirJanelaImpressao(`
+    <h2 style="margin:0 0 4px;color:#0a1628">RELATÓRIO DE DOCUMENTOS</h2>
+    <div style="color:#666;font-size:12px;margin-bottom:16px">Período: ${deFmt} a ${ateFmt} · Impresso em ${hoje} · ${lista.length} documentos</div>
+    <table><thead><tr><th>#</th><th>Cliente</th><th>Tipo</th><th>Documento</th><th>Data Fat.</th><th>Rececionado</th>${IS_ADMIN?'<th>Colaborador</th>':''}<th style="text-align:right">Valor</th><th>Estado</th></tr></thead>
+    <tbody>${linhas}</tbody></table>
+    <div class="totais">
+      <div class="tot-item tot-total"><div class="tot-val">${totVal.toFixed(2)} €</div><div class="tot-lbl">Total</div></div>
+      <div class="tot-item tot-pago"><div class="tot-val">${pagoVal.toFixed(2)} €</div><div class="tot-lbl">Pago</div></div>
+      <div class="tot-item tot-pend"><div class="tot-val">${pendVal.toFixed(2)} €</div><div class="tot-lbl">Pendente</div></div>
+    </div>
+  `);
+}
+
+function abrirJanelaImpressao(conteudo) {
+  const w = window.open('','_blank','width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>MARINHA – Impressão</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;font-size:12px;color:#1a1a1a;padding:20px;max-width:900px;margin:0 auto}
+    h2{font-size:18px;font-weight:700}
+    table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:11px}
+    th{background:#0a1628;color:#fff;padding:8px 6px;text-align:left;font-size:10px;letter-spacing:.3px;white-space:nowrap}
+    td{padding:7px 6px;border-bottom:1px solid #eee;vertical-align:middle}
+    tr:last-child td{border-bottom:2px solid #0a1628}
+    .totais{display:flex;gap:12px;margin-top:4px}
+    .tot-item{flex:1;border-radius:8px;padding:10px 12px;text-align:center}
+    .tot-total{background:#e8f0fe;border:1px solid #c5d0f0}
+    .tot-pago{background:#d4edda;border:1px solid #b8dfc4}
+    .tot-pend{background:#f8d7da;border:1px solid #f1b5ba}
+    .tot-val{font-size:18px;font-weight:800;color:#0a1628}
+    .tot-pago .tot-val{color:#155724}
+    .tot-pend .tot-val{color:#721c24}
+    .tot-lbl{font-size:10px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+    small{color:#888;display:block;margin-top:1px}
+    @page{margin:1cm}
+    @media print{body{padding:0}}
+  </style></head><body>${conteudo}</body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(), 400);
+}
 function editarFatura(id) {
   const f = FATURAS.find(x => x.id === id);
   if(!f) return;
@@ -1220,6 +1352,14 @@ function editarFatura(id) {
   document.getElementById('eFatValor').value = parseFloat(f.valor)||0;
   const chk = document.getElementById('eFatPago');
   if(f.pago) chk.classList.add('on'); else chk.classList.remove('on');
+  // Mostrar colaborador só para admin
+  const colabWrap = document.getElementById('eFatColabWrap');
+  if(IS_ADMIN) {
+    colabWrap.style.display = 'block';
+    document.getElementById('eFatColab').value = f.comercial || '';
+  } else {
+    colabWrap.style.display = 'none';
+  }
   document.getElementById('mEditFat').classList.add('a');
 }
 
@@ -1234,6 +1374,9 @@ function guardarFaturaEdit() {
   FATURAS[idx].data  = document.getElementById('eFatData').value;
   FATURAS[idx].valor = parseFloat(document.getElementById('eFatValor').value)||0;
   FATURAS[idx].pago  = document.getElementById('eFatPago').classList.contains('on');
+  if(IS_ADMIN) {
+    FATURAS[idx].comercial = document.getElementById('eFatColab').value || null;
+  }
   guardar();
   fecharModal('mEditFat');
   renderFaturas(); renderRelatorio(); actualizarStats();
