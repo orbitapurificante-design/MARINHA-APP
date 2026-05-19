@@ -305,12 +305,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
     <input type="hidden" id="mCliId">
     <label class="lbl">Nome Completo</label>
     <input type="text" class="inp" id="mCliNome">
+    <label class="lbl">NIF / Contribuinte</label>
+    <input type="text" class="inp" id="mCliNif" placeholder="Ex: 123456789" inputmode="numeric" maxlength="9">
     <label class="lbl">Telemóvel</label>
     <input type="tel" class="inp" id="mCliTel">
     <label class="lbl">Email</label>
     <input type="email" class="inp" id="mCliEmail">
     <label class="lbl">PIN de Acesso (4 dígitos)</label>
     <input type="text" class="inp" id="mCliPin" placeholder="Ex: 1234" maxlength="4">
+
+    <!-- Morada & Coordenadas -->
+    <div style="background:#eef2f7;border-radius:14px;padding:14px;margin-bottom:10px">
+      <div class="ct" style="margin-bottom:10px">📍 Morada & Localização</div>
+      <label class="lbl">Rua / Endereço</label>
+      <input type="text" class="inp" id="mCliRua" placeholder="Ex: Rua da Liberdade, 123">
+      <label class="lbl">Localidade</label>
+      <input type="text" class="inp" id="mCliLocalidade" placeholder="Ex: Porto">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <label class="lbl">Latitude</label>
+          <input type="number" class="inp" id="mCliLat" placeholder="Ex: 40.9950" step="any" style="margin-bottom:0">
+        </div>
+        <div>
+          <label class="lbl">Longitude</label>
+          <input type="number" class="inp" id="mCliLng" placeholder="Ex: -8.5250" step="any" style="margin-bottom:0">
+        </div>
+      </div>
+      <button type="button" onclick="obterLocalizacaoAtual()" style="width:100%;margin-top:8px;padding:10px;background:linear-gradient(135deg,var(--s),#2563eb);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        USAR LOCALIZAÇÃO ATUAL
+      </button>
+      <div id="mCliLocStatus" style="font-size:11px;color:var(--mu);text-align:center;margin-top:6px;min-height:16px"></div>
+    </div>
     
     <div id="wFid" style="display:none">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0">
@@ -675,9 +701,15 @@ function abrirNovoCli() {
   document.getElementById('mCliTit').textContent = 'Novo Cliente';
   document.getElementById('mCliId').value = '';
   document.getElementById('mCliNome').value = '';
+  document.getElementById('mCliNif').value = '';
   document.getElementById('mCliTel').value = '';
   document.getElementById('mCliEmail').value = '';
   document.getElementById('mCliPin').value = '';
+  document.getElementById('mCliRua').value = '';
+  document.getElementById('mCliLocalidade').value = '';
+  document.getElementById('mCliLat').value = '';
+  document.getElementById('mCliLng').value = '';
+  document.getElementById('mCliLocStatus').textContent = '';
   document.getElementById('wFid').style.display = 'none';
   document.getElementById('wApagarCli').style.display = 'none';
   document.getElementById('mCli').classList.add('a');
@@ -688,9 +720,15 @@ function verCli(id) {
   document.getElementById('mCliTit').textContent = 'Editar Cliente';
   document.getElementById('mCliId').value = c.id;
   document.getElementById('mCliNome').value = c.nome;
+  document.getElementById('mCliNif').value = c.nif || '';
   document.getElementById('mCliTel').value = c.tel;
   document.getElementById('mCliEmail').value = c.email || '';
   document.getElementById('mCliPin').value = c.pin || '';
+  document.getElementById('mCliRua').value = c.rua || '';
+  document.getElementById('mCliLocalidade').value = c.localidade || '';
+  document.getElementById('mCliLat').value = c.lat || '';
+  document.getElementById('mCliLng').value = c.lng || '';
+  document.getElementById('mCliLocStatus').textContent = (c.lat && c.lng) ? '✅ Coordenadas guardadas: ' + parseFloat(c.lat).toFixed(6) + ', ' + parseFloat(c.lng).toFixed(6) : '';
   document.getElementById('mDocData').value = hoje();
   document.getElementById('mCliPts').textContent = c.pts || 0;
   document.getElementById('mCliPou').textContent = parseFloat(c.total_gasto || 0).toFixed(2) + '€';
@@ -852,11 +890,18 @@ async function registarCompra() {
 
 async function guardarCli() {
   var id = document.getElementById('mCliId').value;
+  var latVal = document.getElementById('mCliLat').value;
+  var lngVal = document.getElementById('mCliLng').value;
   var d = {
     nome: document.getElementById('mCliNome').value,
+    nif: document.getElementById('mCliNif').value || null,
     tel: document.getElementById('mCliTel').value,
     email: document.getElementById('mCliEmail').value,
-    pin: document.getElementById('mCliPin').value || null
+    pin: document.getElementById('mCliPin').value || null,
+    rua: document.getElementById('mCliRua').value || null,
+    localidade: document.getElementById('mCliLocalidade').value || null,
+    lat: latVal ? parseFloat(latVal) : null,
+    lng: lngVal ? parseFloat(lngVal) : null
   };
   if (!d.nome || !d.tel) return alert('Nome e Telemóvel obrigatórios');
   
@@ -874,6 +919,28 @@ async function guardarCli() {
   }
   
   fecharModal('mCli'); await sincronizar(); renderCli(''); toast('✅ Guardado');
+}
+
+function obterLocalizacaoAtual() {
+  var status = document.getElementById('mCliLocStatus');
+  if (!navigator.geolocation) { status.textContent = '❌ GPS não disponível neste dispositivo'; return; }
+  status.textContent = '📡 A obter localização...';
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var lat = pos.coords.latitude.toFixed(6);
+      var lng = pos.coords.longitude.toFixed(6);
+      document.getElementById('mCliLat').value = lat;
+      document.getElementById('mCliLng').value = lng;
+      status.textContent = '✅ Localização obtida: ' + lat + ', ' + lng;
+      status.style.color = 'var(--gr)';
+    },
+    function(err) {
+      var msgs = { 1: 'Permissão negada', 2: 'Posição indisponível', 3: 'Tempo esgotado' };
+      status.textContent = '❌ ' + (msgs[err.code] || 'Erro GPS');
+      status.style.color = 'var(--r)';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
 }
 
 async function apagarCli() {
