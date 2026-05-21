@@ -303,10 +303,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
   <div class="mBox">
     <div class="mTit" id="mCliTit">Cliente</div>
     <input type="hidden" id="mCliId">
-    <label class="lbl">Nome Completo</label>
-    <input type="text" class="inp" id="mCliNome">
     <label class="lbl">NIF / Contribuinte</label>
     <input type="text" class="inp" id="mCliNif" placeholder="Ex: 123456789" inputmode="numeric" maxlength="9">
+    <label class="lbl">Nome Fiscal / DENOM <span style="color:var(--mu);font-weight:400;font-size:10px">(nome que aparece nas faturas)</span></label>
+    <input type="text" class="inp" id="mCliDenom" placeholder="Ex: EMPRESA XPTO LDA" oninput="this.value=this.value.toUpperCase()">
+    <label class="lbl">Nome Curto / Contacto</label>
+    <input type="text" class="inp" id="mCliNome">
     <label class="lbl">Telemóvel</label>
     <input type="tel" class="inp" id="mCliTel">
     <label class="lbl">Email</label>
@@ -700,8 +702,9 @@ function filtrarCli(v) { renderCli(v); }
 function abrirNovoCli() {
   document.getElementById('mCliTit').textContent = 'Novo Cliente';
   document.getElementById('mCliId').value = '';
-  document.getElementById('mCliNome').value = '';
   document.getElementById('mCliNif').value = '';
+  document.getElementById('mCliDenom').value = '';
+  document.getElementById('mCliNome').value = '';
   document.getElementById('mCliTel').value = '';
   document.getElementById('mCliEmail').value = '';
   document.getElementById('mCliPin').value = '';
@@ -719,8 +722,9 @@ function verCli(id) {
   var c = DB.clientes.find(x => x.id === id);
   document.getElementById('mCliTit').textContent = 'Editar Cliente';
   document.getElementById('mCliId').value = c.id;
-  document.getElementById('mCliNome').value = c.nome;
   document.getElementById('mCliNif').value = c.nif || '';
+  document.getElementById('mCliDenom').value = c.denom || '';
+  document.getElementById('mCliNome').value = c.nome;
   document.getElementById('mCliTel').value = c.tel;
   document.getElementById('mCliEmail').value = c.email || '';
   document.getElementById('mCliPin').value = c.pin || '';
@@ -728,7 +732,7 @@ function verCli(id) {
   document.getElementById('mCliLocalidade').value = c.localidade || '';
   document.getElementById('mCliLat').value = c.lat || '';
   document.getElementById('mCliLng').value = c.lng || '';
-  document.getElementById('mCliLocStatus').textContent = (c.lat && c.lng) ? '✅ Coordenadas guardadas: ' + parseFloat(c.lat).toFixed(6) + ', ' + parseFloat(c.lng).toFixed(6) : '';
+  document.getElementById('mCliLocStatus').textContent = (c.lat && c.lng) ? '✅ ' + parseFloat(c.lat).toFixed(6) + ', ' + parseFloat(c.lng).toFixed(6) : '';
   document.getElementById('mDocData').value = hoje();
   document.getElementById('mCliPts').textContent = c.pts || 0;
   document.getElementById('mCliPou').textContent = parseFloat(c.total_gasto || 0).toFixed(2) + '€';
@@ -893,13 +897,14 @@ async function guardarCli() {
   var latVal = document.getElementById('mCliLat').value;
   var lngVal = document.getElementById('mCliLng').value;
   var d = {
-    nome: document.getElementById('mCliNome').value,
-    nif: document.getElementById('mCliNif').value || null,
-    tel: document.getElementById('mCliTel').value,
-    email: document.getElementById('mCliEmail').value,
-    pin: document.getElementById('mCliPin').value || null,
-    rua: document.getElementById('mCliRua').value || null,
-    localidade: document.getElementById('mCliLocalidade').value || null,
+    nif: document.getElementById('mCliNif').value.trim() || null,
+    denom: document.getElementById('mCliDenom').value.trim() || null,
+    nome: document.getElementById('mCliNome').value.trim(),
+    tel: document.getElementById('mCliTel').value.trim(),
+    email: document.getElementById('mCliEmail').value.trim() || null,
+    pin: document.getElementById('mCliPin').value.trim() || null,
+    rua: document.getElementById('mCliRua').value.trim() || null,
+    localidade: document.getElementById('mCliLocalidade').value.trim() || null,
     lat: latVal ? parseFloat(latVal) : null,
     lng: lngVal ? parseFloat(lngVal) : null
   };
