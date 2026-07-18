@@ -214,6 +214,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
       </div>
 
       <div class="card">
+        <div class="ct">Ofertas</div>
+        <button class="bS" onclick="document.getElementById('fOfertas').click()">CARREGAR FOTOS</button>
+        <input type="file" id="fOfertas" hidden accept="image/*" multiple onchange="addOfertas(event)">
+        <div class="strip" id="stripOfertas"></div>
+      </div>
+
+      <div class="card">
         <div class="ct">Promoções</div>
         <button class="bP" onclick="abrirNovaPromo()">+ NOVA PROMOÇÃO</button>
       </div>
@@ -497,22 +504,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
 const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
 const BUCKET = 'marinha';
-var DB = { clientes: [], promos: [], catálogos: [], cfg: { nomeLoja: 'MARINHA', pin: '1234', euroPonto: 1, pontoEuro: 20 } };
+var DB = { clientes: [], promos: [], catálogos: [], folhetos: [], ofertas: [], cfg: { nomeLoja: 'MARINHA', pin: '1234', euroPonto: 1, pontoEuro: 20 } };
 var _vIdx = 0;
+var _vTipoAdmin = 'catalogo';
 
 function hd(){ return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-Type': 'application/json' }; }
 
 async function sincronizar() {
   try {
-    const [c, p, f, g] = await Promise.all([
+    const [c, p, f, o, g] = await Promise.all([
       fetch(SB + '/rest/v1/clientes?order=id.asc', { headers: hd() }).then(r => r.json()),
       fetch(SB + '/rest/v1/promos?order=id.desc', { headers: hd() }).then(r => r.json()),
       fetch(SB + '/rest/v1/folhetos?order=id.asc', { headers: hd() }).then(r => r.json()),
+      fetch(SB + '/rest/v1/ofertas?order=id.asc', { headers: hd() }).then(r => r.json()),
       fetch(SB + '/rest/v1/config?id=eq.1', { headers: hd() }).then(r => r.json())
     ]);
     DB.clientes = c || [];
     DB.promos = p || [];
     DB.folhetos = f || [];
+    DB.ofertas = o || [];
     if (g && g[0]) DB.cfg = Object.assign(DB.cfg, g[0]);
   } catch(e) { toast('Erro ao sincronizar'); }
 }
@@ -559,6 +569,50 @@ async function addCatalogo(e) {
     }
   }
   await sincronizar(); renderCatalogo();
+}
+
+// ── UPLOAD FOTOS OFERTAS ──
+async function addOfertas(e) {
+  var files = e.target.files;
+  if (!files.length) return;
+  log('INICIANDO UPLOAD OFERTAS...', '#fff');
+
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    log('Processando: ' + f.name, '#fff');
+
+    try {
+      var path = 'ofertas/o_' + Date.now() + '_' + i + '.jpg';
+      var up = await fetch(SB + '/storage/v1/object/' + BUCKET + '/' + path, {
+        method: 'POST',
+        headers: { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'x-upsert': 'true' },
+        body: f
+      });
+
+      if (up.ok) {
+        var url = SB + '/storage/v1/object/public/' + BUCKET + '/' + path;
+        log('STORAGE OK! Gravando na tabela...', '#gr');
+
+        var res = await fetch(SB + '/rest/v1/ofertas', {
+          method: 'POST',
+          headers: hd(),
+          body: JSON.stringify({ url: url })
+        });
+
+        if (res.ok) {
+          log('SUCESSO: Foto adicionada!', '#0f0');
+        } else {
+          var err = await res.text();
+          log('ERRO TABELA: ' + err, '#f00');
+        }
+      } else {
+        log('ERRO STORAGE: ' + up.status, '#f00');
+      }
+    } catch(err) {
+      log('ERRO CRÍTICO: ' + err.message, '#f00');
+    }
+  }
+  await sincronizar(); renderOfertas();
 }
 
 // ── UPLOAD FOTO PROMO ──
@@ -638,7 +692,7 @@ function irTab(tab) {
   document.getElementById('n' + tab).classList.add('a');
   if (tab === 'Dash') renderDash();
   if (tab === 'Clientes') renderCli('');
-  if (tab === 'Catalogo') { renderPromos(); renderCatalogo(); }
+  if (tab === 'Catalogo') { renderPromos(); renderCatalogo(); renderOfertas(); }
   if (tab === 'Config') renderConfig();
 }
 
@@ -654,13 +708,25 @@ function renderDash() {
 
 function renderCatalogo() {
   var el = document.getElementById('stripCat');
-  el.innerHTML = DB.folhetos.map((f, i) => `<div class="fThumb" onclick="abrirViewer(${i})"><img src="${f.url}"><div class="fDel" onclick="event.stopPropagation();apagarCatalogo(${f.id})">×</div></div>`).join('');
+  el.innerHTML = DB.folhetos.map((f, i) => `<div class="fThumb" onclick="abrirViewer(${i},'catalogo')"><img src="${f.url}"><div class="fDel" onclick="event.stopPropagation();apagarCatalogo(${f.id})">×</div></div>`).join('');
 }
 
 async function apagarCatalogo(id) {
   if (!confirm('Remover página?')) return;
   await fetch(SB + '/rest/v1/folhetos?id=eq.' + id, { method: 'DELETE', headers: hd() });
   await sincronizar(); renderCatalogo();
+}
+
+function renderOfertas() {
+  var el = document.getElementById('stripOfertas');
+  if (!el) return;
+  el.innerHTML = DB.ofertas.map((f, i) => `<div class="fThumb" onclick="abrirViewer(${i},'ofertas')"><img src="${f.url}"><div class="fDel" onclick="event.stopPropagation();apagarOferta(${f.id})">×</div></div>`).join('');
+}
+
+async function apagarOferta(id) {
+  if (!confirm('Remover foto?')) return;
+  await fetch(SB + '/rest/v1/ofertas?id=eq.' + id, { method: 'DELETE', headers: hd() });
+  await sincronizar(); renderOfertas();
 }
 
 function renderPromos() {
@@ -1303,14 +1369,15 @@ function toast(msg) { var el = document.getElementById('toast'); el.textContent 
 function log(msg, color) { var el = document.getElementById('log'); var line = document.createElement('div'); line.className = 'logLine'; line.style.color = color || '#fff'; line.textContent = msg; el.appendChild(line); el.classList.add('v'); setTimeout(() => { if (el.children.length > 20) el.removeChild(el.firstChild); }, 100); }
 
 // Viewer
-function abrirViewer(i) { _vIdx = i; updViewer(); document.getElementById('viewer').classList.add('a'); }
+function abrirViewer(i, tipo) { _vIdx = i; _vTipoAdmin = tipo || 'catalogo'; updViewer(); document.getElementById('viewer').classList.add('a'); }
 function fecharViewer() { document.getElementById('viewer').classList.remove('a'); }
 function updViewer() {
+  var lista = _vTipoAdmin === 'ofertas' ? DB.ofertas : DB.folhetos;
   var tr = document.getElementById('vTrack');
-  tr.style.width = (DB.folhetos.length * 100) + 'vw';
-  tr.innerHTML = DB.folhetos.map(f => `<div class="vSlide"><img src="${f.url}"></div>`).join('');
+  tr.style.width = (lista.length * 100) + 'vw';
+  tr.innerHTML = lista.map(f => `<div class="vSlide"><img src="${f.url}"></div>`).join('');
   tr.style.transform = `translateX(-${_vIdx * 100}vw)`;
-  document.getElementById('vCount').textContent = (_vIdx + 1) + ' / ' + DB.folhetos.length;
+  document.getElementById('vCount').textContent = (_vIdx + 1) + ' / ' + lista.length;
 }
 
 window.onload = () => {

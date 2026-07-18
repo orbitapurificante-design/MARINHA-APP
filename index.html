@@ -282,6 +282,9 @@
     <!-- FOLHETOS -->
     <div class="ecra" id="ecraCatalogo"></div>
 
+    <!-- OFERTAS -->
+    <div class="ecra" id="ecraOfertas"></div>
+
     <!-- QR -->
     <div class="ecra" id="ecraQR">
         <div class="s">
@@ -303,6 +306,10 @@
         <button class="nBtn" id="nCatalogo" onclick="ir('Catalogo')">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
             Catálogo
+        </button>
+        <button class="nBtn" id="nOfertas" onclick="ir('Ofertas')">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            Ofertas
         </button>
         <button class="nBtn" id="nQR" onclick="ir('QR')">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"></rect><rect x="16" y="3" width="5" height="5"></rect><rect x="3" y="16" width="5" height="5"></rect><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7"></path></svg>
@@ -569,6 +576,7 @@ function ir(tab) {
     
     if(tab === 'Inicio') renderInicio();
     if(tab === 'Catalogo') abrirCatalogoFullscreen();
+    if(tab === 'Ofertas') abrirOfertasFullscreen();
     if(tab === 'QR') renderQR();
     window.scrollTo(0, 0);
 }
@@ -649,6 +657,19 @@ async function abrirCatalogoFullscreen() {
     }
     _vSlides = folhetos.map(f => ({ src: f.url || f.data }));
     _vTipo = 'catalogo';
+    _vIdx = 0;
+    mostrarViewer();
+}
+
+async function abrirOfertasFullscreen() {
+    const ofertas = await api('ofertas?order=id.asc');
+    if(!ofertas || !ofertas.length) {
+        toast('Sem ofertas disponíveis');
+        ir('Inicio');
+        return;
+    }
+    _vSlides = ofertas.map(f => ({ src: f.url || f.data }));
+    _vTipo = 'ofertas';
     _vIdx = 0;
     mostrarViewer();
 }
@@ -809,7 +830,7 @@ function fecharViewer() {
     if(sairFixed) sairFixed.style.display = 'none';
     if(countFixed) countFixed.style.display = 'none';
     if(promoOverlay) promoOverlay.style.display = 'none';
-    if (_vTipo === 'catalogo') ir('Inicio');
+    if (_vTipo === 'catalogo' || _vTipo === 'ofertas') ir('Inicio');
     _vTipo = '';
 }
 
