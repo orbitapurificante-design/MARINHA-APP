@@ -24,6 +24,9 @@
         #eReg{position:fixed;inset:0;z-index:9999;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:14px}
         .rInp{width:100%;max-width:320px;padding:16px;background:#f4f7fa;border:1.5px solid #e1e8ed;border-radius:14px;color:var(--n);text-align:center;font-size:16px;outline:none;font-family:'DM Sans',sans-serif}
         .rInp::placeholder{color:#999}
+        .hTable{width:100%;border-collapse:collapse;font-size:12px}
+        .hTable th{text-align:left;padding:8px 6px;background:#f4f7fa;font-weight:700;color:var(--mu);border-bottom:1px solid rgba(0,0,0,.06)}
+        .hTable td{padding:8px 6px;border-bottom:1px solid rgba(0,0,0,.06)}
         .rBtn{width:100%;max-width:320px;padding:16px;background:linear-gradient(135deg,var(--g),var(--gl));color:var(--n);border:none;border-radius:14px;font-weight:800;cursor:pointer;font-size:16px;font-family:'DM Sans',sans-serif}
         
         /* PIN SCREEN */
@@ -252,15 +255,12 @@
                     <div style="text-align:right;flex-shrink:0">
                         <div style="font-size:10px;opacity:0.55;text-transform:uppercase;letter-spacing:1px" id="hNum">Nº 00000</div>
                         <div class="hGrid" style="margin-top:4px;gap:8px">
-                            <div class="hItem" style="padding:6px 10px">
+                            <div class="hItem" style="padding:6px 14px;cursor:pointer" onclick="abrirDocumentos()">
                                 <div class="hVal" id="hPts" style="font-size:16px">0</div>
                                 <div class="hLbl">Pontos</div>
                             </div>
-                            <div class="hItem" style="padding:6px 10px">
-                                <div class="hVal" id="hPou" style="font-size:16px">0.00€</div>
-                                <div class="hLbl">Poupado</div>
-                            </div>
                         </div>
+                        <div onclick="abrirDocumentos()" style="cursor:pointer;font-size:10px;opacity:.7;margin-top:6px;text-decoration:underline">📄 Ver documentos</div>
                     </div>
                 </div>
             </div>
@@ -320,6 +320,23 @@
             Sair
         </button>
     </nav>
+</div>
+
+<!-- MODAL DOCUMENTOS -->
+<div class="modal" id="mDocumentos">
+  <div class="mCart">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:18px;font-weight:800">📄 Os meus Documentos</div>
+      <button onclick="fecharDocumentos()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--mu)">×</button>
+    </div>
+    <div style="text-align:center;margin-bottom:14px">
+      <div style="font-size:28px;font-weight:800" id="docPtsTotal">0</div>
+      <div style="font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:1px">Pontos Disponíveis</div>
+    </div>
+    <div style="max-height:50vh;overflow-y:auto">
+      <table class="hTable" id="tblDocumentos"></table>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL CARRINHO -->
@@ -586,12 +603,6 @@ async function renderInicio() {
     document.getElementById('hNome').textContent = USER.nome;
     document.getElementById('hNum').textContent = 'Nº ' + (USER.num_cliente || '—');
     document.getElementById('hPts').textContent = USER.pts || 0;
-    // O valor poupado real é calculado com base nos pontos que o cliente tem
-    // Vamos buscar a configuração de fidelização para saber quanto vale cada ponto
-    const cfg = await api('config?id=eq.1');
-    const r_pontoEuro = (cfg && cfg[0] && cfg[0].ponto_euro) ? cfg[0].ponto_euro : 20;
-    const poupadoReal = (USER.pts || 0) / r_pontoEuro;
-    document.getElementById('hPou').textContent = poupadoReal.toFixed(2) + '€';
     // (uLetra removido - substituído por carrinho neon)
 
     const h = hoje();
@@ -936,6 +947,32 @@ function cartChange(id, delta) {
         badge.textContent = total;
         badge.style.display = total > 0 ? 'flex' : 'none';
     }
+}
+
+function abrirDocumentos() {
+    if (!USER) return;
+    document.getElementById('docPtsTotal').textContent = USER.pts || 0;
+    var h = USER.historico || [];
+    var html = '<tr><th>Data</th><th>Doc</th><th>Nº Fatura</th><th>Valor</th><th>Pts</th></tr>';
+    if (!h.length) {
+        html += '<tr><td colspan="5" style="text-align:center;color:var(--mu);padding:20px 0">Ainda não tem documentos registados.</td></tr>';
+    } else {
+        html += h.slice().reverse().map(function(x) {
+            return '<tr>' +
+                '<td>' + fd(x.data) + '</td>' +
+                '<td>' + x.tipo + (x.brinde ? ' 🎁' : '') + '</td>' +
+                '<td>' + (x.fatura || x.brinde || '—') + '</td>' +
+                '<td>' + parseFloat(x.valor || 0).toFixed(2) + '€</td>' +
+                '<td>' + x.pts + '</td>' +
+            '</tr>';
+        }).join('');
+    }
+    document.getElementById('tblDocumentos').innerHTML = html;
+    document.getElementById('mDocumentos').classList.add('a');
+}
+
+function fecharDocumentos() {
+    document.getElementById('mDocumentos').classList.remove('a');
 }
 
 function abrirCarrinho() {

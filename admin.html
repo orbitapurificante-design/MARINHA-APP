@@ -258,10 +258,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
       <div class="card">
         <div class="ct">Fidelização & Pontos</div>
         <label class="lbl">€ Gastos para 1 Ponto</label>
-        <input type="number" class="inp" id="cfgEuroPonto" placeholder="Ex: 1.00">
-        <label class="lbl">Pontos para 1€ Desconto</label>
-        <input type="number" class="inp" id="cfgPontoEuro" placeholder="Ex: 20">
+        <input type="number" class="inp" id="cfgEuroPonto" placeholder="Ex: 100">
         <button class="bP" onclick="guardarCfgFid()">GUARDAR FIDELIZAÇÃO</button>
+      </div>
+
+      <div class="card">
+        <div class="ct">Brindes / Prémios de Fidelização</div>
+        <p style="font-size:12px;color:var(--mu);margin-bottom:12px">Cria brindes que os clientes podem trocar pelos seus pontos acumulados.</p>
+        <label class="lbl">Nome do Brinde</label>
+        <input type="text" class="inp" id="brNome" placeholder="Ex: Vale 10€">
+        <label class="lbl">Pontos Necessários</label>
+        <input type="number" class="inp" id="brPontos" placeholder="Ex: 500" min="1">
+        <button class="bP" onclick="addBrinde()">+ ADICIONAR BRINDE</button>
+        <div id="listaBrindes" style="margin-top:12px"></div>
       </div>
 
       <div class="card">
@@ -381,6 +390,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
           </select>
         </div>
         <div>
+          <label class="lbl">Nº Fatura</label>
+          <input type="text" class="inp" id="mDocNum" placeholder="Ex: FT 2026/123">
+        </div>
+        <div>
           <label class="lbl">Data</label>
           <input type="date" class="inp" id="mDocData">
         </div>
@@ -390,6 +403,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
         </div>
       </div>
       <button class="bS" style="background:var(--n);color:#fff" onclick="registarCompra()">+ REGISTAR DOCUMENTO</button>
+
+      <div class="ct" style="margin-top:15px">Resgatar Brinde</div>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:10px">
+        <select class="inp" id="mBrindeSel" style="margin-bottom:0"></select>
+        <button class="bS" style="background:#8e44ad;color:#fff;white-space:nowrap;padding:0 16px" onclick="resgatarBrinde()">RESGATAR</button>
+      </div>
+      <div id="mBrindeInfo" style="font-size:11px;color:var(--mu);margin:4px 0 10px"></div>
       
       <div class="ct" style="margin-top:15px">Bónus de Fidelização</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -508,7 +528,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 const SB = 'https://opzmuzogxfzeqwjxmfvc.supabase.co';
 const SK = 'sb_publishable_e_Bd_rx2rfzBeIrbyGxCwA_SfXklv4s';
 const BUCKET = 'marinha';
-var DB = { clientes: [], promos: [], catálogos: [], folhetos: [], ofertas: [], cfg: { nomeLoja: 'MARINHA', pin: '1234', euroPonto: 1, pontoEuro: 20 } };
+var DB = { clientes: [], promos: [], catálogos: [], folhetos: [], ofertas: [], brindes: [], cfg: { nomeLoja: 'MARINHA', pin: '1234', euroPonto: 100 } };
 var _vIdx = 0;
 var _vTipoAdmin = 'catalogo';
 
@@ -519,17 +539,19 @@ async function sincronizar() {
     var safeFetch = function(url) {
       return fetch(url, { headers: hd() }).then(r => r.ok ? r.json() : []).catch(() => []);
     };
-    const [c, p, f, o, g] = await Promise.all([
+    const [c, p, f, o, b, g] = await Promise.all([
       safeFetch(SB + '/rest/v1/clientes?order=id.asc'),
       safeFetch(SB + '/rest/v1/promos?order=id.desc'),
       safeFetch(SB + '/rest/v1/folhetos?order=id.asc'),
       safeFetch(SB + '/rest/v1/ofertas?order=id.asc'),
+      safeFetch(SB + '/rest/v1/brindes?order=pontos.asc'),
       safeFetch(SB + '/rest/v1/config?id=eq.1')
     ]);
     DB.clientes = c || [];
     DB.promos = p || [];
     DB.folhetos = f || [];
     DB.ofertas = o || [];
+    DB.brindes = b || [];
     if (g && g[0]) DB.cfg = Object.assign(DB.cfg, g[0]);
   } catch(e) { toast('Erro ao sincronizar'); }
 }
@@ -814,16 +836,21 @@ function verCli(id) {
   document.getElementById('mBonusAdicionar').value = '';
   
   var h = c.historico || [];
-  var html = '<tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Pts</th><th></th></tr>';
+  var html = '<tr><th>Data</th><th>Doc</th><th>Nº Fatura</th><th>Valor</th><th>Pts</th><th></th></tr>';
   html += h.map((x, idx) => `<tr>
     <td>${fd(x.data)}</td>
-    <td>${x.tipo}</td>
+    <td>${x.tipo}${x.brinde ? ' 🎁' : ''}</td>
+    <td>${x.fatura || (x.brinde || '')}</td>
     <td>${parseFloat(x.valor).toFixed(2)}€</td>
     <td>${x.pts}</td>
     <td><button onclick="delDoc('${c.id}', ${idx})" style="border:none;background:none;color:var(--r);font-size:14px;cursor:pointer">🗑️</button></td>
   </tr>`).reverse().slice(0, 10).join('');
   document.getElementById('mCliHist').innerHTML = html;
-  
+
+  var selB = document.getElementById('mBrindeSel');
+  selB.innerHTML = DB.brindes.map(b => `<option value="${b.id}">${b.nome} — ${b.pontos} pts</option>`).join('') || '<option value="">Sem brindes criados</option>';
+  document.getElementById('mBrindeInfo').textContent = 'Pontos disponíveis: ' + (c.pts || 0);
+
   document.getElementById('wFid').style.display = 'block';
   document.getElementById('wApagarCli').style.display = 'block';
   document.getElementById('mCli').classList.add('a');
@@ -925,7 +952,8 @@ async function registarCompra() {
   }
   
   var dataDoc = document.getElementById('mDocData').value || hoje();
-  var novoHist = { data: dataDoc, tipo: tipo, valor: valorRegisto, pts: ptsRegisto };
+  var numFatura = document.getElementById('mDocNum').value.trim();
+  var novoHist = { data: dataDoc, tipo: tipo, fatura: numFatura, valor: valorRegisto, pts: ptsRegisto };
   
   var historico = JSON.parse(JSON.stringify(c.historico || []));
   historico.push(novoHist);
@@ -951,6 +979,7 @@ async function registarCompra() {
     if (res.ok) {
       log('SUCESSO: Documento registado!', '#0f0');
       document.getElementById('mDocValor').value = '';
+      document.getElementById('mDocNum').value = '';
       await sincronizar();
       verCli(id);
       toast('✅ Compra registada');
@@ -958,6 +987,50 @@ async function registarCompra() {
       var err = await res.text();
       log('ERRO AO GRAVAR: ' + err, '#f00');
       alert('Erro ao registar: ' + err);
+    }
+  } catch(e) {
+    log('ERRO DE LIGAÇÃO: ' + e.message, '#f00');
+    alert('Erro de ligação: ' + e.message);
+  }
+}
+
+async function resgatarBrinde() {
+  var id = document.getElementById('mCliId').value;
+  var brindeId = document.getElementById('mBrindeSel').value;
+  if (!brindeId) return alert('Não há brindes disponíveis para resgatar');
+
+  var c = DB.clientes.find(x => x.id == id);
+  var brinde = DB.brindes.find(x => x.id == brindeId);
+  if (!c || !brinde) return alert('Erro ao localizar cliente ou brinde');
+
+  var ptsAtuais = parseInt(c.pts) || 0;
+  var ptsNecessarios = parseInt(brinde.pontos) || 0;
+  if (ptsAtuais < ptsNecessarios) return alert('❌ O cliente não tem pontos suficientes. Tem ' + ptsAtuais + ' pts, são necessários ' + ptsNecessarios + ' pts.');
+
+  if (!confirm('Confirmar resgate de "' + brinde.nome + '" por ' + ptsNecessarios + ' pontos?')) return;
+
+  log('A resgatar brinde: ' + brinde.nome, '#fff');
+
+  var novosPts = ptsAtuais - ptsNecessarios;
+  var novoHist = { data: hoje(), tipo: 'BRINDE', brinde: brinde.nome, valor: 0, pts: -ptsNecessarios };
+  var historico = JSON.parse(JSON.stringify(c.historico || []));
+  historico.push(novoHist);
+
+  try {
+    var res = await fetch(SB + '/rest/v1/clientes?id=eq.' + c.id, {
+      method: 'PATCH',
+      headers: hd(),
+      body: JSON.stringify({ pts: novosPts, historico: historico })
+    });
+    if (res.ok) {
+      log('SUCESSO: Brinde resgatado!', '#0f0');
+      await sincronizar();
+      verCli(id);
+      toast('🎁 Brinde resgatado com sucesso');
+    } else {
+      var err = await res.text();
+      log('ERRO AO RESGATAR: ' + err, '#f00');
+      alert('Erro ao resgatar brinde: ' + err);
     }
   } catch(e) {
     log('ERRO DE LIGAÇÃO: ' + e.message, '#f00');
@@ -1110,8 +1183,41 @@ async function apagarPromo() {
 function renderConfig() {
   document.getElementById('cfgNome').value = DB.cfg.nome_loja || DB.cfg.nomeLoja || '';
   document.getElementById('cfgPin').value = DB.cfg.pin || '';
-  document.getElementById('cfgEuroPonto').value = DB.cfg.euro_ponto || DB.cfg.euroPonto || 1;
-  document.getElementById('cfgPontoEuro').value = DB.cfg.ponto_euro || DB.cfg.pontoEuro || 20;
+  document.getElementById('cfgEuroPonto').value = DB.cfg.euro_ponto || DB.cfg.euroPonto || 100;
+  renderBrindes();
+}
+
+// ── BRINDES ──
+function renderBrindes() {
+  var el = document.getElementById('listaBrindes');
+  if (!el) return;
+  if (!DB.brindes.length) { el.innerHTML = '<p style="font-size:12px;color:var(--mu)">Ainda não há brindes criados.</p>'; return; }
+  el.innerHTML = DB.brindes.map(b => `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#f4f7fa;border-radius:10px;padding:10px 12px;margin-bottom:6px">
+      <div><b style="font-size:13px">${b.nome}</b><br><small style="color:var(--mu)">${b.pontos} pontos</small></div>
+      <button onclick="apagarBrinde('${b.id}')" style="border:none;background:none;color:var(--r);font-size:16px;cursor:pointer">🗑️</button>
+    </div>`).join('');
+}
+
+async function addBrinde() {
+  var nome = document.getElementById('brNome').value.trim();
+  var pontos = parseInt(document.getElementById('brPontos').value) || 0;
+  if (!nome || pontos <= 0) return alert('Preenche o nome e os pontos necessários');
+  var res = await fetch(SB + '/rest/v1/brindes', { method: 'POST', headers: hd(), body: JSON.stringify({ nome: nome, pontos: pontos }) });
+  if (res.ok) {
+    document.getElementById('brNome').value = '';
+    document.getElementById('brPontos').value = '';
+    await sincronizar(); renderBrindes(); toast('✅ Brinde adicionado');
+  } else {
+    var err = await res.text();
+    alert('Erro ao adicionar brinde: ' + err);
+  }
+}
+
+async function apagarBrinde(id) {
+  if (!confirm('Apagar este brinde?')) return;
+  await fetch(SB + '/rest/v1/brindes?id=eq.' + id, { method: 'DELETE', headers: hd() });
+  await sincronizar(); renderBrindes(); toast('🗑️ Brinde removido');
 }
 
 async function guardarCfg() {
@@ -1143,8 +1249,7 @@ async function guardarCfg() {
 
 async function guardarCfgFid() {
   var d = { 
-    euro_ponto: parseFloat(document.getElementById('cfgEuroPonto').value) || 1,
-    ponto_euro: parseInt(document.getElementById('cfgPontoEuro').value) || 20
+    euro_ponto: parseFloat(document.getElementById('cfgEuroPonto').value) || 100
   };
   try {
     var r = await fetch(SB + '/rest/v1/config?id=eq.1', { 
