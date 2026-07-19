@@ -497,7 +497,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-he
 
 <!-- TOAST & LOG -->
 <div id="toast"></div>
-<div id="log"></div>
+<div id="log">
+  <div style="text-align:right;margin-bottom:6px">
+    <span onclick="document.getElementById('log').classList.remove('v')" style="cursor:pointer;background:rgba(255,255,255,.15);border-radius:6px;padding:2px 8px;font-weight:700">FECHAR ×</span>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
@@ -512,12 +516,15 @@ function hd(){ return { 'apikey': SK, 'Authorization': 'Bearer ' + SK, 'Content-
 
 async function sincronizar() {
   try {
+    var safeFetch = function(url) {
+      return fetch(url, { headers: hd() }).then(r => r.ok ? r.json() : []).catch(() => []);
+    };
     const [c, p, f, o, g] = await Promise.all([
-      fetch(SB + '/rest/v1/clientes?order=id.asc', { headers: hd() }).then(r => r.json()),
-      fetch(SB + '/rest/v1/promos?order=id.desc', { headers: hd() }).then(r => r.json()),
-      fetch(SB + '/rest/v1/folhetos?order=id.asc', { headers: hd() }).then(r => r.json()),
-      fetch(SB + '/rest/v1/ofertas?order=id.asc', { headers: hd() }).then(r => r.json()),
-      fetch(SB + '/rest/v1/config?id=eq.1', { headers: hd() }).then(r => r.json())
+      safeFetch(SB + '/rest/v1/clientes?order=id.asc'),
+      safeFetch(SB + '/rest/v1/promos?order=id.desc'),
+      safeFetch(SB + '/rest/v1/folhetos?order=id.asc'),
+      safeFetch(SB + '/rest/v1/ofertas?order=id.asc'),
+      safeFetch(SB + '/rest/v1/config?id=eq.1')
     ]);
     DB.clientes = c || [];
     DB.promos = p || [];
@@ -1366,7 +1373,7 @@ function hoje() { return new Date().toISOString().slice(0, 10); }
 function fd(d) { return d ? new Date(d).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' }) : ''; }
 function fecharModal(id) { document.getElementById(id).classList.remove('a'); }
 function toast(msg) { var el = document.getElementById('toast'); el.textContent = msg; el.classList.add('v'); setTimeout(() => el.classList.remove('v'), 2500); }
-function log(msg, color) { var el = document.getElementById('log'); var line = document.createElement('div'); line.className = 'logLine'; line.style.color = color || '#fff'; line.textContent = msg; el.appendChild(line); el.classList.add('v'); setTimeout(() => { if (el.children.length > 20) el.removeChild(el.firstChild); }, 100); }
+function log(msg, color) { var el = document.getElementById('log'); var line = document.createElement('div'); line.className = 'logLine'; line.style.color = color || '#fff'; line.textContent = msg; el.appendChild(line); el.classList.add('v'); setTimeout(() => { if (el.querySelectorAll('.logLine').length > 20) el.removeChild(el.querySelector('.logLine')); }, 100); clearTimeout(window._logHideT); window._logHideT = setTimeout(() => { el.classList.remove('v'); }, 6000); }
 
 // Viewer
 function abrirViewer(i, tipo) { _vIdx = i; _vTipoAdmin = tipo || 'catalogo'; updViewer(); document.getElementById('viewer').classList.add('a'); }
