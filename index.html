@@ -18,7 +18,11 @@
     <style>
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
         :root{--n:#0a1628;--s:#1a4a8a;--g:#c9a84c;--gl:#e8c97a;--bg:#ffffff;--mu:#7a8a9a;--r:#e74c3c;--gr:#27ae60}
-        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh;overflow-x:hidden;padding-top: env(safe-area-inset-top);padding-bottom: env(safe-area-inset-bottom);}
+        html{background:#eef2f7}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--n);min-height:100vh;overflow-x:hidden;padding:0}
+        /* Barra de estado (topo) azul e barra de navegação Android (fundo) cinza, atrás dos botões do sistema */
+        body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:var(--n);z-index:101}
+        body::after{content:'';position:fixed;bottom:0;left:0;right:0;height:env(safe-area-inset-bottom);background:#eef2f7;z-index:101}
 
         /* LOGIN */
         #eReg{position:fixed;inset:0;z-index:9999;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:14px}
@@ -44,11 +48,14 @@
         /* APP */
         #eApp{display:none;flex-direction:column;min-height:100vh}
         #eApp.v{display:flex}
-        .cab{position:fixed;top:0;left:0;right:0;z-index:100;height:calc(60px + env(safe-area-inset-top));background:linear-gradient(135deg,var(--n),var(--s));display:flex;align-items:center;padding:env(safe-area-inset-top) 16px 0;box-shadow:0 3px 16px rgba(0,0,0,.25)}
-        .cabT{color:#fff;font-size:17px;font-weight:700;flex:1}
+        .cab{position:fixed;top:0;left:0;right:0;z-index:100;height:calc(60px + env(safe-area-inset-top));background:linear-gradient(90deg,var(--n),var(--s));display:flex;align-items:center;padding:env(safe-area-inset-top) 16px 0}
+        .cabT{color:#fff;font-size:17px;font-weight:800;letter-spacing:1px;flex:1;display:flex;align-items:center;gap:10px;min-width:0}
+        .cabSaud{border-left:1px solid rgba(255,255,255,.3);padding-left:10px;font-size:11px;font-weight:600;line-height:1.25;letter-spacing:0;min-width:0;overflow:hidden}
+        .cabSaud b{display:block;font-size:12px;font-weight:800}
+        .cabSaud span{display:block;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
         /* NAV */
-        .nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#fff;border-top:1px solid rgba(0,0,0,.07);display:flex;height:calc(68px + env(safe-area-inset-bottom));padding-bottom: env(safe-area-inset-bottom);}
+        .nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#eef2f7;border-top:1px solid rgba(0,0,0,.07);display:flex;height:calc(68px + env(safe-area-inset-bottom));padding-bottom: env(safe-area-inset-bottom);}
         .nBtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);font-family:'DM Sans',sans-serif}
         .nBtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
         .nBtn.a{color:var(--n)}
@@ -59,7 +66,11 @@
         .s{padding:0 16px}
 
         /* HERO */
-        .hero{background:linear-gradient(135deg,var(--n),var(--s));border-radius:20px;padding:22px;color:#fff;margin-bottom:16px}
+        .hero{background:linear-gradient(90deg,var(--n),var(--s));border-radius:0 0 18px 18px;padding:4px 16px 12px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 4px 14px rgba(10,22,40,.2)}
+        .hNumW{text-align:left}
+        .hPtsW{text-align:center;background:rgba(255,255,255,.12);padding:5px 16px;border-radius:12px;cursor:pointer}
+        .hDoc{font-size:11px;font-weight:700;text-decoration:underline;opacity:.85;cursor:pointer;text-align:right}
+        #ecraInicio{padding-top:calc(60px + env(safe-area-inset-top))}
         .hGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
         .hItem{background:rgba(255,255,255,0.1);padding:14px;border-radius:14px}
         .hVal{font-size:22px;font-weight:800}
@@ -222,7 +233,9 @@
 
 <div id="eApp">
     <div class="cab">
-        <div class="cabT" id="cabNome">MARINHA</div>
+        <div class="cabT" id="cabNome">MARINHA
+            <div class="cabSaud"><b>Bem-vindo!</b><span>Olá, <span id="hNome" style="display:inline;opacity:1">...</span></span></div>
+        </div>
         <!-- Sino de novidades -->
         <div class="bell-wrap" onclick="verNovidades()" id="bellWrap">
             <div class="bell-ico" id="bellIco">
@@ -245,27 +258,19 @@
 
     <!-- INICIO -->
     <div class="ecra a" id="ecraInicio">
-        <div class="s">
-            <div class="hero">
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-                    <div>
-                        <div style="font-size:20px;font-weight:800;margin:0">Bem-vindo!</div>
-                        <div style="font-size:13px;opacity:0.7;margin-top:2px">Olá, <span id="hNome">...</span></div>
-                    </div>
-                    <div style="text-align:right;flex-shrink:0">
-                        <div style="font-size:10px;opacity:0.55;text-transform:uppercase;letter-spacing:1px" id="hNum">Nº 00000</div>
-                        <div class="hGrid" style="margin-top:4px;gap:8px">
-                            <div class="hItem" style="padding:6px 14px;cursor:pointer" onclick="abrirDocumentos()">
-                                <div class="hVal" id="hPts" style="font-size:16px">0</div>
-                                <div class="hLbl">Pontos</div>
-                            </div>
-                        </div>
-                        <div onclick="abrirDocumentos()" style="cursor:pointer;font-size:10px;opacity:.7;margin-top:6px;text-decoration:underline">📄 Ver documentos</div>
-                    </div>
-                </div>
+        <div class="hero">
+            <div class="hNumW">
+                <div class="hLbl" style="margin:0">Cliente</div>
+                <div id="hNum" style="font-size:13px;font-weight:800">Nº 00000</div>
             </div>
-
-            <span class="section-title">Promoções em Destaque</span>
+            <div class="hPtsW" onclick="abrirDocumentos()">
+                <div class="hVal" id="hPts" style="font-size:18px;line-height:1">0</div>
+                <div class="hLbl" style="margin:0">Pontos</div>
+            </div>
+            <div class="hDoc" onclick="abrirDocumentos()">📄 Ver documentos</div>
+        </div>
+        <div class="s">
+            <span class="section-title" style="margin-top:14px">Promoções em Destaque</span>
             <!-- Banner novidade -->
             <div id="bannerNovidade" onclick="verNovidades()">
                 <div style="font-size:22px">🔔</div>
